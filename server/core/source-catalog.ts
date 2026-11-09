@@ -32,9 +32,10 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
     description:
       'Swiss general marketplace. The community project drives a real browser, reads public listing pages and emits JSON that Fundstück can map.',
     install:
-      'pip install ricardo-scraper   (Python 3.11/3.12; first run downloads a pinned browser build)\n# or clone github.com/danyk20/ricardo-scraper and use: pipenv run python ricardo_scraper.py',
+      'python3 -m pip install ricardo-scraper   (Python 3.11/3.12; first run downloads a pinned browser build)\n# or clone github.com/danyk20/ricardo-scraper and use: pipenv run python ricardo_scraper.py',
     docsUrl: 'https://github.com/danyk20/ricardo-scraper',
-    installCommand: ['pip', 'install', 'ricardo-scraper'],
+    // Avoid assuming a standalone pip executable exists in container PATH.
+    installCommand: ['python3', '-m', 'pip', 'install', 'ricardo-scraper'],
     risk:
       'Not bundled and disabled until you save it. This scraper uses camoufox to satisfy ricardo.ch’s Cloudflare challenge, so it may conflict with Ricardo/Cloudflare terms. Review those terms and keep the default request delay.',
     template: {
