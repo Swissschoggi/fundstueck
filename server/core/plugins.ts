@@ -35,6 +35,7 @@ export interface PluginManifest {
   markets?: string[];
   envVars?: string[];
   docsUrl?: string;
+  configFields?: import('./types.js').AdapterConfigField[];
 }
 
 export interface PluginStatus {
@@ -45,6 +46,7 @@ export interface PluginStatus {
   markets: string[];
   envVars: string[];
   docsUrl?: string;
+  configFields?: import('./types.js').AdapterConfigField[];
   dir: string;
   loaded: boolean;
   error?: string;
@@ -56,6 +58,7 @@ export interface PluginContext {
   userAgent: string;
   minIntervalMs: number;
   dataDir: string;
+  getAdapterConfig: (id: string) => Record<string, string>;
 }
 
 interface PluginModule {
@@ -135,6 +138,11 @@ export async function loadPlugins(
         userAgent: cfg.scrapers.userAgent,
         minIntervalMs: cfg.scrapers.minIntervalMs,
         dataDir: cfg.dataDir,
+        getAdapterConfig: (id: string) => {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { getAdapterConfig } = require('./adapter-config.js');
+          return getAdapterConfig(id);
+        },
       });
       const candidates = Array.isArray(produced) ? produced : [produced];
 

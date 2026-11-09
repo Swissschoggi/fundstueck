@@ -26,6 +26,8 @@ export interface RegionPack {
 const LIVE = {
   tutti: { id: 'tutti', label: 'Tutti.ch', kind: 'live' },
   anibis: { id: 'anibis', label: 'Anibis.ch', kind: 'live' },
+  marko: { id: 'marko', label: 'Marko.ch', kind: 'live' },
+  depop: { id: 'depop', label: 'Depop', kind: 'live' },
   marktplaats: { id: 'marktplaats', label: 'Marktplaats', kind: 'live' },
   '2dehands': { id: '2dehands', label: '2dehands', kind: 'live' },
   subito: { id: 'subito', label: 'Subito.it', kind: 'live' },
@@ -79,7 +81,7 @@ export const REGION_PACKS: RegionPack[] = [
     'CH',
     'Europe',
     'Swiss classifieds: Tutti and Anibis are live out of the box; Ricardo is an optional community CLI.',
-    [LIVE.tutti, LIVE.anibis, EBAY, RICARDO],
+    [LIVE.tutti, LIVE.anibis, LIVE.marko, EBAY, RICARDO],
   ),
   pack(
     'DE',
@@ -115,8 +117,8 @@ export const REGION_PACKS: RegionPack[] = [
     'GB',
     'Europe',
     'United Kingdom: eBay is available with API keys. No dedicated UK public-page adapter is installed.',
-    [EBAY],
-    'Gumtree public search pages currently serve an anti-bot challenge, so they are not bundled. Add a permitted custom source from Source plugins.',
+    [LIVE.depop, EBAY],
+    'Depop public search pages are served server-side but Depop terms prohibit scraping — the Depop adapter is disabled by default (ENABLE_DEPOP_ADAPTER=true to opt in).',
   ),
   pack(
     'FR',
@@ -135,9 +137,9 @@ export const REGION_PACKS: RegionPack[] = [
   pack(
     'US',
     'Americas',
-    'United States: eBay is available with API keys.',
-    [EBAY],
-    'Add a custom HTTP/CLI source for a local marketplace from Source plugins.',
+    'United States: eBay is available with API keys; Depop is available (disabled by default).',
+    [LIVE.depop, EBAY],
+    'Depop public search pages are served server-side but Depop terms prohibit scraping — the Depop adapter is disabled by default (ENABLE_DEPOP_ADAPTER=true to opt in).',
   ),
   pack(
     'CA',
@@ -148,9 +150,9 @@ export const REGION_PACKS: RegionPack[] = [
   pack(
     'AU',
     'Oceania',
-    'Australia: eBay is available with API keys. No dedicated Australian public-page adapter yet.',
-    [EBAY],
-    'Add a custom HTTP/CLI source for a local marketplace from Source plugins.',
+    'Australia: eBay is available with API keys; Depop is available (disabled by default).',
+    [LIVE.depop, EBAY],
+    'Depop public search pages are served server-side but Depop terms prohibit scraping — the Depop adapter is disabled by default (ENABLE_DEPOP_ADAPTER=true to opt in).',
   ),
 ];
 

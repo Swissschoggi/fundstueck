@@ -5,6 +5,9 @@ import type {
   CustomSourceDraft,
   MarketsResponse,
   PluginsResponse,
+  RegistryCountry,
+  RegistryCountryResponse,
+  RegistryCountriesResponse,
   SearchResponse,
   ServerEvent,
   SetupResponse,
@@ -19,6 +22,7 @@ export interface SearchParams {
   sort: SortKey;
   minPrice: number | null;
   maxPrice: number | null;
+  category?: string | null;
 }
 
 export class ApiError extends Error {
@@ -39,6 +43,7 @@ export async function fetchSearch(params: SearchParams): Promise<SearchResponse>
   url.searchParams.set('sort', params.sort);
   if (params.minPrice != null) url.searchParams.set('minPrice', String(params.minPrice));
   if (params.maxPrice != null) url.searchParams.set('maxPrice', String(params.maxPrice));
+  if (params.category) url.searchParams.set('category', params.category);
 
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
@@ -113,6 +118,21 @@ export async function checkAdapterHealth(id: string): Promise<AdapterHealthResul
   return (await res.json()) as AdapterHealthResult;
 }
 
+export async function fetchAdapterConfig(id: string): Promise<{ fields: AdapterInfo['configFields']; values: Record<string, string>; hasSecret: Record<string, boolean> }> {
+  const res = await fetch(`/api/sources/${encodeURIComponent(id)}/config`);
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  return (await res.json()) as { fields: AdapterInfo['configFields']; values: Record<string, string>; hasSecret: Record<string, boolean> };
+}
+
+export async function saveAdapterConfig(id: string, values: Record<string, string>): Promise<void> {
+  const res = await fetch(`/api/sources/${encodeURIComponent(id)}/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+}
+
 export async function fetchPlugins(): Promise<PluginsResponse> {
   const res = await fetch('/api/plugins');
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
@@ -157,6 +177,30 @@ export async function testSource(id: string): Promise<SourceTestResult> {
   const res = await fetch(`/api/sources/${encodeURIComponent(id)}/test`, { method: 'POST' });
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   return (await res.json()) as SourceTestResult;
+}
+
+export async function fetchRegistryCountries(): Promise<RegistryCountry[]> {
+  const res = await fetch('/api/registry/countries');
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as RegistryCountriesResponse;
+  return body.countries;
+}
+
+export async function fetchRegistryCountry(code: string): Promise<RegistryCountryResponse> {
+  const res = await fetch(`/api/registry/countries/${encodeURIComponent(code)}/marketplaces`);
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  return (await res.json()) as RegistryCountryResponse;
+}
+
+export async function saveRegistryEnabled(code: string, enabled: string[]): Promise<string[]> {
+  const res = await fetch(`/api/registry/enabled/${encodeURIComponent(code)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { enabled: string[] };
+  return body.enabled;
 }
 
 export async function fetchEvents(limit = 80): Promise<ServerEvent[]> {

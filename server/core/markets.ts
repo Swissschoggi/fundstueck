@@ -11,6 +11,8 @@ export interface MarketInfo {
   ebayMarketplaceId: string;
 }
 
+import { REGISTRY_COUNTRIES } from './countries.generated.js';
+
 export const MARKETS: readonly MarketInfo[] = [
   { code: 'CH', label: 'Switzerland', currency: 'CHF', locale: 'de-CH', ebayMarketplaceId: 'EBAY_CH' },
   { code: 'US', label: 'United States', currency: 'USD', locale: 'en-US', ebayMarketplaceId: 'EBAY_US' },
@@ -24,6 +26,7 @@ export const MARKETS: readonly MarketInfo[] = [
   { code: 'BE', label: 'Belgium', currency: 'EUR', locale: 'nl-BE', ebayMarketplaceId: 'EBAY_BE' },
   { code: 'CA', label: 'Canada', currency: 'CAD', locale: 'en-CA', ebayMarketplaceId: 'EBAY_CA' },
   { code: 'AU', label: 'Australia', currency: 'AUD', locale: 'en-AU', ebayMarketplaceId: 'EBAY_AU' },
+  ...REGISTRY_COUNTRIES,
 ];
 
 export const DEFAULT_MARKET = 'CH';

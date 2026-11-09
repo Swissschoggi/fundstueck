@@ -13,6 +13,8 @@ export interface SearchQuery {
   q: string;
   /** Buyer market the search is scoped to, e.g. "CH". */
   market: string;
+  /** Optional category filter. */
+  category: string | null;
   sort: SortKey;
   minPrice: number | null;
   maxPrice: number | null;
@@ -42,6 +44,8 @@ export function parseSearchParams(
     );
   }
 
+  const category = typeof raw['category'] === 'string' ? raw['category'].trim() : null;
+
   const q = typeof raw['q'] === 'string' ? raw['q'].trim() : '';
   if (!q) {
     throw new ValidationError('Query parameter "q" is required and must be non-empty.');
@@ -69,7 +73,7 @@ export function parseSearchParams(
     }
   }
 
-  return { q, market: market.code, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
+  return { q, market: market.code, category, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
 }
 
 function parsePrice(value: unknown, name: string): number | null {
@@ -96,9 +100,22 @@ function sortListings(listings: NormalizedListing[], sort: SortKey): NormalizedL
       return [...listings].sort(byPrice(-1));
     case 'newest':
       return [...listings].sort((a, b) => {
-        const ta = a.publishedAt ? Date.parse(a.publishedAt) : 0;
-        const tb = b.publishedAt ? Date.parse(b.publishedAt) : 0;
-        return tb - ta;
+        // Fall back to fetchedAt when a source exposes no publish time (e.g.
+        // Marko), so those listings are not pushed to the very end and sliced
+        // out of the merged result set.
+        const ta = a.publishedAt
+          ? Date.parse(a.publishedAt)
+          : a.fetchedAt
+            ? Date.parse(a.fetchedAt)
+            : 0;
+        const tb = b.publishedAt
+          ? Date.parse(b.publishedAt)
+          : b.fetchedAt
+            ? Date.parse(b.fetchedAt)
+            : 0;
+        if (tb !== ta) return tb - ta;
+        // Stable-ish tie-break by source so equal timestamps interleave.
+        return a.source < b.source ? -1 : a.source > b.source ? 1 : 0;
       });
     case 'best':
     default:
@@ -124,6 +141,7 @@ export async function runSearch(
         q: query.q,
         limit: perAdapterLimit,
         market: query.market,
+        category: query.category ?? undefined,
       });
       return { adapter, listings, latencyMs: Date.now() - t0 };
     }),

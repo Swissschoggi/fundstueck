@@ -1,0 +1,1279 @@
+[
+  {
+    "code": "CH",
+    "name": "Switzerland",
+    "flag": "🇨🇭",
+    "currency": "CHF",
+    "languages": [
+      "de-CH",
+      "fr-CH",
+      "it-CH"
+    ],
+    "default_locale": "de-CH",
+    "marketplace_ids": [
+      "ricardo",
+      "tutti",
+      "anibis",
+      "facebook-marketplace",
+      "ebay-switzerland",
+      "reverb",
+      "autoscout24-switzerland",
+      "anibis-autos",
+      "petitesannonces-ch"
+    ]
+  },
+  {
+    "code": "DE",
+    "name": "Germany",
+    "flag": "🇩🇪",
+    "currency": "EUR",
+    "languages": [
+      "de-DE"
+    ],
+    "default_locale": "de-DE",
+    "marketplace_ids": [
+      "kleinanzeigen",
+      "ebay-germany",
+      "vinted-germany",
+      "quoka",
+      "markt-de",
+      "hood",
+      "shpock",
+      "reverb",
+      "mobile-de",
+      "autoscout24-germany",
+      "medimops"
+    ]
+  },
+  {
+    "code": "AT",
+    "name": "Austria",
+    "flag": "🇦🇹",
+    "currency": "EUR",
+    "languages": [
+      "de-AT"
+    ],
+    "default_locale": "de-AT",
+    "marketplace_ids": [
+      "willhaben",
+      "ebay-austria",
+      "shpock",
+      "bazar-at",
+      "vinted",
+      "autoscout24-austria",
+      "reverb"
+    ]
+  },
+  {
+    "code": "FR",
+    "name": "France",
+    "flag": "🇫🇷",
+    "currency": "EUR",
+    "languages": [
+      "fr-FR"
+    ],
+    "default_locale": "fr-FR",
+    "marketplace_ids": [
+      "leboncoin",
+      "ebay-france",
+      "vinted-france",
+      "rakuten-france",
+      "paruvendu",
+      "geev",
+      "back-market",
+      "reverb",
+      "troc-com"
+    ]
+  },
+  {
+    "code": "IT",
+    "name": "Italy",
+    "flag": "🇮🇹",
+    "currency": "EUR",
+    "languages": [
+      "it-IT"
+    ],
+    "default_locale": "it-IT",
+    "marketplace_ids": [
+      "subito",
+      "ebay-italy",
+      "vinted",
+      "wallapop",
+      "bakeca",
+      "mercatino-musicale",
+      "autoscout24-italy",
+      "automobile-it",
+      "reverb"
+    ]
+  },
+  {
+    "code": "ES",
+    "name": "Spain",
+    "flag": "🇪🇸",
+    "currency": "EUR",
+    "languages": [
+      "es-ES"
+    ],
+    "default_locale": "es-ES",
+    "marketplace_ids": [
+      "wallapop",
+      "milanuncios",
+      "ebay-spain",
+      "vinted",
+      "todocoleccion",
+      "cash-converters",
+      "coches-net",
+      "autoscout24-spain"
+    ]
+  },
+  {
+    "code": "PT",
+    "name": "Portugal",
+    "flag": "🇵🇹",
+    "currency": "EUR",
+    "languages": [
+      "pt-PT"
+    ],
+    "default_locale": "pt-PT",
+    "marketplace_ids": [
+      "olx-portugal",
+      "custojusto",
+      "ebay",
+      "vinted",
+      "standvirtual",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "NL",
+    "name": "Netherlands",
+    "flag": "🇳🇱",
+    "currency": "EUR",
+    "languages": [
+      "nl-NL"
+    ],
+    "default_locale": "nl-NL",
+    "marketplace_ids": [
+      "marktplaats",
+      "ebay-netherlands",
+      "vinted",
+      "speurders",
+      "reliving",
+      "2dehands",
+      "reverb"
+    ]
+  },
+  {
+    "code": "BE",
+    "name": "Belgium",
+    "flag": "🇧🇪",
+    "currency": "EUR",
+    "languages": [
+      "nl-BE",
+      "fr-BE"
+    ],
+    "default_locale": "nl-BE",
+    "marketplace_ids": [
+      "2dehands",
+      "2ememain",
+      "ebay-belgium",
+      "vinted",
+      "facebook-marketplace",
+      "autoscout24-belgium",
+      "reverb"
+    ]
+  },
+  {
+    "code": "GB",
+    "name": "United Kingdom",
+    "flag": "🇬🇧",
+    "currency": "GBP",
+    "languages": [
+      "en-GB"
+    ],
+    "default_locale": "en-GB",
+    "marketplace_ids": [
+      "ebay-uk",
+      "gumtree",
+      "facebook-marketplace",
+      "vinted",
+      "depop",
+      "preloved",
+      "freeads",
+      "reverb",
+      "musicmagpie",
+      "cex",
+      "autotrader"
+    ]
+  },
+  {
+    "code": "IE",
+    "name": "Ireland",
+    "flag": "🇮🇪",
+    "currency": "EUR",
+    "languages": [
+      "en-IE"
+    ],
+    "default_locale": "en-IE",
+    "marketplace_ids": [
+      "donedeal",
+      "adverts-ie",
+      "ebay-ireland",
+      "facebook-marketplace",
+      "depop",
+      "reverb"
+    ]
+  },
+  {
+    "code": "SE",
+    "name": "Sweden",
+    "flag": "🇸🇪",
+    "currency": "SEK",
+    "languages": [
+      "sv-SE"
+    ],
+    "default_locale": "sv-SE",
+    "marketplace_ids": [
+      "blocket",
+      "tradera",
+      "sellpy",
+      "plick",
+      "ebay",
+      "bytbil",
+      "happyride"
+    ]
+  },
+  {
+    "code": "NO",
+    "name": "Norway",
+    "flag": "🇳🇴",
+    "currency": "NOK",
+    "languages": [
+      "nb-NO"
+    ],
+    "default_locale": "nb-NO",
+    "marketplace_ids": [
+      "finn",
+      "tise",
+      "facebook-marketplace",
+      "reverb",
+      "ebay"
+    ]
+  },
+  {
+    "code": "DK",
+    "name": "Denmark",
+    "flag": "🇩🇰",
+    "currency": "DKK",
+    "languages": [
+      "da-DK"
+    ],
+    "default_locale": "da-DK",
+    "marketplace_ids": [
+      "dba",
+      "guloggratis",
+      "trendsales",
+      "facebook-marketplace",
+      "ebay"
+    ]
+  },
+  {
+    "code": "FI",
+    "name": "Finland",
+    "flag": "🇫🇮",
+    "currency": "EUR",
+    "languages": [
+      "fi-FI"
+    ],
+    "default_locale": "fi-FI",
+    "marketplace_ids": [
+      "tori",
+      "huuto",
+      "zadaa",
+      "facebook-marketplace",
+      "ebay"
+    ]
+  },
+  {
+    "code": "PL",
+    "name": "Poland",
+    "flag": "🇵🇱",
+    "currency": "PLN",
+    "languages": [
+      "pl-PL"
+    ],
+    "default_locale": "pl-PL",
+    "marketplace_ids": [
+      "olx-poland",
+      "allegro-lokalnie",
+      "allegro",
+      "sprzedajemy",
+      "vinted",
+      "ebay-poland",
+      "otomoto"
+    ]
+  },
+  {
+    "code": "CZ",
+    "name": "Czechia",
+    "flag": "🇨🇿",
+    "currency": "CZK",
+    "languages": [
+      "cs-CZ"
+    ],
+    "default_locale": "cs-CZ",
+    "marketplace_ids": [
+      "bazo",
+      "sbazar",
+      "aukro",
+      "sauto",
+      "vinted",
+      "ebay"
+    ]
+  },
+  {
+    "code": "SK",
+    "name": "Slovakia",
+    "flag": "🇸🇰",
+    "currency": "EUR",
+    "languages": [
+      "sk-SK"
+    ],
+    "default_locale": "sk-SK",
+    "marketplace_ids": [
+      "bazo",
+      "bazar-sk",
+      "aukro",
+      "vinted",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "HU",
+    "name": "Hungary",
+    "flag": "🇭🇺",
+    "currency": "HUF",
+    "languages": [
+      "hu-HU"
+    ],
+    "default_locale": "hu-HU",
+    "marketplace_ids": [
+      "j-fog-s",
+      "vatera",
+      "facebook-marketplace",
+      "vinted",
+      "ebay"
+    ]
+  },
+  {
+    "code": "RO",
+    "name": "Romania",
+    "flag": "🇷🇴",
+    "currency": "RON",
+    "languages": [
+      "ro-RO"
+    ],
+    "default_locale": "ro-RO",
+    "marketplace_ids": [
+      "olx-romania",
+      "publi24",
+      "okazii",
+      "lajumate",
+      "autovit",
+      "vinted"
+    ]
+  },
+  {
+    "code": "BG",
+    "name": "Bulgaria",
+    "flag": "🇧🇬",
+    "currency": "BGN",
+    "languages": [
+      "bg-BG"
+    ],
+    "default_locale": "bg-BG",
+    "marketplace_ids": [
+      "olx-bulgaria",
+      "bazar-bg",
+      "facebook-marketplace",
+      "mobile-bg"
+    ]
+  },
+  {
+    "code": "GR",
+    "name": "Greece",
+    "flag": "🇬🇷",
+    "currency": "EUR",
+    "languages": [
+      "el-GR"
+    ],
+    "default_locale": "el-GR",
+    "marketplace_ids": [
+      "car-gr",
+      "vendora",
+      "xe-gr",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "EE",
+    "name": "Estonia",
+    "flag": "🇪🇪",
+    "currency": "EUR",
+    "languages": [
+      "et-EE"
+    ],
+    "default_locale": "et-EE",
+    "marketplace_ids": [
+      "osta",
+      "soov",
+      "okidoki",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "LV",
+    "name": "Latvia",
+    "flag": "🇱🇻",
+    "currency": "EUR",
+    "languages": [
+      "lv-LV"
+    ],
+    "default_locale": "lv-LV",
+    "marketplace_ids": [
+      "ss-com",
+      "andele-mandele",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "LT",
+    "name": "Lithuania",
+    "flag": "🇱🇹",
+    "currency": "EUR",
+    "languages": [
+      "lt-LT"
+    ],
+    "default_locale": "lt-LT",
+    "marketplace_ids": [
+      "skelbiu",
+      "vinted",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "HR",
+    "name": "Croatia",
+    "flag": "🇭🇷",
+    "currency": "EUR",
+    "languages": [
+      "hr-HR"
+    ],
+    "default_locale": "hr-HR",
+    "marketplace_ids": [
+      "nju-kalo",
+      "index-oglasi",
+      "facebook-marketplace",
+      "vinted"
+    ]
+  },
+  {
+    "code": "RS",
+    "name": "Serbia",
+    "flag": "🇷🇸",
+    "currency": "RSD",
+    "languages": [
+      "sr-RS"
+    ],
+    "default_locale": "sr-RS",
+    "marketplace_ids": [
+      "kupujemprodajem",
+      "limundo",
+      "kupindo",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "SI",
+    "name": "Slovenia",
+    "flag": "🇸🇮",
+    "currency": "EUR",
+    "languages": [
+      "sl-SI"
+    ],
+    "default_locale": "sl-SI",
+    "marketplace_ids": [
+      "bolha",
+      "facebook-marketplace",
+      "ebay"
+    ]
+  },
+  {
+    "code": "BA",
+    "name": "Bosnia and Herzegovina",
+    "flag": "🇧🇦",
+    "currency": "BAM",
+    "languages": [
+      "bs-BA"
+    ],
+    "default_locale": "bs-BA",
+    "marketplace_ids": [
+      "olx-bosnia",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "AL",
+    "name": "Albania",
+    "flag": "🇦🇱",
+    "currency": "ALL",
+    "languages": [
+      "sq-AL"
+    ],
+    "default_locale": "sq-AL",
+    "marketplace_ids": [
+      "merrjep",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "UA",
+    "name": "Ukraine",
+    "flag": "🇺🇦",
+    "currency": "UAH",
+    "languages": [
+      "uk-UA"
+    ],
+    "default_locale": "uk-UA",
+    "marketplace_ids": [
+      "olx-ukraine",
+      "shafa",
+      "auto-ria",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "MD",
+    "name": "Moldova",
+    "flag": "🇲🇩",
+    "currency": "MDL",
+    "languages": [
+      "ro-MD"
+    ],
+    "default_locale": "ro-MD",
+    "marketplace_ids": [
+      "999-md",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "US",
+    "name": "United States",
+    "flag": "🇺🇸",
+    "currency": "USD",
+    "languages": [
+      "en-US"
+    ],
+    "default_locale": "en-US",
+    "marketplace_ids": [
+      "ebay",
+      "craigslist",
+      "facebook-marketplace",
+      "offerup",
+      "mercari",
+      "poshmark",
+      "depop",
+      "the-realreal",
+      "chairish",
+      "reverb",
+      "swappa",
+      "bonanza",
+      "bring-a-trailer",
+      "nextdoor"
+    ]
+  },
+  {
+    "code": "CA",
+    "name": "Canada",
+    "flag": "🇨🇦",
+    "currency": "CAD",
+    "languages": [
+      "en-CA",
+      "fr-CA"
+    ],
+    "default_locale": "en-CA",
+    "marketplace_ids": [
+      "kijiji",
+      "facebook-marketplace",
+      "ebay-canada",
+      "used-ca",
+      "varagesale",
+      "poshmark-canada",
+      "reverb",
+      "autotrader-canada"
+    ]
+  },
+  {
+    "code": "MX",
+    "name": "Mexico",
+    "flag": "🇲🇽",
+    "currency": "MXN",
+    "languages": [
+      "es-MX"
+    ],
+    "default_locale": "es-MX",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace",
+      "vivanuncios",
+      "segunda-mano",
+      "gotrendier"
+    ]
+  },
+  {
+    "code": "BR",
+    "name": "Brazil",
+    "flag": "🇧🇷",
+    "currency": "BRL",
+    "languages": [
+      "pt-BR"
+    ],
+    "default_locale": "pt-BR",
+    "marketplace_ids": [
+      "mercado-livre",
+      "olx-brazil",
+      "enjoei",
+      "repassa",
+      "facebook-marketplace",
+      "webmotors"
+    ]
+  },
+  {
+    "code": "AR",
+    "name": "Argentina",
+    "flag": "🇦🇷",
+    "currency": "ARS",
+    "languages": [
+      "es-AR"
+    ],
+    "default_locale": "es-AR",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace",
+      "deremate",
+      "tiendamia"
+    ]
+  },
+  {
+    "code": "CL",
+    "name": "Chile",
+    "flag": "🇨🇱",
+    "currency": "CLP",
+    "languages": [
+      "es-CL"
+    ],
+    "default_locale": "es-CL",
+    "marketplace_ids": [
+      "mercado-libre",
+      "yapo",
+      "facebook-marketplace",
+      "gotrendier"
+    ]
+  },
+  {
+    "code": "CO",
+    "name": "Colombia",
+    "flag": "🇨🇴",
+    "currency": "COP",
+    "languages": [
+      "es-CO"
+    ],
+    "default_locale": "es-CO",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace",
+      "gotrendier",
+      "tucarro"
+    ]
+  },
+  {
+    "code": "PE",
+    "name": "Peru",
+    "flag": "🇵🇪",
+    "currency": "PEN",
+    "languages": [
+      "es-PE"
+    ],
+    "default_locale": "es-PE",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace",
+      "neoauto"
+    ]
+  },
+  {
+    "code": "UY",
+    "name": "Uruguay",
+    "flag": "🇺🇾",
+    "currency": "UYU",
+    "languages": [
+      "es-UY"
+    ],
+    "default_locale": "es-UY",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "EC",
+    "name": "Ecuador",
+    "flag": "🇪🇨",
+    "currency": "USD",
+    "languages": [
+      "es-EC"
+    ],
+    "default_locale": "es-EC",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "BO",
+    "name": "Bolivia",
+    "flag": "🇧🇴",
+    "currency": "BOB",
+    "languages": [
+      "es-BO"
+    ],
+    "default_locale": "es-BO",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace",
+      "local-classifieds"
+    ]
+  },
+  {
+    "code": "VE",
+    "name": "Venezuela",
+    "flag": "🇻🇪",
+    "currency": "VES",
+    "languages": [
+      "es-VE"
+    ],
+    "default_locale": "es-VE",
+    "marketplace_ids": [
+      "mercado-libre",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "JP",
+    "name": "Japan",
+    "flag": "🇯🇵",
+    "currency": "JPY",
+    "languages": [
+      "ja-JP"
+    ],
+    "default_locale": "ja-JP",
+    "marketplace_ids": [
+      "mercari",
+      "yahoo-auctions-japan",
+      "yahoo-flea-market",
+      "rakuma",
+      "jimoty",
+      "hard-off",
+      "surugaya",
+      "book-off"
+    ]
+  },
+  {
+    "code": "KR",
+    "name": "South Korea",
+    "flag": "🇰🇷",
+    "currency": "KRW",
+    "languages": [
+      "ko-KR"
+    ],
+    "default_locale": "ko-KR",
+    "marketplace_ids": [
+      "bunjang",
+      "karrot-danggeun",
+      "joonggonara",
+      "auction",
+      "ebay"
+    ]
+  },
+  {
+    "code": "CN",
+    "name": "China",
+    "flag": "🇨🇳",
+    "currency": "CNY",
+    "languages": [
+      "zh-CN"
+    ],
+    "default_locale": "zh-CN",
+    "marketplace_ids": [
+      "xianyu-idle-fish",
+      "zhuanzhuan",
+      "58-com",
+      "taobao-second-hand"
+    ]
+  },
+  {
+    "code": "TW",
+    "name": "Taiwan",
+    "flag": "🇹🇼",
+    "currency": "TWD",
+    "languages": [
+      "zh-TW"
+    ],
+    "default_locale": "zh-TW",
+    "marketplace_ids": [
+      "ruten",
+      "carousell",
+      "shopee",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "HK",
+    "name": "Hong Kong",
+    "flag": "🇭🇰",
+    "currency": "HKD",
+    "languages": [
+      "zh-HK",
+      "en-HK"
+    ],
+    "default_locale": "zh-HK",
+    "marketplace_ids": [
+      "carousell",
+      "hktvmall",
+      "price-com-hk",
+      "facebook-marketplace",
+      "ebay-hong-kong"
+    ]
+  },
+  {
+    "code": "SG",
+    "name": "Singapore",
+    "flag": "🇸🇬",
+    "currency": "SGD",
+    "languages": [
+      "en-SG",
+      "zh-SG"
+    ],
+    "default_locale": "en-SG",
+    "marketplace_ids": [
+      "carousell",
+      "facebook-marketplace",
+      "ebay-singapore",
+      "reebelo"
+    ]
+  },
+  {
+    "code": "MY",
+    "name": "Malaysia",
+    "flag": "🇲🇾",
+    "currency": "MYR",
+    "languages": [
+      "ms-MY",
+      "en-MY"
+    ],
+    "default_locale": "ms-MY",
+    "marketplace_ids": [
+      "mudah",
+      "carousell",
+      "ebay-malaysia",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "ID",
+    "name": "Indonesia",
+    "flag": "🇮🇩",
+    "currency": "IDR",
+    "languages": [
+      "id-ID"
+    ],
+    "default_locale": "id-ID",
+    "marketplace_ids": [
+      "olx-indonesia",
+      "carousell",
+      "tokopedia",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "TH",
+    "name": "Thailand",
+    "flag": "🇹🇭",
+    "currency": "THB",
+    "languages": [
+      "th-TH"
+    ],
+    "default_locale": "th-TH",
+    "marketplace_ids": [
+      "kaidee",
+      "facebook-marketplace",
+      "carousell",
+      "shopee-thailand"
+    ]
+  },
+  {
+    "code": "PH",
+    "name": "Philippines",
+    "flag": "🇵🇭",
+    "currency": "PHP",
+    "languages": [
+      "en-PH",
+      "fil-PH"
+    ],
+    "default_locale": "en-PH",
+    "marketplace_ids": [
+      "carousell",
+      "facebook-marketplace",
+      "ebay-philippines",
+      "tipidpc",
+      "shopee"
+    ]
+  },
+  {
+    "code": "VN",
+    "name": "Vietnam",
+    "flag": "🇻🇳",
+    "currency": "VND",
+    "languages": [
+      "vi-VN"
+    ],
+    "default_locale": "vi-VN",
+    "marketplace_ids": [
+      "ch-t-t",
+      "muaban",
+      "facebook-marketplace",
+      "carousell"
+    ]
+  },
+  {
+    "code": "IN",
+    "name": "India",
+    "flag": "🇮🇳",
+    "currency": "INR",
+    "languages": [
+      "en-IN",
+      "hi-IN"
+    ],
+    "default_locale": "en-IN",
+    "marketplace_ids": [
+      "olx-india",
+      "quikr",
+      "facebook-marketplace",
+      "cashify",
+      "cex-india",
+      "indiamart"
+    ]
+  },
+  {
+    "code": "PK",
+    "name": "Pakistan",
+    "flag": "🇵🇰",
+    "currency": "PKR",
+    "languages": [
+      "ur-PK"
+    ],
+    "default_locale": "ur-PK",
+    "marketplace_ids": [
+      "olx-pakistan",
+      "pakwheels",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "BD",
+    "name": "Bangladesh",
+    "flag": "🇧🇩",
+    "currency": "BDT",
+    "languages": [
+      "bn-BD"
+    ],
+    "default_locale": "bn-BD",
+    "marketplace_ids": [
+      "bikroy",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "LK",
+    "name": "Sri Lanka",
+    "flag": "🇱🇰",
+    "currency": "LKR",
+    "languages": [
+      "si-LK",
+      "en-LK"
+    ],
+    "default_locale": "si-LK",
+    "marketplace_ids": [
+      "ikman",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "AU",
+    "name": "Australia",
+    "flag": "🇦🇺",
+    "currency": "AUD",
+    "languages": [
+      "en-AU"
+    ],
+    "default_locale": "en-AU",
+    "marketplace_ids": [
+      "gumtree",
+      "ebay-australia",
+      "facebook-marketplace",
+      "depop",
+      "reverb",
+      "trading-post",
+      "grays",
+      "cash-converters"
+    ]
+  },
+  {
+    "code": "NZ",
+    "name": "New Zealand",
+    "flag": "🇳🇿",
+    "currency": "NZD",
+    "languages": [
+      "en-NZ"
+    ],
+    "default_locale": "en-NZ",
+    "marketplace_ids": [
+      "trade-me",
+      "facebook-marketplace",
+      "recycle-boutique",
+      "neighbourly"
+    ]
+  },
+  {
+    "code": "AE",
+    "name": "United Arab Emirates",
+    "flag": "🇦🇪",
+    "currency": "AED",
+    "languages": [
+      "ar-AE",
+      "en-AE"
+    ],
+    "default_locale": "ar-AE",
+    "marketplace_ids": [
+      "dubizzle",
+      "opensooq",
+      "facebook-marketplace",
+      "melltoo",
+      "dubicars"
+    ]
+  },
+  {
+    "code": "SA",
+    "name": "Saudi Arabia",
+    "flag": "🇸🇦",
+    "currency": "SAR",
+    "languages": [
+      "ar-SA"
+    ],
+    "default_locale": "ar-SA",
+    "marketplace_ids": [
+      "haraj",
+      "opensooq",
+      "dubizzle",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "JO",
+    "name": "Jordan",
+    "flag": "🇯🇴",
+    "currency": "JOD",
+    "languages": [
+      "ar-JO"
+    ],
+    "default_locale": "ar-JO",
+    "marketplace_ids": [
+      "opensooq",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "EG",
+    "name": "Egypt",
+    "flag": "🇪🇬",
+    "currency": "EGP",
+    "languages": [
+      "ar-EG"
+    ],
+    "default_locale": "ar-EG",
+    "marketplace_ids": [
+      "dubizzle-egypt",
+      "hatla2ee",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "IL",
+    "name": "Israel",
+    "flag": "🇮🇱",
+    "currency": "ILS",
+    "languages": [
+      "he-IL",
+      "ar-IL"
+    ],
+    "default_locale": "he-IL",
+    "marketplace_ids": [
+      "yad2",
+      "facebook-marketplace",
+      "homeless"
+    ]
+  },
+  {
+    "code": "TR",
+    "name": "Turkey",
+    "flag": "🇹🇷",
+    "currency": "TRY",
+    "languages": [
+      "tr-TR"
+    ],
+    "default_locale": "tr-TR",
+    "marketplace_ids": [
+      "sahibinden",
+      "letgo-turkey",
+      "dolap",
+      "gardrops",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "IR",
+    "name": "Iran",
+    "flag": "🇮🇷",
+    "currency": "IRR",
+    "languages": [
+      "fa-IR"
+    ],
+    "default_locale": "fa-IR",
+    "marketplace_ids": [
+      "divar",
+      "sheypoor"
+    ]
+  },
+  {
+    "code": "ZA",
+    "name": "South Africa",
+    "flag": "🇿🇦",
+    "currency": "ZAR",
+    "languages": [
+      "en-ZA",
+      "af-ZA"
+    ],
+    "default_locale": "en-ZA",
+    "marketplace_ids": [
+      "gumtree-south-africa",
+      "bob-shop",
+      "junk-mail",
+      "facebook-marketplace",
+      "cars-co-za"
+    ]
+  },
+  {
+    "code": "NG",
+    "name": "Nigeria",
+    "flag": "🇳🇬",
+    "currency": "NGN",
+    "languages": [
+      "en-NG"
+    ],
+    "default_locale": "en-NG",
+    "marketplace_ids": [
+      "jiji",
+      "facebook-marketplace",
+      "olist"
+    ]
+  },
+  {
+    "code": "KE",
+    "name": "Kenya",
+    "flag": "🇰🇪",
+    "currency": "KES",
+    "languages": [
+      "en-KE",
+      "sw-KE"
+    ],
+    "default_locale": "en-KE",
+    "marketplace_ids": [
+      "jiji",
+      "pigiame",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "GH",
+    "name": "Ghana",
+    "flag": "🇬🇭",
+    "currency": "GHS",
+    "languages": [
+      "en-GH"
+    ],
+    "default_locale": "en-GH",
+    "marketplace_ids": [
+      "jiji",
+      "tonaton",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "MA",
+    "name": "Morocco",
+    "flag": "🇲🇦",
+    "currency": "MAD",
+    "languages": [
+      "ar-MA",
+      "fr-MA"
+    ],
+    "default_locale": "ar-MA",
+    "marketplace_ids": [
+      "avito",
+      "marocannonces",
+      "facebook-marketplace",
+      "moteur-ma"
+    ]
+  },
+  {
+    "code": "DZ",
+    "name": "Algeria",
+    "flag": "🇩🇿",
+    "currency": "DZD",
+    "languages": [
+      "ar-DZ",
+      "fr-DZ"
+    ],
+    "default_locale": "ar-DZ",
+    "marketplace_ids": [
+      "ouedkniss",
+      "facebook-marketplace"
+    ]
+  },
+  {
+    "code": "TN",
+    "name": "Tunisia",
+    "flag": "🇹🇳",
+    "currency": "TND",
+    "languages": [
+      "ar-TN",
+      "fr-TN"
+    ],
+    "default_locale": "ar-TN",
+    "marketplace_ids": [
+      "tayara",
+      "facebook-marketplace",
+      "automobile-tn"
+    ]
+  }
+]

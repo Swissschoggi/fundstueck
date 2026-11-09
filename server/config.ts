@@ -8,6 +8,10 @@ export interface ScraperConfig {
   minIntervalMs: number;
   tutti: boolean;
   anibis: boolean;
+  /** Marko.ch public search-page adapter (Switzerland, CHF). */
+  marko: boolean;
+  /** Depop public search-page adapter (GB/US/AU, multi-currency). */
+  depop: boolean;
   /** Optional regional public-page adapters (Marktplaats, Subito, …). */
   regional: boolean;
 }
@@ -70,6 +74,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       // Public server-rendered search pages: on by default (rate-limited).
       tutti: env.ENABLE_TUTTI_ADAPTER !== 'false',
       anibis: env.ENABLE_ANIBIS_ADAPTER !== 'false',
+      // Marko.ch public search-page adapter (Switzerland, CHF).
+      marko: env.ENABLE_MARKO_ADAPTER !== 'false',
+      // Depop public search-page adapter (GB/US/AU). On by default but marked
+      // opt-in in the UI: Depop's robots.txt disallows /search/* for crawlers
+      // and its terms prohibit scraping — review before enabling.
+      depop: env.ENABLE_DEPOP_ADAPTER !== 'false',
       // Regional public search pages (only instantiated for the chosen region).
       regional: env.ENABLE_REGIONAL_ADAPTERS !== 'false',
     },

@@ -1,0 +1,2162 @@
+[
+  {
+    "country_code": "CH",
+    "marketplace_id": "ricardo",
+    "priority": 1,
+    "notes": "major general marketplace and auctions"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "tutti",
+    "priority": 2,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "anibis",
+    "priority": 3,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": "local second-hand listings"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "ebay-switzerland",
+    "priority": 99,
+    "notes": "international marketplace; official Browse API support"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": "musical instruments and audio equipment"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "autoscout24-switzerland",
+    "priority": 99,
+    "notes": "used vehicles"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "anibis-autos",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "CH",
+    "marketplace_id": "petitesannonces-ch",
+    "priority": 99,
+    "notes": "classifieds; investigate current activity"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "kleinanzeigen",
+    "priority": 1,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "ebay-germany",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "vinted-germany",
+    "priority": 99,
+    "notes": "clothing and accessories"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "quoka",
+    "priority": 3,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "markt-de",
+    "priority": 99,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "hood",
+    "priority": 99,
+    "notes": "marketplace and auctions"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "shpock",
+    "priority": 99,
+    "notes": "second-hand marketplace; verify German coverage"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": "musical instruments"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "mobile-de",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "autoscout24-germany",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "DE",
+    "marketplace_id": "medimops",
+    "priority": 99,
+    "notes": "used books, media and games"
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "willhaben",
+    "priority": 1,
+    "notes": "dominant general classifieds"
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "ebay-austria",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "shpock",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "bazar-at",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "autoscout24-austria",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "AT",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "leboncoin",
+    "priority": 1,
+    "notes": "major general classifieds"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "ebay-france",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "vinted-france",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "rakuten-france",
+    "priority": 99,
+    "notes": "second-hand goods and electronics"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "paruvendu",
+    "priority": 99,
+    "notes": "classifieds"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "geev",
+    "priority": 99,
+    "notes": "free second-hand goods"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "back-market",
+    "priority": 99,
+    "notes": "refurbished electronics, not general C2C"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": "musical instruments"
+  },
+  {
+    "country_code": "FR",
+    "marketplace_id": "troc-com",
+    "priority": 99,
+    "notes": "second-hand retail"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "subito",
+    "priority": 1,
+    "notes": "general classifieds"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "ebay-italy",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "vinted",
+    "priority": 3,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "wallapop",
+    "priority": 99,
+    "notes": "second-hand marketplace"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "bakeca",
+    "priority": 99,
+    "notes": "classifieds"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "mercatino-musicale",
+    "priority": 99,
+    "notes": "instruments"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "autoscout24-italy",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "automobile-it",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "IT",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "wallapop",
+    "priority": 1,
+    "notes": "general second-hand"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "milanuncios",
+    "priority": 2,
+    "notes": "classifieds"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "ebay-spain",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "vinted",
+    "priority": 4,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "todocoleccion",
+    "priority": 99,
+    "notes": "collectibles, antiques and books"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "cash-converters",
+    "priority": 99,
+    "notes": "used retail"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "coches-net",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "ES",
+    "marketplace_id": "autoscout24-spain",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "olx-portugal",
+    "priority": 99,
+    "notes": "classifieds; investigate official access"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "custojusto",
+    "priority": 2,
+    "notes": "classifieds"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "ebay",
+    "priority": 3,
+    "notes": "international"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "standvirtual",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "PT",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "marktplaats",
+    "priority": 1,
+    "notes": "general classifieds; official feeds exist for certain seller workflows, not necessarily public buyer search"
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "ebay-netherlands",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "vinted",
+    "priority": 3,
+    "notes": ""
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "speurders",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "reliving",
+    "priority": 99,
+    "notes": "vintage furniture"
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "2dehands",
+    "priority": 99,
+    "notes": "cross-border relevance"
+  },
+  {
+    "country_code": "NL",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "2dehands",
+    "priority": 1,
+    "notes": "Dutch-language classifieds"
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "2ememain",
+    "priority": 2,
+    "notes": "French-language classifieds"
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "ebay-belgium",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "vinted",
+    "priority": 4,
+    "notes": ""
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "autoscout24-belgium",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BE",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "ebay-uk",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "gumtree",
+    "priority": 2,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "vinted",
+    "priority": 3,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "depop",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "preloved",
+    "priority": 4,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "freeads",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "musicmagpie",
+    "priority": 99,
+    "notes": "used electronics and media"
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "cex",
+    "priority": 99,
+    "notes": "used electronics and games"
+  },
+  {
+    "country_code": "GB",
+    "marketplace_id": "autotrader",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "donedeal",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "adverts-ie",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "ebay-ireland",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "depop",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IE",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "blocket",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "tradera",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "sellpy",
+    "priority": 99,
+    "notes": "second-hand fashion"
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "plick",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "bytbil",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "SE",
+    "marketplace_id": "happyride",
+    "priority": 99,
+    "notes": "bicycles"
+  },
+  {
+    "country_code": "NO",
+    "marketplace_id": "finn",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NO",
+    "marketplace_id": "tise",
+    "priority": 99,
+    "notes": "fashion and lifestyle"
+  },
+  {
+    "country_code": "NO",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NO",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NO",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "DK",
+    "marketplace_id": "dba",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "DK",
+    "marketplace_id": "guloggratis",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "DK",
+    "marketplace_id": "trendsales",
+    "priority": 99,
+    "notes": "fashion; verify current status and ownership"
+  },
+  {
+    "country_code": "DK",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "DK",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "FI",
+    "marketplace_id": "tori",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "FI",
+    "marketplace_id": "huuto",
+    "priority": 99,
+    "notes": "auctions and fixed-price"
+  },
+  {
+    "country_code": "FI",
+    "marketplace_id": "zadaa",
+    "priority": 99,
+    "notes": "fashion; verify current availability"
+  },
+  {
+    "country_code": "FI",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "FI",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "olx-poland",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "allegro-lokalnie",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "allegro",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "sprzedajemy",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "ebay-poland",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PL",
+    "marketplace_id": "otomoto",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "bazo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "sbazar",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "aukro",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "sauto",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CZ",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "SK",
+    "marketplace_id": "bazo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SK",
+    "marketplace_id": "bazar-sk",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SK",
+    "marketplace_id": "aukro",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SK",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SK",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HU",
+    "marketplace_id": "j-fog-s",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HU",
+    "marketplace_id": "vatera",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HU",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HU",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HU",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "olx-romania",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "publi24",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "okazii",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "lajumate",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "autovit",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "RO",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BG",
+    "marketplace_id": "olx-bulgaria",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BG",
+    "marketplace_id": "bazar-bg",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BG",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BG",
+    "marketplace_id": "mobile-bg",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "GR",
+    "marketplace_id": "car-gr",
+    "priority": 99,
+    "notes": "vehicles and classifieds"
+  },
+  {
+    "country_code": "GR",
+    "marketplace_id": "vendora",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GR",
+    "marketplace_id": "xe-gr",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GR",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EE",
+    "marketplace_id": "osta",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EE",
+    "marketplace_id": "soov",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EE",
+    "marketplace_id": "okidoki",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LV",
+    "marketplace_id": "ss-com",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LV",
+    "marketplace_id": "andele-mandele",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LV",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LT",
+    "marketplace_id": "skelbiu",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LT",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LT",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HR",
+    "marketplace_id": "nju-kalo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HR",
+    "marketplace_id": "index-oglasi",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HR",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HR",
+    "marketplace_id": "vinted",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RS",
+    "marketplace_id": "kupujemprodajem",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RS",
+    "marketplace_id": "limundo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RS",
+    "marketplace_id": "kupindo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "RS",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SI",
+    "marketplace_id": "bolha",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SI",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SI",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "BA",
+    "marketplace_id": "olx-bosnia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AL",
+    "marketplace_id": "merrjep",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AL",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "UA",
+    "marketplace_id": "olx-ukraine",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "UA",
+    "marketplace_id": "shafa",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "UA",
+    "marketplace_id": "auto-ria",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "UA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MD",
+    "marketplace_id": "999-md",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MD",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "craigslist",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "offerup",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "mercari",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "poshmark",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "depop",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "the-realreal",
+    "priority": 99,
+    "notes": "luxury fashion"
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "chairish",
+    "priority": 99,
+    "notes": "furniture and vintage"
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": "instruments"
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "swappa",
+    "priority": 99,
+    "notes": "electronics"
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "bonanza",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "bring-a-trailer",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "US",
+    "marketplace_id": "nextdoor",
+    "priority": 99,
+    "notes": "local listings"
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "kijiji",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "ebay-canada",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "used-ca",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "varagesale",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "poshmark-canada",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CA",
+    "marketplace_id": "autotrader-canada",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MX",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MX",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MX",
+    "marketplace_id": "vivanuncios",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MX",
+    "marketplace_id": "segunda-mano",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MX",
+    "marketplace_id": "gotrendier",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "mercado-livre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "olx-brazil",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "enjoei",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "repassa",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BR",
+    "marketplace_id": "webmotors",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "AR",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AR",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AR",
+    "marketplace_id": "deremate",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AR",
+    "marketplace_id": "tiendamia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CL",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CL",
+    "marketplace_id": "yapo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CL",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CL",
+    "marketplace_id": "gotrendier",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "CO",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CO",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CO",
+    "marketplace_id": "gotrendier",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "CO",
+    "marketplace_id": "tucarro",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "PE",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PE",
+    "marketplace_id": "neoauto",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "UY",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "UY",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EC",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EC",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BO",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BO",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BO",
+    "marketplace_id": "local-classifieds",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VE",
+    "marketplace_id": "mercado-libre",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "mercari",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "yahoo-auctions-japan",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "yahoo-flea-market",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "rakuma",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "jimoty",
+    "priority": 99,
+    "notes": "local classifieds"
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "hard-off",
+    "priority": 99,
+    "notes": "used electronics, instruments and goods"
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "surugaya",
+    "priority": 99,
+    "notes": "collectibles, games and media"
+  },
+  {
+    "country_code": "JP",
+    "marketplace_id": "book-off",
+    "priority": 99,
+    "notes": "books, media and electronics"
+  },
+  {
+    "country_code": "KR",
+    "marketplace_id": "bunjang",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KR",
+    "marketplace_id": "karrot-danggeun",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KR",
+    "marketplace_id": "joonggonara",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KR",
+    "marketplace_id": "auction",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KR",
+    "marketplace_id": "ebay",
+    "priority": 99,
+    "notes": "international"
+  },
+  {
+    "country_code": "CN",
+    "marketplace_id": "xianyu-idle-fish",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CN",
+    "marketplace_id": "zhuanzhuan",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CN",
+    "marketplace_id": "58-com",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "CN",
+    "marketplace_id": "taobao-second-hand",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TW",
+    "marketplace_id": "ruten",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TW",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TW",
+    "marketplace_id": "shopee",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TW",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HK",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HK",
+    "marketplace_id": "hktvmall",
+    "priority": 99,
+    "notes": "primarily retail"
+  },
+  {
+    "country_code": "HK",
+    "marketplace_id": "price-com-hk",
+    "priority": 99,
+    "notes": "price comparison, not pure second-hand"
+  },
+  {
+    "country_code": "HK",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "HK",
+    "marketplace_id": "ebay-hong-kong",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SG",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SG",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SG",
+    "marketplace_id": "ebay-singapore",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SG",
+    "marketplace_id": "reebelo",
+    "priority": 99,
+    "notes": "refurbished electronics"
+  },
+  {
+    "country_code": "MY",
+    "marketplace_id": "mudah",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MY",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MY",
+    "marketplace_id": "ebay-malaysia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MY",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ID",
+    "marketplace_id": "olx-indonesia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ID",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ID",
+    "marketplace_id": "tokopedia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ID",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TH",
+    "marketplace_id": "kaidee",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TH",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TH",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TH",
+    "marketplace_id": "shopee-thailand",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PH",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PH",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PH",
+    "marketplace_id": "ebay-philippines",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PH",
+    "marketplace_id": "tipidpc",
+    "priority": 99,
+    "notes": "electronics"
+  },
+  {
+    "country_code": "PH",
+    "marketplace_id": "shopee",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VN",
+    "marketplace_id": "ch-t-t",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VN",
+    "marketplace_id": "muaban",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VN",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "VN",
+    "marketplace_id": "carousell",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "olx-india",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "quikr",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "cashify",
+    "priority": 99,
+    "notes": "refurbished electronics"
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "cex-india",
+    "priority": 99,
+    "notes": "used electronics"
+  },
+  {
+    "country_code": "IN",
+    "marketplace_id": "indiamart",
+    "priority": 99,
+    "notes": "mostly B2B, not general second-hand"
+  },
+  {
+    "country_code": "PK",
+    "marketplace_id": "olx-pakistan",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "PK",
+    "marketplace_id": "pakwheels",
+    "priority": 99,
+    "notes": "vehicles and parts"
+  },
+  {
+    "country_code": "PK",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BD",
+    "marketplace_id": "bikroy",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "BD",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LK",
+    "marketplace_id": "ikman",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "LK",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "gumtree",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "ebay-australia",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "depop",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "reverb",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "trading-post",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "grays",
+    "priority": 99,
+    "notes": "auctions"
+  },
+  {
+    "country_code": "AU",
+    "marketplace_id": "cash-converters",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NZ",
+    "marketplace_id": "trade-me",
+    "priority": 99,
+    "notes": "investigate official developer API and its search/listing permissions"
+  },
+  {
+    "country_code": "NZ",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NZ",
+    "marketplace_id": "recycle-boutique",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "NZ",
+    "marketplace_id": "neighbourly",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AE",
+    "marketplace_id": "dubizzle",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AE",
+    "marketplace_id": "opensooq",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AE",
+    "marketplace_id": "melltoo",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "AE",
+    "marketplace_id": "dubicars",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "SA",
+    "marketplace_id": "haraj",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SA",
+    "marketplace_id": "opensooq",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SA",
+    "marketplace_id": "dubizzle",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "SA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JO",
+    "marketplace_id": "opensooq",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "JO",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EG",
+    "marketplace_id": "dubizzle-egypt",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "EG",
+    "marketplace_id": "hatla2ee",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "EG",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IL",
+    "marketplace_id": "yad2",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IL",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IL",
+    "marketplace_id": "homeless",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TR",
+    "marketplace_id": "sahibinden",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TR",
+    "marketplace_id": "letgo-turkey",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TR",
+    "marketplace_id": "dolap",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "TR",
+    "marketplace_id": "gardrops",
+    "priority": 99,
+    "notes": "fashion"
+  },
+  {
+    "country_code": "TR",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IR",
+    "marketplace_id": "divar",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "IR",
+    "marketplace_id": "sheypoor",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ZA",
+    "marketplace_id": "gumtree-south-africa",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ZA",
+    "marketplace_id": "bob-shop",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ZA",
+    "marketplace_id": "junk-mail",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ZA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "ZA",
+    "marketplace_id": "cars-co-za",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "NG",
+    "marketplace_id": "jiji",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NG",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "NG",
+    "marketplace_id": "olist",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KE",
+    "marketplace_id": "jiji",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KE",
+    "marketplace_id": "pigiame",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "KE",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GH",
+    "marketplace_id": "jiji",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GH",
+    "marketplace_id": "tonaton",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "GH",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MA",
+    "marketplace_id": "avito",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MA",
+    "marketplace_id": "marocannonces",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MA",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "MA",
+    "marketplace_id": "moteur-ma",
+    "priority": 99,
+    "notes": "vehicles"
+  },
+  {
+    "country_code": "DZ",
+    "marketplace_id": "ouedkniss",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "DZ",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TN",
+    "marketplace_id": "tayara",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TN",
+    "marketplace_id": "facebook-marketplace",
+    "priority": 99,
+    "notes": ""
+  },
+  {
+    "country_code": "TN",
+    "marketplace_id": "automobile-tn",
+    "priority": 99,
+    "notes": "vehicles"
+  }
+]

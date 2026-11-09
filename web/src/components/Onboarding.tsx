@@ -1,49 +1,122 @@
-import { useState } from 'react';
-import { saveSetup } from '../lib/api';
-import type { RegionPack, SetupResponse } from '../lib/types';
+import { useEffect, useMemo, useState } from 'react';
+import { fetchRegistryCountries, fetchRegistryCountry, saveSetup } from '../lib/api';
+import type { RegistryCountry, RegistryCountryResponse } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './Onboarding.module.css';
 
-const GROUPS: RegionPack['group'][] = ['Europe', 'Americas', 'Oceania'];
+const CONTINENTS: Record<string, string> = {
+  CH: 'Europe', DE: 'Europe', AT: 'Europe', FR: 'Europe', IT: 'Europe', ES: 'Europe',
+  PT: 'Europe', NL: 'Europe', BE: 'Europe', GB: 'Europe', IE: 'Europe', SE: 'Europe',
+  NO: 'Europe', DK: 'Europe', FI: 'Europe', PL: 'Europe', CZ: 'Europe', SK: 'Europe',
+  HU: 'Europe', RO: 'Europe', BG: 'Europe', GR: 'Europe', EE: 'Europe', LV: 'Europe',
+  LT: 'Europe', HR: 'Europe', RS: 'Europe', SI: 'Europe', BA: 'Europe', AL: 'Europe',
+  UA: 'Europe', MD: 'Europe',
+  US: 'Americas', CA: 'Americas', MX: 'Americas', BR: 'Americas', AR: 'Americas',
+  CL: 'Americas', CO: 'Americas', PE: 'Americas', UY: 'Americas', EC: 'Americas',
+  BO: 'Americas', VE: 'Americas',
+  JP: 'Asia-Pacific', KR: 'Asia-Pacific', CN: 'Asia-Pacific', TW: 'Asia-Pacific',
+  HK: 'Asia-Pacific', SG: 'Asia-Pacific', MY: 'Asia-Pacific', ID: 'Asia-Pacific',
+  TH: 'Asia-Pacific', PH: 'Asia-Pacific', VN: 'Asia-Pacific', IN: 'Asia-Pacific',
+  PK: 'Asia-Pacific', BD: 'Asia-Pacific', LK: 'Asia-Pacific', AU: 'Oceania',
+  NZ: 'Oceania',
+  AE: 'Middle East', SA: 'Middle East', JO: 'Middle East', EG: 'Middle East',
+  IL: 'Middle East', TR: 'Middle East', IR: 'Middle East',
+  ZA: 'Africa', NG: 'Africa', KE: 'Africa', GH: 'Africa', MA: 'Africa',
+  DZ: 'Africa', TN: 'Africa',
+};
 
-function counts(pack: RegionPack) {
-  return {
-    live: pack.sources.filter((s) => s.kind === 'live').length,
-    official: pack.sources.filter((s) => s.kind === 'official').length,
-    recipes: pack.sources.filter((s) => s.kind === 'recipe').length,
-  };
+const CAP_LABEL: Record<string, string> = {
+  A: 'Official API',
+  B: 'Partner API',
+  C: 'Public site',
+  D: 'Restricted',
+  E: 'Unknown',
+};
+
+function capabilityLetter(cap: string): string {
+  return (cap || 'E').charAt(0).toUpperCase();
 }
-
 
 export function Onboarding({
   setup,
   onComplete,
   onCancel,
 }: {
-  setup: SetupResponse;
-  onComplete: (next: SetupResponse) => void;
+  setup: any;
+  onComplete: (next: any) => void;
   onCancel?: () => void;
 }) {
-  const [selected, setSelected] = useState(setup.region);
+  const [countries, setCountries] = useState<RegistryCountry[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(true);
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<string>(setup?.region || 'CH');
+  const [countryData, setCountryData] = useState<RegistryCountryResponse | null>(null);
+  const [loadingSources, setLoadingSources] = useState(false);
+  const [enabled, setEnabled] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const current = setup.regions.find((r) => r.code === selected) ?? setup.regions[0];
-  const stats = current ? counts(current) : { live: 0, official: 0, recipes: 0 };
+  useEffect(() => {
+    fetchRegistryCountries()
+      .then(setCountries)
+      .catch(() => setError('Could not load country catalogue.'))
+      .finally(() => setLoadingCountries(false));
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+    setLoadingSources(true);
+    setCountryData(null);
+    fetchRegistryCountry(selected)
+      .then((d) => {
+        setCountryData(d);
+        setEnabled(d.enabled || []);
+      })
+      .catch(() => setError('Could not load sources for this country.'))
+      .finally(() => setLoadingSources(false));
+  }, [selected]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return countries.filter(
+      (c) => !q || c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q),
+    );
+  }, [countries, query]);
+
+  const grouped = useMemo(() => {
+    const groups: Record<string, RegistryCountry[]> = {};
+    for (const c of filtered) {
+      const g = CONTINENTS[c.code] || 'Other';
+      (groups[g] ||= []).push(c);
+    }
+    return groups;
+  }, [filtered]);
+
+  const toggle = (id: string) => {
+    setEnabled((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
 
   const submit = async () => {
-    if (!current || saving) return;
+    if (!selected || saving) return;
     setSaving(true);
     setError(null);
     try {
-      const next = await saveSetup(current.code);
+      // persist enabled prefs
+      await fetch(`/api/registry/enabled/${selected}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      const next = await saveSetup(selected);
       onComplete(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not install this region.');
+      setError(err instanceof Error ? err.message : 'Could not complete setup.');
     } finally {
       setSaving(false);
     }
   };
+
+  const selectedCountry = countries.find((c) => c.code === selected);
 
   return (
     <div className={styles.page}>
@@ -69,13 +142,13 @@ export function Onboarding({
       <main className={styles.main}>
         <div className={styles.intro}>
           <span className={styles.kicker}>
-            {setup.complete ? 'Change region' : 'First-run setup'}
+            {setup?.complete ? 'Change country' : 'First-run setup'}
           </span>
           <h1 className={styles.title}>Where should Fundstück search?</h1>
           <p className={styles.subtitle}>
-            Pick your home region. Only that region&apos;s built-in sources are installed and
-            queried — no Swiss scrapers running on a US install, no Italian requests from
-            Germany. Custom sources and plugins you add yourself stay available.
+            Pick your country. Fundstück loads every marketplace known for that region and
+            honestly reports which ones are actually implemented, restricted or unverified.
+            Nothing is silently enabled.
           </p>
         </div>
 
@@ -86,33 +159,42 @@ export function Onboarding({
           </div>
         )}
 
-        {GROUPS.map((group) => {
-          const packs = setup.regions.filter((r) => r.group === group);
-          if (packs.length === 0) return null;
-          return (
+        <div className={styles.searchRow}>
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Search countries…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
+        {loadingCountries ? (
+          <div className={styles.emptyPanel}>Loading country catalogue…</div>
+        ) : (
+          Object.keys(grouped).sort().map((group) => (
             <section key={group} className={styles.group}>
               <div className={styles.groupHead}>
                 <h2 className={styles.groupTitle}>{group}</h2>
-                <span className={styles.groupCount}>{packs.length} regions</span>
+                <span className={styles.groupCount}>{grouped[group].length}</span>
               </div>
               <div className={styles.grid}>
-                {packs.map((pack) => {
-                  const isSelected = pack.code === selected;
-                  const c = counts(pack);
+                {grouped[group].map((c) => {
+                  const isSelected = c.code === selected;
                   return (
                     <button
-                      key={pack.code}
+                      key={c.code}
                       type="button"
                       className={`${styles.card} ${isSelected ? styles.selected : ''}`}
-                      onClick={() => setSelected(pack.code)}
+                      onClick={() => setSelected(c.code)}
                       aria-pressed={isSelected}
                     >
                       <div className={styles.cardTop}>
-                        <span className={styles.codeBadge}>{pack.code}</span>
+                        <span className={styles.codeBadge}>{c.flag}</span>
                         <div className={styles.names}>
-                          <span className={styles.cardName}>{pack.label}</span>
+                          <span className={styles.cardName}>{c.name}</span>
                           <span className={styles.cardMeta}>
-                            {pack.currency} · {pack.locale}
+                            {c.currency} · {c.default_locale}
                           </span>
                         </div>
                         {isSelected && (
@@ -121,59 +203,82 @@ export function Onboarding({
                           </span>
                         )}
                       </div>
-                      <p className={styles.blurb}>{pack.blurb}</p>
-                      <div className={styles.chips}>
-                        {pack.sources.map((source) => (
-                          <span
-                            key={source.id}
-                            className={`${styles.chip} ${styles[`chip_${source.kind}`]}`}
-                            title={source.note}
-                          >
-                            <span className={styles.chipDot} />
-                            {source.label}
-                          </span>
-                        ))}
-                      </div>
-                      {pack.note && (
-                        <p className={styles.note}>
-                          <Icon name="info" size={14} />
-                          <span>{pack.note}</span>
-                        </p>
-                      )}
-                      <div className={styles.cardStats}>
-                        <span>{c.live} live</span>
-                        <span>{c.official} official</span>
-                        <span>{c.recipes} optional</span>
-                      </div>
                     </button>
                   );
                 })}
               </div>
             </section>
-          );
-        })}
+          ))
+        )}
+
+        {selectedCountry && (
+          <section className={styles.sourceSection}>
+            <h2 className={styles.sectionTitle}>
+              Sources for {selectedCountry.flag} {selectedCountry.name}
+            </h2>
+            {loadingSources ? (
+              <div className={styles.emptyPanel}>Loading sources…</div>
+            ) : countryData ? (
+              <>
+                <p className={styles.sectionMeta}>
+                  {countryData.marketplaces.length} marketplaces · {enabled.length} enabled
+                </p>
+                <div className={styles.sourceList}>
+                  {countryData.marketplaces.map((m) => {
+                    const isRestricted =
+                      m.automation_permission === 'prohibited_without_authorization' ||
+                      m.capability.startsWith('D');
+                    const isEligible =
+                      !isRestricted &&
+                      (m.adapter_status === 'implemented' || m.adapter_status === 'available');
+                    const checked = enabled.includes(m.id);
+                    return (
+                      <label
+                        key={m.id}
+                        className={`${styles.sourceRow} ${isRestricted ? styles.restricted : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          disabled={!isEligible}
+                          checked={checked}
+                          onChange={() => toggle(m.id)}
+                        />
+                        <div className={styles.sourceInfo}>
+                          <span className={styles.sourceName}>{m.name}</span>
+                          <span className={styles.sourceDomain}>{m.domain}</span>
+                        </div>
+                        <span className={`${styles.badge} ${styles[`cap_${capabilityLetter(m.capability)}`]}`}>
+                          {CAP_LABEL[capabilityLetter(m.capability)] || m.capability}
+                        </span>
+                        <span className={styles.statusBadge}>{m.adapter_status}</span>
+                        {isRestricted && (
+                          <span className={styles.restrictedReason}>Restricted — not auto-enabled</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
+            ) : null}
+          </section>
+        )}
       </main>
 
       <footer className={styles.footer}>
         <div className={styles.footerText}>
-          <span className={styles.footerLabel}>Selected region</span>
+          <span className={styles.footerLabel}>Selected country</span>
           <span className={styles.footerValue}>
-            {current ? `${current.label} · ${current.currency}` : '—'}
-          </span>
-          <span className={styles.footerSources}>
-            {stats.live} live sources
-            {stats.official > 0 ? ` · ${stats.official} official API` : ''}
-            {stats.recipes > 0 ? ` · ${stats.recipes} optional recipe` : ''}
+            {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name} · ${selectedCountry.currency}` : '—'}
           </span>
         </div>
         <button
           type="button"
           className={styles.primaryButton}
           onClick={submit}
-          disabled={saving || !current}
+          disabled={saving || !selectedCountry}
         >
           <Icon name={saving ? 'hourglass_top' : 'check'} size={16} />
-          {saving ? 'Installing sources…' : `Start with ${current?.label ?? 'this region'}`}
+          {saving ? 'Saving…' : `Continue with ${selectedCountry?.name ?? 'this country'}`}
         </button>
       </footer>
     </div>

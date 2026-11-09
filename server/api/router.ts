@@ -28,6 +28,23 @@ import { recentEvents } from '../core/events.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
+import { execFile } from 'node:child_process';
+import path from 'node:path';
+import fs from 'node:fs';
+import { promisify } from 'node:util';
+import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
+import {
+  listCountries,
+  getCountry,
+  listMarketplaces,
+  getMarketplace,
+  countryMarketplaces,
+  countryMarketplaceMappings,
+  registryVersion,
+  readEnabledSources,
+  writeEnabledSources,
+  enabledForCountry,
+} from '../core/marketplace-registry.js';
 
 function marketParam(value: unknown): string | undefined {
   if (value == null || value === '') return undefined;
@@ -173,7 +190,157 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
+  // ---- Marketplace registry (country-aware) ----
+
+  router.get('/registry/version', (_req, res) => {
+    res.json(registryVersion());
+  });
+
+  router.get('/registry/countries', (_req, res) => {
+    res.json({ countries: listCountries() });
+  });
+
+  router.get('/registry/countries/:code', (req, res) => {
+    const country = getCountry(req.params.code);
+    if (!country) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown country.' } });
+      return;
+    }
+    res.json({ country });
+  });
+
+  router.get('/registry/countries/:code/marketplaces', (req, res) => {
+    const country = getCountry(req.params.code);
+    if (!country) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown country.' } });
+      return;
+    }
+    const mappings = countryMarketplaceMappings(req.params.code);
+    const marketplaces = countryMarketplaces(req.params.code).map((m) => {
+      const mapping = mappings.find((x) => x.marketplace_id === m.id);
+      return { ...m, priority: mapping?.priority ?? 99, country_notes: mapping?.notes ?? '' };
+    });
+    const enabled = enabledForCountry(cfg.dataDir, req.params.code.toUpperCase());
+    res.json({
+      country,
+      marketplaces,
+      enabled,
+    });
+  });
+
+  router.get('/registry/marketplaces', (_req, res) => {
+    res.json({ marketplaces: listMarketplaces() });
+  });
+
+  router.get('/registry/marketplaces/:id', (req, res) => {
+    const m = getMarketplace(req.params.id);
+    if (!m) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown marketplace.' } });
+      return;
+    }
+    res.json({ marketplace: m });
+  });
+
+  router.get('/registry/enabled/:code', (req, res) => {
+    const code = req.params.code.toUpperCase();
+    res.json({ country: code, enabled: enabledForCountry(cfg.dataDir, code) });
+  });
+
+  router.post('/registry/enabled/:code', (req, res) => {
+    const code = req.params.code.toUpperCase();
+    const body = req.body as { enabled?: unknown } | undefined;
+    if (!Array.isArray(body?.enabled)) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must be { "enabled": string[] }.' } });
+      return;
+    }
+    const prefs = readEnabledSources(cfg.dataDir);
+    prefs[code] = body.enabled as string[];
+    writeEnabledSources(cfg.dataDir, prefs);
+    res.json({ country: code, enabled: prefs[code] });
+  });
+
   // ---- Optional sources: plugins + operator-defined custom sources ----
+
+  router.get('/sources/:id/config', (req, res) => {
+    const adapter = getAdapters().find((a) => a.id === req.params.id);
+    if (!adapter) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
+      return;
+    }
+    const fields = adapter.configFields ?? [];
+    const stored = getAdapterConfig(req.params.id);
+    const values: Record<string, string> = {};
+    for (const f of fields) {
+      if (f.secret) {
+        values[f.key] = stored[f.key] ? '••••••••' : '';
+      } else {
+        values[f.key] = stored[f.key] ?? f.default ?? '';
+      }
+    }
+    res.json({ fields, values, hasSecret: Object.fromEntries(fields.map((f) => [f.key, Boolean(stored[f.key])])) });
+  });
+
+  router.post('/sources/:id/config', (req, res) => {
+    const adapter = getAdapters().find((a) => a.id === req.params.id);
+    if (!adapter) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
+      return;
+    }
+    const fields = adapter.configFields ?? [];
+    const body = asRecord(req.body) ?? {};
+    const current = getAdapterConfig(req.params.id);
+    const next: Record<string, string> = { ...current };
+    for (const f of fields) {
+      const v = body[f.key];
+      if (typeof v !== 'string') continue;
+      if (f.secret && v === '') {
+        // keep existing secret
+        continue;
+      }
+      if (v === '') delete next[f.key];
+      else next[f.key] = v;
+    }
+    setAdapterConfig(req.params.id, next);
+    res.json({ ok: true });
+  });
+
+  router.post('/catalog/:id/install', async (req, res) => {
+    const entry = SOURCE_CATALOG.find((e) => e.id === req.params.id);
+    if (!entry) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown catalog entry.' } });
+      return;
+    }
+    if (!entry.installCommand || entry.installCommand.length === 0) {
+      res.status(400).json({ error: { code: 'NO_INSTALL', message: 'No install command for this entry.' } });
+      return;
+    }
+    try {
+      const { stdout, stderr } = await promisify(execFile)(entry.installCommand[0], entry.installCommand.slice(1), {
+        timeout: 300_000,
+        maxBuffer: 10 * 1024 * 1024,
+      });
+      // Post-install: bundle the pinned camoufox helper into site-packages so
+      // ricardo-scraper (which imports it at startup) keeps working.
+      let extra = '';
+      const pinScript = path.resolve(process.cwd(), 'scripts', 'pin_camoufox_browser.py');
+      if (entry.id === 'ricardo-community' && fs.existsSync(pinScript)) {
+        try {
+          const { stdout: out2 } = await promisify(execFile)('python3', ['-c', `import shutil, ricardo_scraper, os; shutil.copyfile(${JSON.stringify(pinScript)}, os.path.dirname(ricardo_scraper.__file__) + '/pin_camoufox_browser.py')`], {
+            timeout: 60_000,
+            maxBuffer: 1024 * 1024,
+          });
+          extra = (out2 || '').trim();
+        } catch (e) {
+          extra = `pin-script copy failed: ${(e as Error).message}`;
+        }
+      }
+      res.json({ ok: true, stdout: (stdout + (extra ? '\n' + extra : '')).slice(-2000), stderr: stderr.slice(-2000) });
+    } catch (err) {
+      res.status(500).json({
+        error: { code: 'INSTALL_FAILED', message: (err as Error).message.slice(0, 500) },
+      });
+    }
+  });
 
   router.get('/plugins', (_req, res) => {
     res.json({

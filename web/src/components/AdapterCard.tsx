@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AdapterInfo } from '../lib/types';
+import { fetchAdapterConfig, saveAdapterConfig } from '../lib/api';
 import { sourceAccent } from '../lib/format';
 import { Icon } from './Icon';
 import styles from './Settings.module.css';
@@ -25,7 +26,21 @@ export function AdapterCard({
   onHealthCheck: () => void;
 }) {
   const [configOpen, setConfigOpen] = useState(false);
+  const [cfgValues, setCfgValues] = useState<Record<string, string>>({});
+  const [cfgHasSecret, setCfgHasSecret] = useState<Record<string, boolean>>({});
+  const [cfgSaving, setCfgSaving] = useState(false);
+  const [cfgMsg, setCfgMsg] = useState<string | null>(null);
   const accent = sourceAccent(adapter.source);
+
+  useEffect(() => {
+    if (!configOpen || !adapter.configFields?.length) return;
+    fetchAdapterConfig(adapter.source)
+      .then((r) => {
+        setCfgValues(r.values ?? {});
+        setCfgHasSecret(r.hasSecret ?? {});
+      })
+      .catch(() => {});
+  }, [configOpen, adapter.source, adapter.configFields]);
 
   const status = !adapter.configured
     ? { label: adapter.runtimeDisabled ? 'Disabled' : 'Unconfigured', tone: 'muted' as const }
@@ -186,6 +201,49 @@ export function AdapterCard({
               <Icon name="north_east" size={13} />
             </a>
           )}
+          {adapter.configFields && adapter.configFields.length > 0 && (
+            <div className={styles.configForm}>
+              {adapter.configFields.map((f) => (
+                <label key={f.key} className={styles.configField}>
+                  <span className={styles.configKey}>{f.label}</span>
+                  <input
+                    type={f.secret ? 'password' : 'text'}
+                    className={styles.configInput}
+                    placeholder={f.secret && cfgHasSecret[f.key] ? '•••• (set) — leave blank to keep' : (f.placeholder ?? '')}
+                    value={cfgValues[f.key] ?? ''}
+                    onChange={(e) =>
+                      setCfgValues((prev) => ({ ...prev, [f.key]: e.target.value }))
+                    }
+                  />
+                  {f.help && <span className={styles.configHelp}>{f.help}</span>}
+                </label>
+              ))}
+              <button
+                type="button"
+                className={styles.smallButton}
+                disabled={cfgSaving}
+                onClick={async () => {
+                  setCfgSaving(true);
+                  setCfgMsg(null);
+                  try {
+                    await saveAdapterConfig(adapter.source, cfgValues);
+                    setCfgMsg('Saved.');
+                    const r = await fetchAdapterConfig(adapter.source);
+                    setCfgValues(r.values ?? {});
+                    setCfgHasSecret(r.hasSecret ?? {});
+                  } catch (e) {
+                    setCfgMsg(e instanceof Error ? e.message : 'Save failed');
+                  } finally {
+                    setCfgSaving(false);
+                  }
+                }}
+              >
+                {cfgSaving ? 'Saving…' : 'Save config'}
+              </button>
+              {cfgMsg && <span className={styles.configMsg}>{cfgMsg}</span>}
+            </div>
+          )}
+
           <p className={styles.configNote}>
             Enable/disable is persisted to <code>data/adapter-settings.json</code>.
             Credentials are read from environment variables only — never stored here.

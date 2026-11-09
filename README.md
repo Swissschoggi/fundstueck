@@ -57,7 +57,7 @@ Restart `npm run dev`. The eBay adapter is enabled automatically when both
 credentials are present; otherwise it is shown as disabled with the reason.
 Use `EBAY_USE_SANDBOX=true` to test against `api.sandbox.ebay.com`.
 
-### Tutti.ch & Anibis.ch — public search pages (on by default)
+### Tutti.ch, Anibis.ch & Marko.ch — public search pages (on by default)
 
 Both run the same SMG Next.js platform and server-render search results into
 `__NEXT_DATA__` when the query is passed as `?query=…`:
@@ -72,9 +72,18 @@ identifying `User-Agent`, and responses are cached for 60 s. Titles, prices,
 canton/postcode, images, descriptions and publish times are normalised.
 
 They are enabled by default; set `ENABLE_TUTTI_ADAPTER=false` /
-`ENABLE_ANIBIS_ADAPTER=false` to turn them off. Review each marketplace's terms
-before commercial deployment — you are responsible for how your instance uses
-their pages.
+`ENABLE_ANIBIS_ADAPTER=false` / `ENABLE_MARKO_ADAPTER=false` to turn them off.
+Review each marketplace's terms before commercial deployment — you are
+responsible for how your instance uses their pages.
+
+**Marko.ch** is a Swiss Gen-Z second-hand marketplace (CHF). The adapter reads
+the public, server-rendered category pages filtered by the query (`/en/c/…?q=…`)
+and normalises the embedded listing cards. Marko's `/search` page itself is a
+LiveView app that only renders shimmer placeholders server-side, so the adapter
+uses the category pages, which are server-rendered and allowed by Marko's
+`robots.txt` (`Content-Signal: search=yes`, `/*/c/` allowed). Only the first
+page (up to ~72 listings per top-level category: fashion, electronics, home) is
+fetched per search.
 
 ### Regional public search pages (installed per region)
 
@@ -119,6 +128,17 @@ terms before enabling it. Fundstück itself never solves a CAPTCHA.
 If a source fails mid-search (auth error, CAPTCHA, upstream timeout, rate
 limit), the search still returns results from the other sources and the failing
 source is reported in the response and shown as degraded in the UI.
+
+### Depop — community source (opt-in, disabled by default)
+
+Depop's search page is served server-side, but it sits behind a Cloudflare
+managed challenge that blocks non-browser clients, and Depop's `robots.txt`
+disallows `/search/*` for crawlers while its terms prohibit scraping. For those
+reasons there is **no built-in Depop adapter enabled by default**. The codebase
+ships a best-effort `DepopAdapter` (curl transport, `ENABLE_DEPOP_ADAPTER=true`)
+that may work from some networks but is not guaranteed; for production use,
+prefer an external community scraper wired in as a custom command source (see
+`/settings/sources` → **External command**), and review Depop's terms first.
 
 ### Optional sources — plugins & custom adapters
 
@@ -170,7 +190,7 @@ shareable.
 - A market with no configured sources returns HTTP 503 `NO_SOURCES` with a
   clear message instead of querying unrelated marketplaces.
 
-Installed live sources by region: CH (Tutti, Anibis), NL (Marktplaats), BE
+Installed live sources by region: CH (Tutti, Anibis, Marko), NL (Marktplaats), BE
 (2dehands), DE (Kleinanzeigen), AT (Willhaben), IT (Subito), CA (Kijiji). eBay
 works in every market once `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` are set — its
 marketplace follows the buyer market; `EBAY_MARKETPLACE_ID` is only the fallback.
@@ -205,6 +225,8 @@ demo sample data in production builds (results remain clearly labelled).
 | `ENABLE_SAMPLE_ADAPTER` | enabled outside production | Sample data adapter |
 | `ENABLE_TUTTI_ADAPTER` | `true` | Tutti public search-page adapter |
 | `ENABLE_ANIBIS_ADAPTER` | `true` | Anibis public search-page adapter |
+| `ENABLE_MARKO_ADAPTER` | `true` | Marko.ch public search-page adapter |
+| `ENABLE_DEPOP_ADAPTER` | `false` | Depop public search-page adapter (opt-in; robots.txt disallows /search/*) |
 | `ENABLE_REGIONAL_ADAPTERS` | `true` | Marktplaats, 2dehands, Kleinanzeigen, Willhaben, Subito, Kijiji |
 | `SCRAPER_MIN_INTERVAL_MS` | `3000` | Min spacing between requests per adapter |
 | `SCRAPER_USER_AGENT` | `FundstueckBot/0.1 (…)` | Identifying UA for public-page requests |
@@ -308,7 +330,8 @@ server/                    Express + TypeScript search API
   adapters/scrape.ts       polite HTTP client + price/JSON-LD helpers
   adapters/smg.adapter.ts  shared Tutti/Anibis Next.js parser
   adapters/public-page.adapter.ts shared polite HTML adapter base
-  adapters/{tutti,anibis}.adapter.ts Swiss public search pages
+  adapters/{tutti,anibis,marko}.adapter.ts Swiss public search pages
+  adapters/depop.adapter.ts Depop public search page (opt-in, disabled by default)
   adapters/{devinta,subito,willhaben,kijiji,kleinanzeigen}.adapter.ts regional pages
   adapters/sample.adapter.ts representative dev data (clearly labelled)
 ```

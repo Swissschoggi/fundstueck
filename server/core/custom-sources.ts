@@ -5,7 +5,9 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import type { ServerConfig } from '../config.js';
 import { findMarket } from './markets.js';
+import { getAdapterConfig } from './adapter-config.js';
 import type {
+  AdapterConfigField,
   AdapterHealth,
   AdapterSearchParams,
   MarketplaceAdapter,
@@ -278,6 +280,16 @@ class CustomHttpAdapter implements MarketplaceAdapter {
   readonly markets: string[];
   readonly docsUrl?: string;
 
+  readonly configFields: AdapterConfigField[] = [
+    {
+      key: 'apiKey',
+      label: 'API key / token (stored securely)',
+      secret: true,
+      placeholder: 'paste token here (overrides the env var above)',
+      help: 'Stored in data/adapter-config.json (git-ignored). Takes precedence over the env var.',
+    },
+  ];
+
   constructor(
     private readonly cfg: CustomSourceConfig,
     private readonly env: NodeJS.ProcessEnv = process.env,
@@ -317,7 +329,10 @@ class CustomHttpAdapter implements MarketplaceAdapter {
       Accept: 'application/json',
       ...http.headers,
     };
-    if (http.apiKeyEnv) {
+    const storedToken = getAdapterConfig(this.id).apiKey;
+    if (storedToken) {
+      headers.Authorization = `Bearer ${storedToken}`;
+    } else if (http.apiKeyEnv) {
       const token = this.env[http.apiKeyEnv];
       if (!token) {
         throw new SourceError(`${this.id} is missing ${http.apiKeyEnv}.`, 'AUTH');

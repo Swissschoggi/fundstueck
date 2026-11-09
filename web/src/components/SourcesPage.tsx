@@ -5,6 +5,7 @@ import {
   fetchSources,
   reloadPlugins,
   saveCustomSource,
+  saveAdapterConfig,
   setAdapterEnabled,
   testSource,
 } from '../lib/api';
@@ -30,6 +31,7 @@ interface FormState {
   url: string;
   method: 'GET' | 'POST';
   apiKeyEnv: string;
+  apiKeyValue: string;
   responsePath: string;
   priceFactor: string;
   fieldId: string;
@@ -59,6 +61,7 @@ const EMPTY_FORM: FormState = {
   url: '',
   method: 'GET',
   apiKeyEnv: '',
+  apiKeyValue: '',
   responsePath: '',
   priceFactor: '1',
   fieldId: 'id',
@@ -92,6 +95,7 @@ function formFromDraft(draft: CustomSourceDraft): FormState {
     url: http?.url ?? '',
     method: http?.method ?? 'GET',
     apiKeyEnv: http?.apiKeyEnv ?? '',
+    apiKeyValue: '',
     responsePath: http?.responsePath ?? '',
     priceFactor: String(http?.priceFactor ?? 1),
     fieldId: http?.fields.id ?? '',
@@ -248,6 +252,24 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
     return map;
   }, [adapters]);
 
+  const [installingId, setInstallingId] = useState<string | null>(null);
+  const [installMsg, setInstallMsg] = useState<string | null>(null);
+
+  const installCatalog = async (entry: CatalogEntry) => {
+    setInstallingId(entry.id);
+    setInstallMsg(null);
+    try {
+      const res = await fetch(`/api/catalog/${encodeURIComponent(entry.id)}/install`, { method: 'POST' });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+      setInstallMsg(`Installed ${entry.id}: ${body.stdout?.slice(-200) ?? 'ok'}`);
+    } catch (err) {
+      setInstallMsg(err instanceof Error ? err.message : 'Install failed');
+    } finally {
+      setInstallingId(null);
+    }
+  };
+
   const startTemplate = (entry: CatalogEntry) => {
     if (!entry.template) {
       onNavigate('/settings/adapters');
@@ -281,6 +303,11 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
     try {
       const draft = draftFromForm(form);
       const saved = await saveCustomSource(draft);
+      // Persist any secret token the operator typed into the secure store
+      // (data/adapter-config.json) instead of the source definition.
+      if (form.apiKeyValue && form.apiKeyValue.trim()) {
+        await saveAdapterConfig(saved.source.source, { apiKey: form.apiKeyValue.trim() });
+      }
       await refresh();
       setNotice(`Installed "${saved.source.label}". It is now part of the adapter fleet.`);
       setForm(null);
@@ -487,6 +514,9 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
                 ))}
               </div>
               <pre className={styles.install}>{entry.install}</pre>
+              {installMsg && entry.installCommand && (
+                <p className={styles.risk}>{installMsg}</p>
+              )}
               {entry.risk && (
                 <p className={styles.risk}>
                   <Icon name="warning" size={14} />
@@ -494,6 +524,17 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
                 </p>
               )}
               <div className={styles.cardActions}>
+                {entry.installCommand && (
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    disabled={installingId === entry.id}
+                    onClick={() => installCatalog(entry)}
+                  >
+                    <Icon name="build" size={14} />
+                    {installingId === entry.id ? 'Installing…' : 'Install binary'}
+                  </button>
+                )}
                 {entry.docsUrl && (
                   <a className={styles.linkButton} href={entry.docsUrl} target="_blank" rel="noreferrer">
                     <Icon name="open_in_new" size={14} />
@@ -714,6 +755,15 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
                       value={form.apiKeyEnv}
                       onChange={(e) => update('apiKeyEnv', e.target.value)}
                       placeholder="MY_API_KEY"
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>API key value (stored securely)</span>
+                    <input
+                      type="password"
+                      value={form.apiKeyValue}
+                      onChange={(e) => update('apiKeyValue', e.target.value)}
+                      placeholder="paste token (overrides env var)"
                     />
                   </label>
                   <label className={styles.field}>

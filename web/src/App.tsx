@@ -59,6 +59,7 @@ export default function App() {
   const [query, setQuery] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
   const [sort, setSort] = useState<SortKey>('newest');
+  const [category, setCategory] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
 
@@ -208,6 +209,7 @@ export default function App() {
       sort,
       minPrice: minPrice !== '' && Number.isFinite(Number(minPrice)) ? Number(minPrice) : null,
       maxPrice: maxPrice !== '' && Number.isFinite(Number(maxPrice)) ? Number(maxPrice) : null,
+      category: category || null,
     })
       .then((r) => {
         if (cancelled) return;
@@ -224,7 +226,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [query, market, sort, minPrice, maxPrice, nonce]);
+  }, [query, market, sort, minPrice, maxPrice, category, nonce]);
 
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
@@ -294,6 +296,14 @@ export default function App() {
   const isSettings = path.startsWith('/settings');
   const currentMarket = markets.find((m) => m.code === market);
   const marketLabel = currentMarket?.label ?? market;
+  const categories = useMemo(() => {
+    if (market !== 'CH') return [];
+    return [
+      { value: 'fashion-c01000000', label: 'Fashion' },
+      { value: 'electronics-c02000000', label: 'Electronics' },
+      { value: 'home-c03000000', label: 'Home & Living' },
+    ];
+  }, [market]);
 
   if (!setup) {
     return (
@@ -354,6 +364,9 @@ export default function App() {
                 onMarketChange={changeMarket}
                 sort={sort}
                 onSortChange={setSort}
+                category={category}
+                categories={categories}
+                onCategoryChange={setCategory}
                 view={view}
                 onViewChange={setView}
                 isSearching={status === 'loading'}

@@ -37,6 +37,8 @@ export interface AdapterSearchParams {
   limit: number;
   /** Buyer market code for adapters that can target several markets. */
   market?: string;
+  /** Optional category filter (marketplace-specific, e.g. marko category slug). */
+  category?: string;
 }
 
 /** Thrown by adapters on upstream/auth/network failure. Message must be safe to surface. */
@@ -55,6 +57,18 @@ export interface AdapterHealth {
   ok: boolean;
   latencyMs: number;
   message: string;
+}
+
+export interface AdapterConfigField {
+  /** Key stored in adapter-config.json. */
+  key: string;
+  /** Human label. */
+  label: string;
+  /** True for secrets (tokens) — value is masked in GET responses. */
+  secret?: boolean;
+  placeholder?: string;
+  default?: string;
+  help?: string;
 }
 
 /**
@@ -83,6 +97,8 @@ export interface MarketplaceAdapter {
   readonly markets: string[];
   /** Optional link to the official API documentation. */
   readonly docsUrl?: string;
+  /** Declarative config fields editable in the UI (tokens, categories, ...). */
+  readonly configFields?: AdapterConfigField[];
   /** True when credentials/configuration are present (ignores runtime toggles). */
   isEnabled(): boolean;
   /** Reason the adapter is unconfigured, null when configured. */
@@ -104,6 +120,8 @@ export interface AdapterInfo {
   capabilities: string[];
   markets: string[];
   docsUrl?: string;
+  /** Declarative config fields editable in the UI. */
+  configFields?: AdapterConfigField[];
   /** Where this adapter came from: shipped, operator-defined or a plugin. */
   origin: 'built-in' | 'custom' | 'plugin';
   /** Credentials/config present. */

@@ -5,13 +5,16 @@ import { DEFAULT_MARKET, findMarket } from './markets.js';
 import { createAnibisAdapter } from '../adapters/anibis.adapter.js';
 import { createDevintaAdapter } from '../adapters/devinta.adapter.js';
 import { EbayAdapter } from '../adapters/ebay.adapter.js';
+import { createDepopAdapter } from '../adapters/depop.adapter.js';
 import { createKijijiAdapter } from '../adapters/kijiji.adapter.js';
 import { createKleinanzeigenAdapter } from '../adapters/kleinanzeigen.adapter.js';
+import { createMarkoAdapter } from '../adapters/marko.adapter.js';
 import { SampleAdapter } from '../adapters/sample.adapter.js';
 import { createSubitoAdapter } from '../adapters/subito.adapter.js';
 import { createTuttiAdapter } from '../adapters/tutti.adapter.js';
 import { createWillhabenAdapter } from '../adapters/willhaben.adapter.js';
 import { logEvent } from './events.js';
+import { initAdapterConfig, getAdapterConfig, setAdapterConfig } from './adapter-config.js';
 import type { AdapterHealth, AdapterInfo, MarketplaceAdapter } from './types.js';
 import {
   createCustomAdapter,
@@ -53,6 +56,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   serverCfg = cfg;
   settingsFile = path.join(cfg.dataDir, 'adapter-settings.json');
   loadSettings();
+  initAdapterConfig(cfg);
 
   const setup = resolveSetup(cfg);
   setupComplete = setup.complete;
@@ -94,6 +98,8 @@ function rebuildBuiltIns(): void {
     new EbayAdapter(cfg.ebay),
     createTuttiAdapter(cfg.scrapers),
     createAnibisAdapter(cfg.scrapers),
+    createMarkoAdapter(cfg.scrapers),
+    createDepopAdapter(cfg.scrapers),
     createDevintaAdapter('marktplaats', cfg.scrapers),
     createDevintaAdapter('2dehands', cfg.scrapers),
     createSubitoAdapter(cfg.scrapers),
@@ -236,6 +242,7 @@ export function describeAdapter(adapter: MarketplaceAdapter): AdapterInfo {
     capabilities: [...adapter.capabilities],
     markets: [...adapter.markets],
     docsUrl: adapter.docsUrl,
+    configFields: adapter.configFields,
     origin: builtInAdapters.some((a) => a.id === adapter.id)
       ? 'built-in'
       : customSources.some((s) => s.id === adapter.id)
@@ -298,4 +305,15 @@ function persistSettings(): void {
   } catch (err) {
     logEvent('settings', 'error', `Could not persist adapter settings: ${(err as Error).message}`);
   }
+}
+
+
+/** Read the persisted operator config for an adapter (UI-editable tokens, etc.). */
+export function getAdapterConfigValues(id: string): Record<string, string> {
+  return getAdapterConfig(id);
+}
+
+/** Persist operator config for an adapter. */
+export function setAdapterConfigValues(id: string, values: Record<string, string>): void {
+  setAdapterConfig(id, values);
 }

@@ -15,6 +15,11 @@ export interface NormalizedListing {
 }
 
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';
+
+export interface CategoryOption {
+  value: string;
+  label: string;
+}
 export type ViewMode = 'grid' | 'list';
 
 export interface SourceStatus {
@@ -49,6 +54,15 @@ export interface SourceInfo {
 }
 
 /** Full adapter state from /api/sources (superset of SourceInfo). */
+export interface AdapterConfigField {
+  key: string;
+  label: string;
+  secret?: boolean;
+  placeholder?: string;
+  default?: string;
+  help?: string;
+}
+
 export interface AdapterInfo extends SourceInfo {
   icon: string;
   description: string;
@@ -57,6 +71,7 @@ export interface AdapterInfo extends SourceInfo {
   capabilities: string[];
   markets: string[];
   docsUrl?: string;
+  configFields?: AdapterConfigField[];
   origin: 'built-in' | 'custom' | 'plugin';
   configured: boolean;
   runtimeDisabled: boolean;
@@ -184,6 +199,7 @@ export interface PluginStatus {
   markets: string[];
   envVars: string[];
   docsUrl?: string;
+  configFields?: AdapterConfigField[];
   dir: string;
   loaded: boolean;
   error?: string;
@@ -198,6 +214,7 @@ export interface CatalogEntry {
   markets: string[];
   description: string;
   install: string;
+  installCommand?: string[];
   docsUrl?: string;
   risk?: string;
   template?: CustomSourceDraft;
@@ -219,4 +236,58 @@ export interface SourceTestResult {
   count?: number;
   sample?: NormalizedListing[];
   error?: string;
+}
+
+/* ---- Marketplace registry (country-aware) ---- */
+
+export interface RegistryCountry {
+  code: string;
+  name: string;
+  flag: string;
+  currency: string;
+  languages: string[];
+  default_locale: string;
+  marketplace_ids: string[];
+}
+
+export interface RegistryMarketplace {
+  id: string;
+  name: string;
+  domain: string | null;
+  category_tags: string[];
+  capability: string;
+  technical_access: string;
+  automation_permission: string;
+  official_api_url: string | null;
+  terms_url: string | null;
+  robots_url: string | null;
+  requires_credentials: boolean;
+  requires_partner_approval: boolean;
+  search_endpoint_available: boolean | null;
+  listing_detail_endpoint_available: boolean | null;
+  pagination_supported: boolean | null;
+  price_available: boolean | null;
+  currency_available: boolean | null;
+  location_available: boolean | null;
+  image_url_available: boolean | null;
+  condition_available: boolean | null;
+  published_date_available: boolean | null;
+  last_verified_at: string | null;
+  verification_notes: string;
+  adapter_status: string;
+}
+
+export interface RegistryCountryMarketplace extends RegistryMarketplace {
+  priority: number;
+  country_notes: string;
+}
+
+export interface RegistryCountryResponse {
+  country: RegistryCountry;
+  marketplaces: RegistryCountryMarketplace[];
+  enabled: string[];
+}
+
+export interface RegistryCountriesResponse {
+  countries: RegistryCountry[];
 }

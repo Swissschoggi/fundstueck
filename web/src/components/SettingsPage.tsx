@@ -2,11 +2,14 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   checkAdapterHealth,
   fetchEvents,
+  fetchRegistryCountry,
+  fetchSetup,
   fetchSources,
   fetchSystem,
+  saveRegistryEnabled,
   setAdapterEnabled,
 } from '../lib/api';
-import type { AdapterInfo, ServerEvent, SystemInfo } from '../lib/types';
+import type { AdapterInfo, RegistryCountryResponse, ServerEvent, SystemInfo } from '../lib/types';
 import { AdapterCard, type HealthState } from './AdapterCard';
 import { EventTerminal } from './EventTerminal';
 import { Icon } from './Icon';
@@ -37,6 +40,9 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [regionCode, setRegionCode] = useState<string>('CH');
+  const [registry, setRegistry] = useState<RegistryCountryResponse | null>(null);
+  const [registryEnabled, setRegistryEnabled] = useState<string[]>([]);
 
   const refreshEvents = useCallback(() => {
     fetchEvents(120)
@@ -60,6 +66,22 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    fetchSetup()
+      .then((s) => setRegionCode(s.region || 'CH'))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!regionCode) return;
+    fetchRegistryCountry(regionCode)
+      .then((d) => {
+        setRegistry(d);
+        setRegistryEnabled(d.enabled || []);
+      })
+      .catch(() => {});
+  }, [regionCode]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -208,8 +230,9 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
         {adapters.length === 0 && !error ? (
           <div className={styles.emptyPanel}>Loading adapters…</div>
         ) : (
+          <>
           <div className={styles.adapterGrid}>
-            {adapters.map((adapter) => (
+            {adapters.filter((a) => (a.markets?.length ?? 0) <= 3).map((adapter) => (
               <AdapterCard
                 key={adapter.source}
                 adapter={adapter}
@@ -220,6 +243,73 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
               />
             ))}
           </div>
+          {adapters.filter((a) => (a.markets?.length ?? 0) > 3).length > 0 && (
+            <>
+            <h3 className={styles.sectionTitle} style={{ marginTop: 'var(--space-lg)' }}>Global sources</h3>
+            <div className={styles.adapterGrid} style={{ marginTop: 'var(--space-sm)' }}>
+              {adapters.filter((a) => (a.markets?.length ?? 0) > 3).map((adapter) => (
+                <AdapterCard
+                  key={adapter.source}
+                  adapter={adapter}
+                  health={health[adapter.source] ?? { state: 'idle' }}
+                  toggling={togglingId === adapter.source}
+                  onToggle={(enabled) => handleToggle(adapter, enabled)}
+                  onHealthCheck={() => runHealth(adapter.source)}
+                />
+              ))}
+            </div>
+            </>
+          )}
+          </>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
+            <h2 className={styles.sectionTitle}>Country &amp; marketplace registry</h2>
+            <p className={styles.sectionSub}>
+              Country: {regionCode}. {registry ? `${registry.marketplaces.length} marketplaces known for this country.` : ''}
+              {' '}<a href="/setup" className={styles.inlineLink}>Change country</a>
+            </p>
+          </div>
+        </div>
+        {registry ? (
+          <div className={styles.registryList}>
+            {registry.marketplaces.map((m) => {
+              const checked = registryEnabled.includes(m.id);
+              const restricted =
+                m.automation_permission === 'prohibited_without_authorization' ||
+                m.capability.startsWith('D');
+              return (
+                <label key={m.id} className={styles.registryRow}>
+                  <input
+                    type="checkbox"
+                    disabled={restricted}
+                    checked={checked}
+                    onChange={async () => {
+                      const next = checked
+                        ? registryEnabled.filter((x) => x !== m.id)
+                        : [...registryEnabled, m.id];
+                      setRegistryEnabled(next);
+                      try {
+                        await saveRegistryEnabled(regionCode, next);
+                      } catch {
+                        setRegistryEnabled(registryEnabled);
+                      }
+                    }}
+                  />
+                  <span className={styles.registryName}>{m.name}</span>
+                  <span className={styles.registryDomain}>{m.domain}</span>
+                  <span className={styles.badge}>{m.capability.split('/')[0]}</span>
+                  <span className={styles.statusBadge}>{m.adapter_status}</span>
+                  {restricted && <span className={styles.restrictedReason}>Restricted</span>}
+                </label>
+              );
+            })}
+          </div>
+        ) : (
+          <div className={styles.emptyPanel}>Loading registry…</div>
         )}
       </section>
 

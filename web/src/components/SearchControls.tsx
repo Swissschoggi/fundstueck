@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import type { MarketInfo, SortKey, ViewMode } from '../lib/types';
+import type { CategoryOption, MarketInfo, SortKey, ViewMode } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './SearchControls.module.css';
 
@@ -22,6 +22,9 @@ export const SearchControls = forwardRef<
     onMarketChange: (code: string) => void;
     sort: SortKey;
     onSortChange: (s: SortKey) => void;
+    category: string;
+    categories: CategoryOption[];
+    onCategoryChange: (c: string) => void;
     view: ViewMode;
     onViewChange: (v: ViewMode) => void;
     isSearching: boolean;
@@ -37,6 +40,9 @@ export const SearchControls = forwardRef<
     onMarketChange,
     sort,
     onSortChange,
+    category,
+    categories,
+    onCategoryChange,
     view,
     onViewChange,
     isSearching,
@@ -103,6 +109,25 @@ export const SearchControls = forwardRef<
           </select>
           <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
         </div>
+
+        {categories.length > 0 && (
+          <div className={styles.selectWrap}>
+            <select
+              className={styles.select}
+              value={category}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              aria-label="Category filter"
+            >
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
+          </div>
+        )}
 
         <div className={styles.selectWrap}>
           <select

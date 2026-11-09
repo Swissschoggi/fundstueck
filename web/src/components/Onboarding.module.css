@@ -417,3 +417,104 @@
 .primaryButton:disabled {
   opacity: 0.5;
 }
+
+.searchRow {
+  margin: var(--space-md) 0 var(--space-lg);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.sourceSection {
+  margin-top: var(--space-xl);
+}
+
+.sourceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.sourceRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: var(--space-sm);
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.sourceRow.restricted {
+  opacity: 0.7;
+  background: var(--color-surface-muted, var(--color-surface));
+}
+
+.sourceInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sourceName {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.sourceDomain {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted, #eee);
+  white-space: nowrap;
+}
+
+.cap_A { background: #d1fae5; color: #065f46; }
+.cap_B { background: #dbeafe; color: #1e40af; }
+.cap_C { background: #fef3c7; color: #92400e; }
+.cap_D { background: #fee2e2; color: #991b1b; }
+.cap_E { background: #e5e7eb; color: #374151; }
+
+.statusBadge {
+  font-size: var(--font-size-xs);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted, #eee);
+  color: var(--color-text-muted);
+}
+
+.restrictedReason {
+  grid-column: 1 / -1;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.sectionMeta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.emptyPanel {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+}
