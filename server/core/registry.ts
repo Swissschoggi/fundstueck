@@ -267,7 +267,9 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
   // A newly installed adapter starts enabled. Keep explicit runtime
   // disable choices for adapters that were already installed.
   for (const adapter of builtInAdapters) {
-    if (!previouslyInstalled.has(adapter.id)) runtimeDisabled.delete(adapter.id);
+    if (!previouslyInstalled.has(adapter.id) && adapter.id !== 'vinted') {
+      runtimeDisabled.delete(adapter.id);
+    }
   }
   persistSettings();
 
