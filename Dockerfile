@@ -20,8 +20,7 @@ ENV ENABLE_PLUGINS=false
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
-
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/server ./server
 COPY --from=build /app/web/dist ./web/dist
 
