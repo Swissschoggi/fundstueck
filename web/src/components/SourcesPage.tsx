@@ -200,6 +200,7 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
   const [data, setData] = useState<PluginsResponse | null>(null);
   const [adapters, setAdapters] = useState<AdapterInfo[]>([]);
   const [pluginQuery, setPluginQuery] = useState('');
+  const [adapterQuery, setAdapterQuery] = useState('');
   const [available, setAvailable] = useState<AdapterInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -250,6 +251,11 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
       }
     }
   }, [data]);
+
+  const filteredAvailable = available.filter((a) => {
+    const q = adapterQuery.trim().toLowerCase();
+    return !q || a.label.toLowerCase().includes(q) || a.source.toLowerCase().includes(q) || a.markets.some((m) => m.toLowerCase().includes(q));
+  });
 
   const adapterById = useMemo(() => {
     const map = new Map<string, AdapterInfo>();
@@ -565,16 +571,27 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
           <div>
             <h2 className={styles.sectionTitle}>Available built-in adapters</h2>
             <p className={styles.sectionSub}>
-              Built-in adapters from countries you have not selected. Install one to enable it
-              without changing your country selection. Uninstall from the adapters page.
+              Find and install any implemented built-in adapter without changing your selected countries. Manage installed, disabled and removable adapters on the adapters page.
             </p>
           </div>
         </div>
+        {available.length > 0 && (
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Search available adapters by name, ID or country…"
+            value={adapterQuery}
+            onChange={(e) => setAdapterQuery(e.target.value)}
+            aria-label="Search available built-in adapters"
+          />
+        )}
         {available.length === 0 ? (
           <p className={styles.empty}>All built-in adapters are already installed.</p>
+        ) : filteredAvailable.length === 0 ? (
+          <p className={styles.empty}>No available adapters match “{adapterQuery}”.</p>
         ) : (
           <div className={styles.catalogGrid}>
-            {available.map((a) => (
+            {filteredAvailable.map((a) => (
               <article key={a.source} className={styles.catalogCard}>
                 <div className={styles.cardTop}>
                   <div className={styles.identity}>

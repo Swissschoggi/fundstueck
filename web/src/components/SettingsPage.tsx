@@ -5,6 +5,7 @@ import {
   fetchSources,
   fetchSystem,
   setAdapterEnabled,
+  uninstallAdapter,
 } from '../lib/api';
 import type { AdapterInfo, ServerEvent, SystemInfo } from '../lib/types';
 import { AdapterCard, type HealthState } from './AdapterCard';
@@ -35,6 +36,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [events, setEvents] = useState<ServerEvent[]>([]);
   const [health, setHealth] = useState<Record<string, HealthState>>({});
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [runningAll, setRunningAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -112,6 +114,31 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
     }
     setRunningAll(false);
   };
+
+  const handleRemove = async (adapter: AdapterInfo) => {
+    if (!window.confirm(`Remove ${adapter.label} from installed adapters? You can install it again later.`)) return;
+    setError(null);
+    try {
+      await uninstallAdapter(adapter.source);
+      setAdapters((prev) => prev.filter((a) => a.source !== adapter.source));
+      refreshEvents();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not remove adapter.');
+    }
+  };
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleAdapters = adapters.filter((a) =>
+    !normalizedQuery ||
+    a.label.toLowerCase().includes(normalizedQuery) ||
+    a.source.toLowerCase().includes(normalizedQuery) ||
+    a.markets.some((market) => market.toLowerCase().includes(normalizedQuery)) ||
+    a.description.toLowerCase().includes(normalizedQuery),
+  );
+  const regionalAdapters = visibleAdapters.filter((a) => a.markets.length <= 3);
+  const globalAdapters = visibleAdapters.filter((a) => a.markets.length > 3);
+  const canRemove = (adapter: AdapterInfo) =>
+    adapter.origin === 'built-in' && adapter.source !== 'ebay' && adapter.source !== 'sample' && adapter.markets.length < 50;
 
   const enabledCount = adapters.filter((a) => a.enabled).length;
   const configuredCount = adapters.filter((a) => a.configured).length;
@@ -205,12 +232,22 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
           </div>
         </div>
 
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search installed adapters by name, country or ID…"
+          aria-label="Search installed adapters"
+          style={{ width: '100%', maxWidth: 480, marginBottom: 'var(--space-md)', padding: '12px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
+        />
         {adapters.length === 0 && !error ? (
           <div className={styles.emptyPanel}>Loading adapters…</div>
+        ) : visibleAdapters.length === 0 ? (
+          <div className={styles.emptyPanel}>No installed adapters match “{searchQuery}”.</div>
         ) : (
           <>
           <div className={styles.adapterGrid}>
-            {adapters.filter((a) => (a.markets?.length ?? 0) <= 3).map((adapter) => (
+            {regionalAdapters.map((adapter) => (
               <AdapterCard
                 key={adapter.source}
                 adapter={adapter}
@@ -218,14 +255,15 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                 toggling={togglingId === adapter.source}
                 onToggle={(enabled) => handleToggle(adapter, enabled)}
                 onHealthCheck={() => runHealth(adapter.source)}
+                onRemove={canRemove(adapter) ? () => handleRemove(adapter) : undefined}
               />
             ))}
           </div>
-          {adapters.filter((a) => (a.markets?.length ?? 0) > 3).length > 0 && (
+          {globalAdapters.length > 0 && (
             <>
             <h3 className={styles.sectionTitle} style={{ marginTop: 'var(--space-lg)' }}>Global sources</h3>
             <div className={styles.adapterGrid} style={{ marginTop: 'var(--space-sm)' }}>
-              {adapters.filter((a) => (a.markets?.length ?? 0) > 3).map((adapter) => (
+              {globalAdapters.map((adapter) => (
                 <AdapterCard
                   key={adapter.source}
                   adapter={adapter}

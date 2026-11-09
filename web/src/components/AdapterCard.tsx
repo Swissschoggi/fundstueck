@@ -18,12 +18,14 @@ export function AdapterCard({
   toggling,
   onToggle,
   onHealthCheck,
+  onRemove,
 }: {
   adapter: AdapterInfo;
   health: HealthState;
   toggling: boolean;
   onToggle: (enabled: boolean) => void;
   onHealthCheck: () => void;
+  onRemove?: () => void;
 }) {
   const [configOpen, setConfigOpen] = useState(false);
   const [cfgValues, setCfgValues] = useState<Record<string, string>>({});
@@ -168,6 +170,17 @@ export function AdapterCard({
             <Icon name="bolt" size={14} />
             {health.state === 'running' ? 'Checking…' : 'Health check'}
           </button>
+          {onRemove && (
+            <button
+              type="button"
+              className={styles.smallButton}
+              onClick={onRemove}
+              title="Remove this adapter from the installed set"
+            >
+              <Icon name="delete" size={14} />
+              Remove
+            </button>
+          )}
         </div>
       </div>
 
