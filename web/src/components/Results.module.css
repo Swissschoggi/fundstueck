@@ -210,3 +210,47 @@
 .suggestionChip:active {
   background: var(--surface-high);
 }
+
+.diagnostics {
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  background: var(--surface-lowest);
+  padding: 10px 14px;
+  color: var(--on-surface-variant);
+}
+.diagnostics summary {
+  cursor: pointer;
+  font: var(--fs-label-md);
+  color: var(--primary);
+}
+.diagnosticSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px 0 8px;
+  font: var(--fs-label-sm);
+}
+.diagnosticRows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.diagnosticRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto auto minmax(120px, 2fr);
+  gap: 12px;
+  align-items: center;
+  padding-top: 7px;
+  border-top: 1px solid var(--border-default);
+  font: var(--fs-label-sm);
+}
+.diagnosticError {
+  color: var(--error);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .diagnosticRow { grid-template-columns: 1fr auto; }
+  .diagnosticError { grid-column: 1 / -1; white-space: normal; }
+}
