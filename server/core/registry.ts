@@ -45,12 +45,14 @@ let serverCfg: ServerConfig | null = null;
 let regionCode = DEFAULT_MARKET;
 let selectedCountries: string[] = [DEFAULT_MARKET];
 let manuallyInstalled: Set<string> = new Set();
+let manuallyRemoved: Set<string> = new Set();
 let installedIds: Set<string> = new Set();
 let setupComplete = false;
 
 interface PersistedSettings {
   disabledSources: string[];
   manuallyInstalled: string[];
+  manuallyRemoved?: string[];
 }
 
 /**
@@ -78,7 +80,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   const candidatePool = buildCandidatePool(cfg);
   installedIds = new Set<string>();
   for (const a of candidatePool) {
-    if (isGlobalAdapter(a) || a.markets.some((m) => selectedCountries.includes(m)) || manuallyInstalled.has(a.id)) {
+    if (!manuallyRemoved.has(a.id) && (isGlobalAdapter(a) || a.markets.some((m) => selectedCountries.includes(m)) || manuallyInstalled.has(a.id))) {
       installedIds.add(a.id);
     }
   }
@@ -246,21 +248,29 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
   selectedCountries = codes;
   setupComplete = true;
 
-  rebuildBuiltIns();
-
-  // Auto-enable adapters for the newly selected countries; disable the rest
-  // (except global ones) so only relevant providers are active.
-  const toEnable = new Set<string>();
-  const toDisable = new Set<string>();
-  for (const a of builtInAdapters) {
-    if (isGlobalAdapter(a) || a.markets.some((m) => codes.includes(m))) {
-      toEnable.add(a.id);
-    } else {
-      toDisable.add(a.id);
+  // Reconcile the installed set from the complete country selection. Keep
+  // explicit manual installs, but remove country-managed adapters no longer
+  // covered by any selected country. Explicit removals remain removed until
+  // the operator installs them again.
+  const nextInstalled = new Set<string>();
+  for (const adapter of buildCandidatePool(serverCfg)) {
+    const countryManaged = adapter.markets.some((m) => codes.includes(m));
+    if (!manuallyRemoved.has(adapter.id) &&
+        (isGlobalAdapter(adapter) || countryManaged || manuallyInstalled.has(adapter.id))) {
+      nextInstalled.add(adapter.id);
     }
   }
-  for (const id of toEnable) runtimeDisabled.delete(id);
-  for (const id of toDisable) runtimeDisabled.add(id);
+  installedIds = nextInstalled;
+  rebuildBuiltIns();
+
+  // Newly selected country adapters are enabled by default. Preserve an
+  // operator's disabled choice for adapters that remain installed.
+  for (const adapter of builtInAdapters) {
+    if (!runtimeDisabled.has(adapter.id) &&
+        (isGlobalAdapter(adapter) || adapter.markets.some((m) => codes.includes(m)))) {
+      runtimeDisabled.delete(adapter.id);
+    }
+  }
   persistSettings();
 
   await refreshDynamicAdapters();
@@ -292,6 +302,7 @@ export function installAdapter(id: string): MarketplaceAdapter | null {
   const adapter = pool.find((a) => a.id === id);
   if (!adapter) return null;
   manuallyInstalled.add(id);
+  manuallyRemoved.delete(id);
   installedIds.add(id);
   runtimeDisabled.delete(id);
   persistSettings();
@@ -308,6 +319,7 @@ export function uninstallAdapter(id: string): boolean {
   if (!adapter || isGlobalAdapter(adapter)) return false;
   installedIds.delete(id);
   manuallyInstalled.delete(id);
+  manuallyRemoved.add(id);
   runtimeDisabled.delete(id);
   persistSettings();
   rebuildBuiltIns();
@@ -415,6 +427,7 @@ export async function runHealthCheck(id: string): Promise<AdapterHealth | null> 
 function loadSettings(): void {
   runtimeDisabled = new Set();
   manuallyInstalled = new Set();
+  manuallyRemoved = new Set();
   if (!settingsFile) return;
   if (!fs.existsSync(settingsFile)) {
     runtimeDisabled = new Set(['vinted']);
@@ -428,6 +441,8 @@ function loadSettings(): void {
     runtimeDisabled = new Set(ids.filter((id): id is string => typeof id === 'string'));
     const mi = Array.isArray(parsed.manuallyInstalled) ? parsed.manuallyInstalled : [];
     manuallyInstalled = new Set(mi.filter((id): id is string => typeof id === 'string'));
+    const mr = Array.isArray(parsed.manuallyRemoved) ? parsed.manuallyRemoved : [];
+    manuallyRemoved = new Set(mr.filter((id): id is string => typeof id === 'string'));
   } catch {
     /* no settings yet — all configured adapters stay enabled */
   }
@@ -439,7 +454,7 @@ function persistSettings(): void {
     fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
     fs.writeFileSync(
       settingsFile,
-      JSON.stringify({ disabledSources: [...runtimeDisabled], manuallyInstalled: [...manuallyInstalled] }, null, 2),
+      JSON.stringify({ disabledSources: [...runtimeDisabled], manuallyInstalled: [...manuallyInstalled], manuallyRemoved: [...manuallyRemoved] }, null, 2),
     );
   } catch (err) {
     logEvent('settings', 'error', `Could not persist adapter settings: ${(err as Error).message}`);
