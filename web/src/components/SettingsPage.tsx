@@ -138,7 +138,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const regionalAdapters = visibleAdapters.filter((a) => a.markets.length <= 3);
   const globalAdapters = visibleAdapters.filter((a) => a.markets.length > 3);
   const canRemove = (adapter: AdapterInfo) =>
-    adapter.source !== 'ebay' && adapter.source !== 'sample' && adapter.markets.length < 50;
+    adapter.origin === 'built-in' && adapter.source !== 'ebay' && adapter.source !== 'sample' && adapter.markets.length < 50;
 
   const enabledCount = adapters.filter((a) => a.enabled).length;
   const configuredCount = adapters.filter((a) => a.configured).length;
