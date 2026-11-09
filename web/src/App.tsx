@@ -235,7 +235,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce]);
+  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce, path]);
 
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
