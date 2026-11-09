@@ -139,14 +139,17 @@ export function writeEnabledSources(dataDir: string, prefs: Record<string, strin
 
 export function enabledForCountry(dataDir: string, code: string): string[] {
   const prefs = readEnabledSources(dataDir);
-  if (prefs[code]) return prefs[code];
-  // default: enable implemented/available ones that are not restricted
   const cms = countryMarketplaces(code);
   // A parser existing in the codebase is not permission to run it.
-  // Auto-enable only sources with an implemented adapter AND an explicit
-  // authorization assessment. Unknown/permission-required sources stay off.
-  return cms
+  // Only implemented sources with explicit authorization are eligible.
+  const eligible = new Set(cms
     .filter((m) => m.adapter_status === 'implemented')
     .filter((m) => m.automation_permission === 'authorized')
-    .map((m) => m.id);
+    .map((m) => m.id));
+  if (Array.isArray(prefs[code])) {
+    // Re-validate persisted preferences on every read so a registry update
+    // can safely disable a source whose permission assessment changes.
+    return prefs[code].filter((id) => eligible.has(id));
+  }
+  return [...eligible];
 }
