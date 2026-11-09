@@ -184,7 +184,10 @@ export async function runSearch(
   settled.forEach((result, i) => {
     const adapter = adapters[i];
     if (result.status === 'fulfilled') {
-      listings.push(...result.value.listings);
+      // Adapter IDs are the canonical source identity used by /sources and
+      // the source-status response. Do not trust a scraper's internal source
+      // label here, or listing counts and source pills can become disconnected.
+      listings.push(...result.value.listings.map((listing) => ({ ...listing, source: adapter.id })));
       sources.push({
         source: adapter.id,
         label: adapter.label,
