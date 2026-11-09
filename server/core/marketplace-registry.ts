@@ -142,8 +142,11 @@ export function enabledForCountry(dataDir: string, code: string): string[] {
   if (prefs[code]) return prefs[code];
   // default: enable implemented/available ones that are not restricted
   const cms = countryMarketplaces(code);
+  // A parser existing in the codebase is not permission to run it.
+  // Auto-enable only sources with an implemented adapter AND an explicit
+  // authorization assessment. Unknown/permission-required sources stay off.
   return cms
     .filter((m) => m.adapter_status === 'implemented')
-    .filter((m) => m.automation_permission !== 'prohibited_without_authorization')
+    .filter((m) => m.automation_permission === 'authorized')
     .map((m) => m.id);
 }
