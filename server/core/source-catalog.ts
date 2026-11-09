@@ -30,12 +30,13 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
     icon: 'terminal',
     markets: ['CH'],
     description:
-      'Swiss general marketplace. The community project drives a real browser, reads public listing pages and emits JSON that Fundstück can map.',
+      'Swiss general marketplace. The community project drives a real browser, reads public listing pages and emits JSON that Fundstueck can map.',
     install:
-      'python3 -m pip install ricardo-scraper   (Python 3.11/3.12; first run downloads a pinned browser build)\n# or clone github.com/danyk20/ricardo-scraper and use: pipenv run python ricardo_scraper.py',
+      'Installs the community CLI into Fundstueck’s isolated Python environment. Python 3.11+ is required; the first scraper run downloads its pinned browser build.',
     docsUrl: 'https://github.com/danyk20/ricardo-scraper',
-    // Avoid assuming a standalone pip executable exists in container PATH.
-    installCommand: ['python3', '-m', 'pip', 'install', 'ricardo-scraper'],
+    // Install into an isolated venv; do not use Debian's externally-managed
+    // system Python or rely on a globally exposed console-script PATH.
+    installCommand: ['bash', 'scripts/install-ricardo.sh'],
     risk:
       'Not bundled and disabled until you save it. This scraper uses camoufox to satisfy ricardo.ch’s Cloudflare challenge, so it may conflict with Ricardo/Cloudflare terms. Review those terms and keep the default request delay.',
     template: {
@@ -47,7 +48,7 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
       icon: 'terminal',
       type: 'command',
       command: {
-        command: 'ricardo-scraper',
+        command: '/app/.venvs/ricardo/bin/ricardo-scraper',
         args: [
           '{query}',
           '--no-detail',
@@ -72,7 +73,7 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
     icon: 'api',
     markets: ['CH'],
     description:
-      'Point Fundstück at any JSON search endpoint and map its fields with dot paths. Works with your own crawler service, a partner API or an internal aggregator.',
+      'Point Fundstueck at any JSON search endpoint and map its fields with dot paths. Works with your own crawler service, a partner API or an internal aggregator.',
     install: 'No install needed — replace the example URL and field paths, then save.',
     risk:
       'Only use endpoints you are allowed to call. Credentials are read from an environment variable and never stored in the browser.',
