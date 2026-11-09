@@ -37,7 +37,6 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [health, setHealth] = useState<Record<string, HealthState>>({});
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [removingId, setRemovingId] = useState<string | null>(null);
   const [runningAll, setRunningAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,7 +117,6 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
 
   const handleRemove = async (adapter: AdapterInfo) => {
     if (!window.confirm(`Remove ${adapter.label} from installed adapters? You can install it again later.`)) return;
-    setRemovingId(adapter.source);
     setError(null);
     try {
       await uninstallAdapter(adapter.source);
@@ -126,8 +124,6 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
       refreshEvents();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not remove adapter.');
-    } finally {
-      setRemovingId(null);
     }
   };
 
