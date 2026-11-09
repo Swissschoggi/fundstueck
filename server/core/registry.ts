@@ -252,6 +252,7 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
   // explicit manual installs, but remove country-managed adapters no longer
   // covered by any selected country. Explicit removals remain removed until
   // the operator installs them again.
+  const previouslyInstalled = new Set(installedIds);
   const nextInstalled = new Set<string>();
   for (const adapter of buildCandidatePool(serverCfg)) {
     const countryManaged = adapter.markets.some((m) => codes.includes(m));
@@ -263,13 +264,10 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
   installedIds = nextInstalled;
   rebuildBuiltIns();
 
-  // Newly selected country adapters are enabled by default. Preserve an
-  // operator's disabled choice for adapters that remain installed.
+  // A newly installed adapter starts enabled. Keep explicit runtime
+  // disable choices for adapters that were already installed.
   for (const adapter of builtInAdapters) {
-    if (!runtimeDisabled.has(adapter.id) &&
-        (isGlobalAdapter(adapter) || adapter.markets.some((m) => codes.includes(m)))) {
-      runtimeDisabled.delete(adapter.id);
-    }
+    if (!previouslyInstalled.has(adapter.id)) runtimeDisabled.delete(adapter.id);
   }
   persistSettings();
 
