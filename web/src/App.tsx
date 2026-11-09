@@ -235,7 +235,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce]);
+  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce, path]);
 
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
@@ -302,8 +302,11 @@ export default function App() {
     return result.listings.filter((l) => l.source === sourceFilter);
   }, [result, sourceFilter]);
 
-  const pillSources =
-    sources.length > 0 ? sources.filter((s) => s.enabled) : (result?.sources ?? []);
+  // Once a search has run, show the adapters that actually participated in it.
+  // The installed-source metadata can lag behind dynamically loaded adapters.
+  const pillSources = result
+    ? result.sources.filter((s) => s.enabled)
+    : sources.filter((s) => s.enabled);
 
   const isSources = path.startsWith('/settings/sources');
   const isSettings = path.startsWith('/settings');
