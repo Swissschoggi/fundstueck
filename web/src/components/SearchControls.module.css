@@ -1,0 +1,158 @@
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.searchForm {
+  display: flex;
+}
+
+.searchField {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 48px;
+  padding: 0 var(--space-md);
+  border-radius: var(--r-lg);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.searchField:focus-within {
+  background: var(--surface-low);
+  border-color: var(--border-focus);
+}
+
+.searchField > :first-child {
+  flex: none;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  font: var(--fs-body-md);
+  color: var(--on-surface);
+}
+
+.input::placeholder {
+  color: var(--outline);
+}
+
+.kbd {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  background: var(--surface-container);
+  border: 1px solid var(--border-default);
+  font: var(--fs-label-sm);
+  color: var(--on-surface-variant);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border-radius: var(--r-full);
+  border: 2px solid var(--surface-highest);
+  border-top-color: var(--primary);
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.selectWrap > :last-child {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+}
+
+.select {
+  appearance: none;
+  height: 48px;
+  padding: 0 36px 0 var(--space-md);
+  border-radius: var(--r-lg);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.select:hover {
+  background: var(--surface-low);
+}
+
+.marketSelect {
+  padding-left: 34px;
+}
+
+.viewToggle {
+  display: flex;
+  align-items: center;
+  padding: var(--space-xs);
+  gap: 2px;
+  border-radius: var(--r-lg);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  border-radius: var(--r-md);
+  color: var(--outline);
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.viewBtn:hover {
+  color: var(--on-surface);
+}
+
+.viewActive {
+  background: var(--surface-high);
+  color: var(--primary);
+}
+
+@media (min-width: 1024px) {
+  .strip {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .searchForm {
+    flex: 1;
+  }
+
+  .controls {
+    flex: none;
+  }
+}

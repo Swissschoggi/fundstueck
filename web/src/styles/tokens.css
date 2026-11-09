@@ -1,0 +1,79 @@
+/* Fundstück design tokens — transcribed from the "Helvetia Pure Modern"
+   design system (helvetia_pure_modern/DESIGN.md) and the
+   explore_unified_search_modernized mockup. Keep components token-driven. */
+:root {
+  /* Core canvas & surfaces */
+  --surface: #131315;
+  --surface-dim: #131315;
+  --surface-bright: #39393b;
+  --surface-lowest: #0e0e10;
+  --surface-low: #1c1b1d;
+  --surface-container: #201f22;
+  --surface-high: #2a2a2c;
+  --surface-highest: #353437;
+
+  /* Content */
+  --on-surface: #e5e1e4;
+  --on-surface-variant: #c5c7c9;
+  --outline: #8f9194;
+  --outline-variant: #44474a;
+
+  /* Primary actions */
+  --primary: #ffffff;
+  --on-primary: #2f3132;
+  --primary-fixed: #e2e2e4;
+  --primary-fixed-dim: #c6c6c8;
+
+  /* Feedback */
+  --error: #ffb4ab;
+  --error-container: rgba(147, 0, 10, 0.4);
+
+  /* Precision micro-borders */
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --border-focus: rgba(255, 255, 255, 0.4);
+
+  /* Source identity accents (ambient luminescence) */
+  --accent-ricardo: #ff3b30;
+  --accent-tutti: #007aff;
+  --accent-anibis: #30d158;
+  --accent-ebay: #3665f3;
+  --accent-sample: #8f9194;
+  --accent-default: #c6c6c8;
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 24px;
+  --r-full: 9999px;
+
+  /* Spacing (8pt grid) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --gutter: 24px;
+  --gutter-mobile: 16px;
+  --margin: 48px;
+  --margin-mobile: 20px;
+
+  /* Typography */
+  --font-sans: 'Geist', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --fs-display: 600 48px/56px var(--font-sans);
+  --fs-headline-lg: 600 28px/36px var(--font-sans);
+  --fs-headline-md: 500 22px/28px var(--font-sans);
+  --fs-headline-sm: 500 18px/24px var(--font-sans);
+  --fs-price-card: 600 18px/22px var(--font-sans);
+  --fs-body-lg: 400 16px/24px var(--font-sans);
+  --fs-body-md: 400 14px/20px var(--font-sans);
+  --fs-label-md: 500 13px/16px var(--font-sans);
+  --fs-label-sm: 600 11px/14px var(--font-sans);
+  --fs-code-chf: 500 12px/14px var(--font-sans);
+
+  /* Layout */
+  --sidebar-width: 256px;
+  --topbar-height: 56px;
+}

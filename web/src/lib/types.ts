@@ -1,0 +1,222 @@
+/** Client-side mirror of the search API payload shapes. */
+export interface NormalizedListing {
+  id: string;
+  source: string;
+  sourceListingId: string;
+  title: string;
+  description: string;
+  price: number | null;
+  currency: string;
+  location: string | null;
+  imageUrl: string | null;
+  listingUrl: string;
+  publishedAt: string | null;
+  fetchedAt: string;
+}
+
+export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';
+export type ViewMode = 'grid' | 'list';
+
+export interface SourceStatus {
+  source: string;
+  label: string;
+  mode: 'live' | 'sample';
+  enabled: boolean;
+  disabledReason: string | null;
+  status?: 'ok' | 'error';
+  count?: number;
+  latencyMs?: number;
+  error?: string;
+}
+
+export interface SearchResponse {
+  query: string;
+  market: string;
+  sort: SortKey;
+  total: number;
+  tookMs: number;
+  isSampleData: boolean;
+  listings: NormalizedListing[];
+  sources: SourceStatus[];
+}
+
+export interface SourceInfo {
+  source: string;
+  label: string;
+  mode: 'live' | 'sample';
+  enabled: boolean;
+  disabledReason: string | null;
+}
+
+/** Full adapter state from /api/sources (superset of SourceInfo). */
+export interface AdapterInfo extends SourceInfo {
+  icon: string;
+  description: string;
+  auth: string;
+  envVars: string[];
+  capabilities: string[];
+  markets: string[];
+  docsUrl?: string;
+  origin: 'built-in' | 'custom' | 'plugin';
+  configured: boolean;
+  runtimeDisabled: boolean;
+}
+
+export interface AdapterHealthResult {
+  source: string;
+  ok: boolean;
+  latencyMs: number;
+  message: string;
+  checkedAt: string;
+}
+
+export interface ServerEvent {
+  id: number;
+  at: string;
+  source: string;
+  level: 'info' | 'ok' | 'error';
+  message: string;
+}
+
+export interface MarketInfo {
+  code: string;
+  label: string;
+  currency: string;
+  locale: string;
+  ebayMarketplaceId: string;
+  sources: { total: number; enabled: number };
+}
+
+export interface MarketsResponse {
+  default: string;
+  region?: string;
+  setupComplete?: boolean;
+  markets: MarketInfo[];
+}
+
+export interface RegionSource {
+  id: string;
+  label: string;
+  kind: 'live' | 'official' | 'recipe';
+  note?: string;
+}
+
+export interface RegionPack {
+  code: string;
+  label: string;
+  group: 'Europe' | 'Americas' | 'Oceania';
+  currency: string;
+  locale: string;
+  blurb: string;
+  note?: string;
+  sources: RegionSource[];
+}
+
+export interface SetupResponse {
+  complete: boolean;
+  region: string;
+  regions: RegionPack[];
+}
+
+export interface SystemInfo {
+  node: string;
+  platform: string;
+  env: string;
+  uptimeSec: number;
+  rssMb: number;
+  heapUsedMb: number;
+  adapters: { total: number; configured: number; enabled: number };
+}
+
+
+/* ---- Optional sources: custom configs, plugins, catalog ---- */
+
+export interface CustomFieldMap {
+  id?: string;
+  title?: string;
+  price?: string;
+  currency?: string;
+  location?: string;
+  image?: string;
+  url?: string;
+  description?: string;
+  publishedAt?: string;
+}
+
+export interface CustomHttpOptions {
+  url: string;
+  method: 'GET' | 'POST';
+  headers: Record<string, string>;
+  apiKeyEnv?: string;
+  responsePath?: string;
+  fields: CustomFieldMap;
+  priceFactor: number;
+}
+
+export interface CustomCommandOptions {
+  command: string;
+  args: string[];
+  cwd?: string;
+  timeoutMs: number;
+  outputFile?: string;
+  format: 'auto' | 'ricardo';
+}
+
+export interface CustomSourceConfig {
+  id: string;
+  label: string;
+  description: string;
+  markets: string[];
+  enabled: boolean;
+  icon: string;
+  type: 'http-json' | 'command';
+  http?: CustomHttpOptions;
+  command?: CustomCommandOptions;
+}
+
+export type CustomSourceDraft = Omit<CustomSourceConfig, 'enabled'> & { enabled?: boolean };
+
+export interface PluginStatus {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  markets: string[];
+  envVars: string[];
+  docsUrl?: string;
+  dir: string;
+  loaded: boolean;
+  error?: string;
+  adapterIds: string[];
+}
+
+export interface CatalogEntry {
+  id: string;
+  label: string;
+  kind: 'custom-command' | 'custom-http' | 'built-in';
+  icon: string;
+  markets: string[];
+  description: string;
+  install: string;
+  docsUrl?: string;
+  risk?: string;
+  template?: CustomSourceDraft;
+}
+
+export interface PluginsResponse {
+  plugins: PluginStatus[];
+  customSources: CustomSourceConfig[];
+  catalog: CatalogEntry[];
+  pluginsDir: string;
+  region: string;
+  setupComplete: boolean;
+}
+
+export interface SourceTestResult {
+  source: string;
+  ok: boolean;
+  latencyMs: number;
+  count?: number;
+  sample?: NormalizedListing[];
+  error?: string;
+}

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-variant":"#353437","on-secondary-fixed-variant":"#46464e","surface-container-high":"#2a2a2c","on-tertiary-fixed":"#3f0400","primary-fixed":"#e2e2e4","inverse-surface":"#e5e1e4","on-primary-fixed":"#1a1c1d","on-tertiary-fixed-variant":"#8e1401","on-tertiary":"#650a00","error":"#ffb4ab","primary":"#ffffff","surface-container-lowest":"#0e0e10","surface-container-low":"#1c1b1d","on-primary-fixed-variant":"#454749","on-background":"#e5e1e4","on-tertiary-container":"#b9341d","outline-variant":"#44474a","tertiary-fixed-dim":"#ffb4a5","tertiary-fixed":"#ffdad3","inverse-on-surface":"#313032","surface-container-highest":"#353437","on-primary-container":"#636466","surface":"#131315","surface-dim":"#131315","on-secondary":"#2f3038","surface-tint":"#c6c6c8","on-surface-variant":"#c5c7c9","on-error":"#690005","outline":"#8f9194","primary-container":"#e2e2e4","secondary":"#c6c5cf","tertiary":"#ffffff","secondary-fixed":"#e3e1ec","background":"#131315","on-primary":"#2f3132","inverse-primary":"#5d5e60","on-error-container":"#ffdad6","secondary-container":"#4a4b53","tertiary-container":"#ffdad3","secondary-fixed-dim":"#c6c5cf","on-secondary-container":"#bcbbc5","error-container":"#93000a","surface-container":"#201f22","primary-fixed-dim":"#c6c6c8","on-surface":"#e5e1e4","surface-bright":"#39393b","on-secondary-fixed":"#1a1b22"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xs":"0.25rem","space-md":"1rem","space-sm":"0.5rem","space-xl":"2.5rem","margin-mobile":"1.25rem","space-lg":"1.5rem","margin":"3rem","gutter-mobile":"1rem","gutter":"1.5rem"},fontFamily:{"headline-md":["Geist"],"label-md":["Geist"],"price-card":["Geist"],"price-hero":["Geist"],"headline-lg":["Geist"],"body-md":["Geist"],"headline-sm":["Geist"],"body-lg":["Geist"],"display-lg-mobile":["Geist"],"display-lg":["Geist"],"label-sm":["Geist"],"code-chf":["Geist"]},fontSize:{"headline-md":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"500"}],"label-md":["13px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"500"}],"price-card":["18px",{lineHeight:"22px",letterSpacing:"-0.015em",fontWeight:"600"}],"price-hero":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"600"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.02em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",letterSpacing:"0em",fontWeight:"400"}],"headline-sm":["18px",{lineHeight:"24px",letterSpacing:"-0.01em",fontWeight:"500"}],"body-lg":["16px",{lineHeight:"24px",letterSpacing:"-0.005em",fontWeight:"400"}],"display-lg-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"display-lg":["48px",{lineHeight:"56px",letterSpacing:"-0.03em",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"600"}],"code-chf":["12px",{lineHeight:"14px",letterSpacing:"0.05em",fontWeight:"500"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-surface-variant selection:text-primary"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-space-md"><div class="px-space-md flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[18px]">radar</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-primary font-bold leading-none">SwissHunt</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mt-0.5">AGGREGATOR ENGINE</span></div></div><div class="px-space-md"><div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-low"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_8px_rgba(255,255,255,0.4)] animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface font-medium">Sync Active</span></div><span class="font-code-chf text-code-chf text-on-surface-variant">41ms</span></div></div><nav class="flex flex-col gap-1 px-space-sm" data-active-classes="bg-surface-container-high text-primary font-medium rounded-lg"><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="live-feed" href="#">Live Feed</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="listing-detail" href="#">Listing Detail &amp; Comparison</a><a aria-current="page" class="flex items-center px-space-sm py-2 transition-all bg-surface-container-high text-primary font-medium rounded-lg" data-path="saved-queries" href="#">Saved Queries &amp; Alerts</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="deal-radar" href="#">Deal Radar &amp; Market Analytics</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="crawlers-settings" href="#">Crawlers &amp; Daemons Settings</a></nav></div><div class="flex flex-col gap-space-sm px-space-md"><div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider">Crawl Rate</span><span class="font-code-chf text-code-chf text-on-surface">142 items/min</span></div><div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-secondary-fixed w-3/4 rounded-full"></div></div></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex-1 max-w-xl"><div class="relative flex items-center w-full"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full h-9 pl-9 pr-14 rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:bg-surface-container-low transition-colors" placeholder="Search listings across Swiss marketplaces..." type="text"/><div class="absolute right-2 px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm select-none">⌘K</div></div></div><div class="hidden xl:flex items-center gap-1.5 p-1 rounded-lg bg-surface-container-lowest"><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface bg-surface-container-high shadow-sm">All</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Ricardo.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Tutti.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Anibis.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">FB Marketplace</button></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-lowest"><span class="w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_6px_rgba(255,255,255,0.3)]"></span><span class="font-label-sm text-label-sm text-on-surface-variant">4 Daemons Active</span></div><button class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface px-space-lg min-h-screen"><div class="flex flex-col w-full pb-16 space-y-8">
+<!-- Radial Ambient Backdrop -->
+<div class="relative w-full overflow-hidden rounded-xl bg-surface-container-lowest p-8 shadow-2xl">
+<div class="absolute -top-32 -right-24 w-96 h-96 bg-gradient-to-br from-surface-variant/20 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-32 -left-24 w-80 h-80 bg-gradient-to-tr from-surface-container/30 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+<div class="space-y-2 max-w-3xl">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm uppercase tracking-wider">Daemon Daemon Status: Synchronized</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed shadow-[0_0_8px_rgba(255,255,255,0.8)] animate-ping"></span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight font-semibold">Saved Searches &amp; Alert Radar</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl leading-relaxed">
+          Background daemons monitor configured Swiss marketplaces 24/7. Instant triggers via Telegram, Webhook, and Browser Push with sub-minute latency.
+        </p>
+</div>
+<!-- Action Cluster -->
+<div class="flex flex-wrap items-center gap-3">
+<button class="h-10 px-4 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all flex items-center gap-2 shadow-sm active:scale-95" id="test-pipeline-btn">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">send</span>
+<span>Test Pipeline</span>
+</button>
+<button class="h-10 px-4 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all flex items-center gap-2 shadow-sm active:scale-95" id="pause-all-btn">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" id="pause-all-icon">pause_circle</span>
+<span id="pause-all-text">Pause Monitors</span>
+</button>
+<button class="h-10 px-5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md transition-all flex items-center gap-2 shadow-md active:scale-95 font-medium" id="open-modal-btn">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Create New Watcher</span>
+</button>
+</div>
+</div>
+<!-- Quick Stats Telemetry Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6">
+<div class="p-4 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Active Watchers</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-semibold">4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/ 8 configured</span>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Ingestion Pulse</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-semibold">22s</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">polling interval</span>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Alerts Fired (24h)</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-semibold">14</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">8 unique items</span>
+</div>
+</div>
+<div class="p-4 rounded-lg bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Deduplication Ratio</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-md text-headline-md text-primary font-semibold">42.8%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">cross-market</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Section: 2-Column Responsive Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Active Watchers (8 cols) -->
+<div class="xl:col-span-8 flex flex-col space-y-6">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<h2 class="font-headline-sm text-headline-sm text-primary font-semibold">Active Query Monitors</h2>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-code-chf text-code-chf">3 RUNNING</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span class="font-label-sm text-label-sm">Auto-resolve Duplicates: ON</span>
+</div>
+</div>
+<!-- Watcher Card 1 -->
+<div class="p-6 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-200 shadow-md group relative">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+<div class="space-y-3 flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed shadow-[0_0_4px_rgba(255,255,255,0.8)]"></span>
+                ACTIVE
+              </span>
+<span class="font-code-chf text-code-chf text-on-surface-variant">ID: WTR-8821</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">High Priority</span>
+</div>
+<div class="min-w-0">
+<h3 class="font-headline-md text-headline-md text-primary font-semibold tracking-tight truncate">Herman Miller Aeron / Mirra 2</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Classic, Remastered or Mirra fully loaded ergonomic variants</p>
+</div>
+<!-- Parameters Grid -->
+<div class="flex flex-wrap gap-2 pt-1">
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">payments</span>
+<span>Max CHF 500</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">pin_drop</span>
+<span>ZH, BE, AG (≤ 30km)</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">hub</span>
+<span>Ricardo, Tutti, Anibis</span>
+</div>
+</div>
+<!-- Notification Channels -->
+<div class="flex items-center gap-4 pt-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Pushed to:</span>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">send</span> Telegram (@SwissHuntAlertBot)
+                </span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">webhook</span> Home Assistant
+                </span>
+</div>
+</div>
+</div>
+<!-- Controls & Telemetry -->
+<div class="flex md:flex-col items-end justify-between md:justify-start gap-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer watcher-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary-fixed-dim"></div>
+</label>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Last Triggered</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">18m ago</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed block mt-0.5">4 hits today (2 dedup)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors" title="Test Alert Dispatch">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors" title="Edit Parameters">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-error transition-colors" title="Delete Watcher">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Watcher Card 2 -->
+<div class="p-6 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-200 shadow-md group relative">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+<div class="space-y-3 flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed shadow-[0_0_4px_rgba(255,255,255,0.8)]"></span>
+                ACTIVE
+              </span>
+<span class="font-code-chf text-code-chf text-on-surface-variant">ID: WTR-7104</span>
+</div>
+<div class="min-w-0">
+<h3 class="font-headline-md text-headline-md text-primary font-semibold tracking-tight truncate">USM Haller 2x2 / 3x2 Credenza</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Pure white, anthracite, or gentian blue finish with drop-down doors</p>
+</div>
+<div class="flex flex-wrap gap-2 pt-1">
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">payments</span>
+<span>Max CHF 750</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">pin_drop</span>
+<span>All Cantons (CH Nationwide)</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">hub</span>
+<span>Ricardo, Tutti, FB Marketplace</span>
+</div>
+</div>
+<div class="flex items-center gap-4 pt-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Pushed to:</span>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">send</span> Telegram Bot
+                </span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">volume_up</span> Desktop Sound Chime
+                </span>
+</div>
+</div>
+</div>
+<div class="flex md:flex-col items-end justify-between md:justify-start gap-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer watcher-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary-fixed-dim"></div>
+</label>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Last Triggered</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">2h ago</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">1 match today</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Watcher Card 3 -->
+<div class="p-6 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all duration-200 shadow-md group relative">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+<div class="space-y-3 flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed shadow-[0_0_4px_rgba(255,255,255,0.8)]"></span>
+                ACTIVE
+              </span>
+<span class="font-code-chf text-code-chf text-on-surface-variant">ID: WTR-6430</span>
+</div>
+<div class="min-w-0">
+<h3 class="font-headline-md text-headline-md text-primary font-semibold tracking-tight truncate">Sony PlayStation 5 Disc Edition</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Console + dual controller bundle, local handover inspection preferred</p>
+</div>
+<div class="flex flex-wrap gap-2 pt-1">
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">payments</span>
+<span>Max CHF 350</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">store</span>
+<span>Pickup Only: Lucerne &amp; Zürich</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">hub</span>
+<span>Tutti, Ricardo</span>
+</div>
+</div>
+<div class="flex items-center gap-4 pt-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Pushed to:</span>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">forum</span> Discord Webhook
+                </span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">send</span> Telegram
+                </span>
+</div>
+</div>
+</div>
+<div class="flex md:flex-col items-end justify-between md:justify-start gap-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer watcher-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary-fixed-dim"></div>
+</label>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Last Triggered</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">Yesterday</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-0.5">3 matches this week</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Watcher Card 4 (Paused) -->
+<div class="p-6 rounded-xl bg-surface-container-lowest opacity-60 hover:opacity-100 transition-all duration-200 shadow-sm group relative">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+<div class="space-y-3 flex-1 min-w-0">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-outline font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                PAUSED
+              </span>
+<span class="font-code-chf text-code-chf text-on-surface-variant">ID: WTR-3912</span>
+</div>
+<div class="min-w-0">
+<h3 class="font-headline-md text-headline-md text-primary font-semibold tracking-tight truncate">Freitag F13 TOP CAT / F11 LASSIE</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Vintage tarp pattern, monochrome or dual-tone tarp</p>
+</div>
+<div class="flex flex-wrap gap-2 pt-1">
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">payments</span>
+<span>Max CHF 150</span>
+</div>
+<div class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">verified</span>
+<span>Condition: Like New</span>
+</div>
+</div>
+<div class="flex items-center gap-4 pt-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Pushed to:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">send</span> Telegram
+              </span>
+</div>
+</div>
+<div class="flex md:flex-col items-end justify-between md:justify-start gap-4">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer watcher-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-primary after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary-fixed-dim"></div>
+</label>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Status</span>
+<span class="font-code-chf text-code-chf text-outline font-medium">Daemon Suspended</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-2 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Ingestion Pipeline Diagnostics Bar -->
+<div class="p-5 rounded-xl bg-surface-container-lowest flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed text-[24px]">graphic_eq</span>
+<div>
+<span class="font-headline-sm text-headline-sm text-primary font-medium block">Daemon Heartbeat &amp; Stream Capacity</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Ricardo (3s) • Tutti (5s) • Anibis (12s) • FB Market (20s)</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<!-- Inline Sparkline Representation -->
+<svg class="w-32 h-8 text-secondary-fixed" fill="none" viewbox="0 0 100 24">
+<path d="M0 16 L15 12 L30 18 L45 8 L60 14 L75 5 L90 12 L100 4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="font-code-chf text-code-chf text-primary font-semibold">99.94% OK</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Realtime Match Stream & Endpoints (4 cols) -->
+<div class="xl:col-span-4 flex flex-col space-y-6">
+<!-- Notification Integrations Card -->
+<div class="p-6 rounded-xl bg-surface-container-low shadow-md space-y-5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">notifications_active</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-semibold">Notification Hub</h2>
+</div>
+<button class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- Telegram -->
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-medium">Telegram Bot</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Chat ID: 8941920</span>
+</div>
+</div>
+<span class="font-code-chf text-code-chf text-secondary-fixed">Active</span>
+</div>
+<!-- Discord -->
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">forum</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-medium">Discord Webhook</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">#swiss-deals-feed</span>
+</div>
+</div>
+<span class="font-code-chf text-code-chf text-secondary-fixed">200 OK</span>
+</div>
+<!-- Home Assistant -->
+<div class="p-3 rounded-lg bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">home</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-medium">Home Assistant</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Local Webhook IP</span>
+</div>
+</div>
+<span class="font-code-chf text-code-chf text-secondary-fixed">Connected</span>
+</div>
+<!-- Email -->
+<div class="p-3 rounded-lg bg-surface-container opacity-50 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-outline font-medium">Email Digest</span>
+<span class="font-label-sm text-label-sm text-outline block">Disabled (High Latency)</span>
+</div>
+</div>
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary underline">Enable</button>
+</div>
+</div>
+<button class="w-full py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]">add_link</span>
+<span>Add Custom Endpoint / Ntfy.sh</span>
+</button>
+</div>
+<!-- Realtime Match Feed (Last 6 Hours) -->
+<div class="p-6 rounded-xl bg-surface-container-low shadow-md space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">bolt</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-semibold">Live Alert Stream</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Last 6 hours</span>
+</div>
+<div class="space-y-3">
+<!-- Stream Item 1 -->
+<div class="p-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors flex gap-3 group">
+<div class="w-16 h-16 rounded-md overflow-hidden bg-surface-container-highest shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="Herman Miller Aeron ergonomic desk chair in graphite finish, clean studio lighting, high resolution product shot with dark modern backdrop" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5PDjNAOKEitv5CGNzF8pIUncCjxqfbdPyrhbArO6X326AlsjA_U1agWaWvh9ixJsIrA9DVOp-tTQ08G5o8bNVEn5JokqfNmcpAt9-78soi_QXNnC43FbF8lmrAl0ZUXzFfxTcK6NDN4IGfwZ-losrS94vYwl9MOK0uKKs1Q_dqQG1Vc5Jia6ll6g88ye0DPGajnd60ifBSGGf7GnvcpWoCqi-bNvBZm8tRhXFuOU"/>
+</div>
+<div class="flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface font-medium uppercase tracking-wider">Ricardo</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">18m ago</span>
+</div>
+<h4 class="font-body-md text-body-md text-primary font-medium truncate mt-1">Herman Miller Aeron Gr. B Carbon</h4>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">Zürich, ZH</span>
+<span class="text-outline">•</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">Matches: Aeron / Mirra</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 pt-1 border-t border-transparent">
+<span class="font-price-card text-price-card text-primary font-semibold">CHF 380</span>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-0.5" href="#">
+                  View <span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Stream Item 2 -->
+<div class="p-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors flex gap-3 group">
+<div class="w-16 h-16 rounded-md overflow-hidden bg-surface-container-highest shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="USM Haller modern modular sideboard credenza in pure white finish against a minimalist moody architectural dark room, refined designer aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsF5CItkG9UnbEnncoJT1LmkXAOgz1IAY_WzRc7Q3aP4WAU7SQoyOTgZKqCDtCZhRS81a3n3FX5G4CScCJOT1EDNLKYuCVGsDx09zIzyXqdBfXTTmaJsD_LcCbRowkwJWoA1_pRJEbRmHCkJBKnNVf6XwRPAaPs5rxUqgg8sUXuCRWwww8nwYY84G5ltWeLsK_HhG2Gni9cKSiE43Op3zbgPZnQnEd8S6bUMuB0S4"/>
+</div>
+<div class="flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface font-medium uppercase tracking-wider">Tutti</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2h ago</span>
+</div>
+<h4 class="font-body-md text-body-md text-primary font-medium truncate mt-1">USM Haller Sideboard Reinweiss 2x2</h4>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">Basel, BS</span>
+<span class="text-outline">•</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">Matches: USM Haller</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 pt-1">
+<span class="font-price-card text-price-card text-primary font-semibold">CHF 690</span>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-0.5" href="#">
+                  View <span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Stream Item 3 -->
+<div class="p-3.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors flex gap-3 group">
+<div class="w-16 h-16 rounded-md overflow-hidden bg-surface-container-highest shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="Sony PlayStation 5 game console with white DualSense controllers arranged elegantly on obsidian slate with crisp dark cinematic reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK2bVkE3PlPC6s_gFOVjWZqJAJIttbOBuwdeIEC8WWbGXmkrZjVtvC4DCSBW1OGalimyUWAmA5vKVmEVkrTv69ddUD8cCq8oOqyQr3WRknRZZnM3EwbdJS9G6x96bgXTQbqVlsmESUHLZ4-59gxPpFooS29da4Fe1p_7uozp5dUUSvcD6lMdJ8njsu65DHUzfZlJgc2ReCza7RTupYUryiVfzhKFWNNoeDqo6pfMg"/>
+</div>
+<div class="flex-1 min-w-0 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface font-medium uppercase tracking-wider">Anibis</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3h ago</span>
+</div>
+<h4 class="font-body-md text-body-md text-primary font-medium truncate mt-1">PS5 Disc + 2 Controllers + Spiderman</h4>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">Lucerne, LU</span>
+<span class="text-outline">•</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed">Matches: PS5 Disc</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 pt-1">
+<span class="font-price-card text-price-card text-primary font-semibold">CHF 320</span>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-0.5" href="#">
+                  View <span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-2 text-center font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors block">
+          Show all 14 triggers from today ↓
+        </button>
+</div>
+</div>
+</div>
+<!-- Create New Query Modal (Initially Hidden, Toggleable) -->
+<div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 hidden" id="create-modal">
+<div class="w-full max-w-2xl bg-surface-container-low rounded-2xl shadow-2xl p-6 md:p-8 space-y-6 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary font-semibold">Create Query Watcher</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Instantly spawn a persistent daemon checking Swiss listing feeds.</p>
+</div>
+<button class="p-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors" id="close-modal-btn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1.5">Query Keywords</label>
+<input class="w-full h-11 px-4 rounded-lg bg-surface-container text-primary placeholder:text-outline font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary-fixed" placeholder="e.g. Rolex Submariner, Leica M11, Vitra Lounge Chair..." type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1.5">Price Threshold (CHF)</label>
+<div class="relative">
+<span class="absolute left-3 top-3 font-code-chf text-code-chf text-on-surface-variant">MAX CHF</span>
+<input class="w-full h-11 pl-20 pr-4 rounded-lg bg-surface-container text-primary placeholder:text-outline font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary-fixed" placeholder="850" type="number"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1.5">Canton &amp; Proximity</label>
+<input class="w-full h-11 px-4 rounded-lg bg-surface-container text-primary placeholder:text-outline font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-secondary-fixed" placeholder="ZH, ZG, LU (≤ 25km)" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Marketplace Sources</label>
+<div class="flex flex-wrap gap-2">
+<label class="flex items-center gap-2 px-3 py-2 rounded bg-surface-container cursor-pointer select-none">
+<input checked="" class="accent-primary" type="checkbox"/>
+<span class="font-body-md text-body-md text-primary">Ricardo.ch</span>
+</label>
+<label class="flex items-center gap-2 px-3 py-2 rounded bg-surface-container cursor-pointer select-none">
+<input checked="" class="accent-primary" type="checkbox"/>
+<span class="font-body-md text-body-md text-primary">Tutti.ch</span>
+</label>
+<label class="flex items-center gap-2 px-3 py-2 rounded bg-surface-container cursor-pointer select-none">
+<input checked="" class="accent-primary" type="checkbox"/>
+<span class="font-body-md text-body-md text-primary">Anibis.ch</span>
+</label>
+<label class="flex items-center gap-2 px-3 py-2 rounded bg-surface-container cursor-pointer select-none">
+<input class="accent-primary" type="checkbox"/>
+<span class="font-body-md text-body-md text-primary">Facebook Marketplace</span>
+</label>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-2">Notify Target</label>
+<div class="grid grid-cols-2 gap-2">
+<div class="p-3 rounded bg-surface-container flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary">Telegram (@SwissHuntAlertBot)</span>
+<input checked="" class="accent-primary" type="checkbox"/>
+</div>
+<div class="p-3 rounded bg-surface-container flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary">Home Assistant Webhook</span>
+<input checked="" class="accent-primary" type="checkbox"/>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 pt-4 border-t border-surface-variant/30">
+<button class="px-5 py-2.5 rounded-lg bg-surface-container hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all" id="cancel-modal-btn">Cancel</button>
+<button class="px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-semibold transition-all" id="submit-watcher-btn">Deploy Watcher</button>
+</div>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none" id="toast">
+<div class="px-4 py-3 rounded-lg bg-surface-container-high text-primary shadow-2xl flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">check_circle</span>
+<span class="font-body-md text-body-md" id="toast-message">Alert pipeline test sent successfully.</span>
+</div>
+</div>
+</div>
+<script>
+  // Quick Interactive Wiring
+  (function() {
+    const modal = document.getElementById('create-modal');
+    const openBtn = document.getElementById('open-modal-btn');
+    const closeBtn = document.getElementById('close-modal-btn');
+    const cancelBtn = document.getElementById('cancel-modal-btn');
+    const submitBtn = document.getElementById('submit-watcher-btn');
+    const testPipelineBtn = document.getElementById('test-pipeline-btn');
+    const pauseAllBtn = document.getElementById('pause-all-btn');
+    const pauseAllText = document.getElementById('pause-all-text');
+    const pauseAllIcon = document.getElementById('pause-all-icon');
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+
+    function showToast(msg) {
+      if (!toast) return;
+      toastMessage.textContent = msg;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    }
+    if (closeBtn && modal) {
+      closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
+    if (cancelBtn && modal) {
+      cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
+    if (submitBtn && modal) {
+      submitBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        showToast('New search watcher daemon deployed!');
+      });
+    }
+
+    if (testPipelineBtn) {
+      testPipelineBtn.addEventListener('click', () => {
+        showToast('Simulated alert dispatched to Telegram & Webhook endpoints.');
+      });
+    }
+
+    let allPaused = false;
+    if (pauseAllBtn) {
+      pauseAllBtn.addEventListener('click', () => {
+        allPaused = !allPaused;
+        const toggles = document.querySelectorAll('.watcher-toggle');
+        toggles.forEach(t => t.checked = !allPaused);
+        if (allPaused) {
+          pauseAllText.textContent = 'Resume Monitors';
+          pauseAllIcon.textContent = 'play_circle';
+          showToast('All 4 marketplace daemons suspended.');
+        } else {
+          pauseAllText.textContent = 'Pause Monitors';
+          pauseAllIcon.textContent = 'pause_circle';
+          showToast('Marketplace monitoring resumed.');
+        }
+      });
+    }
+  })();
+</script></main></div></body></html>

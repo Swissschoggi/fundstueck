@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-variant":"#353437","on-secondary-fixed-variant":"#46464e","surface-container-high":"#2a2a2c","on-tertiary-fixed":"#3f0400","primary-fixed":"#e2e2e4","inverse-surface":"#e5e1e4","on-primary-fixed":"#1a1c1d","on-tertiary-fixed-variant":"#8e1401","on-tertiary":"#650a00","error":"#ffb4ab","primary":"#ffffff","surface-container-lowest":"#0e0e10","surface-container-low":"#1c1b1d","on-primary-fixed-variant":"#454749","on-background":"#e5e1e4","on-tertiary-container":"#b9341d","outline-variant":"#44474a","tertiary-fixed-dim":"#ffb4a5","tertiary-fixed":"#ffdad3","inverse-on-surface":"#313032","surface-container-highest":"#353437","on-primary-container":"#636466","surface":"#131315","surface-dim":"#131315","on-secondary":"#2f3038","surface-tint":"#c6c6c8","on-surface-variant":"#c5c7c9","on-error":"#690005","outline":"#8f9194","primary-container":"#e2e2e4","secondary":"#c6c5cf","tertiary":"#ffffff","secondary-fixed":"#e3e1ec","background":"#131315","on-primary":"#2f3132","inverse-primary":"#5d5e60","on-error-container":"#ffdad6","secondary-container":"#4a4b53","tertiary-container":"#ffdad3","secondary-fixed-dim":"#c6c5cf","on-secondary-container":"#bcbbc5","error-container":"#93000a","surface-container":"#201f22","primary-fixed-dim":"#c6c6c8","on-surface":"#e5e1e4","surface-bright":"#39393b","on-secondary-fixed":"#1a1b22"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"space-xs":"0.25rem","space-md":"1rem","space-sm":"0.5rem","space-xl":"2.5rem","margin-mobile":"1.25rem","space-lg":"1.5rem","margin":"3rem","gutter-mobile":"1rem","gutter":"1.5rem"},fontFamily:{"headline-md":["Geist"],"label-md":["Geist"],"price-card":["Geist"],"price-hero":["Geist"],"headline-lg":["Geist"],"body-md":["Geist"],"headline-sm":["Geist"],"body-lg":["Geist"],"display-lg-mobile":["Geist"],"display-lg":["Geist"],"label-sm":["Geist"],"code-chf":["Geist"]},fontSize:{"headline-md":["22px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"500"}],"label-md":["13px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"500"}],"price-card":["18px",{lineHeight:"22px",letterSpacing:"-0.015em",fontWeight:"600"}],"price-hero":["24px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"600"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.02em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",letterSpacing:"0em",fontWeight:"400"}],"headline-sm":["18px",{lineHeight:"24px",letterSpacing:"-0.01em",fontWeight:"500"}],"body-lg":["16px",{lineHeight:"24px",letterSpacing:"-0.005em",fontWeight:"400"}],"display-lg-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"600"}],"display-lg":["48px",{lineHeight:"56px",letterSpacing:"-0.03em",fontWeight:"600"}],"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"600"}],"code-chf":["12px",{lineHeight:"14px",letterSpacing:"0.05em",fontWeight:"500"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-surface-variant selection:text-primary"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-space-md"><div class="px-space-md flex items-center gap-space-sm"><div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center"><span class="material-symbols-outlined text-primary text-[18px]">radar</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-primary font-bold leading-none">SwissHunt</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mt-0.5">AGGREGATOR ENGINE</span></div></div><div class="px-space-md"><div class="flex items-center justify-between px-space-sm py-1.5 rounded-lg bg-surface-container-low"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_8px_rgba(255,255,255,0.4)] animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface font-medium">Sync Active</span></div><span class="font-code-chf text-code-chf text-on-surface-variant">41ms</span></div></div><nav class="flex flex-col gap-1 px-space-sm" data-active-classes="bg-surface-container-high text-primary font-medium rounded-lg"><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="live-feed" href="#">Live Feed</a><a aria-current="page" class="flex items-center px-space-sm py-2 transition-all bg-surface-container-high text-primary font-medium rounded-lg" data-path="listing-detail" href="#">Listing Detail &amp; Comparison</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="saved-queries" href="#">Saved Queries &amp; Alerts</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="deal-radar" href="#">Deal Radar &amp; Market Analytics</a><a class="flex items-center px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-body-md text-body-md" data-path="crawlers-settings" href="#">Crawlers &amp; Daemons Settings</a></nav></div><div class="flex flex-col gap-space-sm px-space-md"><div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1"><div class="flex items-center justify-between text-on-surface-variant"><span class="font-label-sm text-label-sm uppercase tracking-wider">Crawl Rate</span><span class="font-code-chf text-code-chf text-on-surface">142 items/min</span></div><div class="w-full h-1 bg-surface-container-high rounded-full overflow-hidden"><div class="h-full bg-secondary-fixed w-3/4 rounded-full"></div></div></div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-lg flex items-center justify-between gap-space-md"><div class="flex-1 max-w-xl"><div class="relative flex items-center w-full"><span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span><input class="w-full h-9 pl-9 pr-14 rounded-lg bg-surface-container-lowest text-on-surface placeholder:text-outline font-body-md text-body-md focus:outline-none focus:bg-surface-container-low transition-colors" placeholder="Search listings across Swiss marketplaces..." type="text"/><div class="absolute right-2 px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm select-none">⌘K</div></div></div><div class="hidden xl:flex items-center gap-1.5 p-1 rounded-lg bg-surface-container-lowest"><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface bg-surface-container-high shadow-sm">All</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Ricardo.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Tutti.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">Anibis.ch</button><button class="px-2.5 py-1 rounded font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors">FB Marketplace</button></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-lowest"><span class="w-2 h-2 rounded-full bg-secondary-fixed shadow-[0_0_6px_rgba(255,255,255,0.3)]"></span><span class="font-label-sm text-label-sm text-on-surface-variant">4 Daemons Active</span></div><button class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[18px]">notifications</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface px-space-lg min-h-screen"><div class="flex flex-col w-full pb-space-xl">
+<!-- Top Breadcrumbs & Daemon Verification Bar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md py-space-md mb-space-md">
+<div class="flex items-center gap-space-md flex-wrap">
+<a class="group inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined text-[16px] transition-transform group-hover:-translate-x-0.5">arrow_back</span>
+<span class="font-label-md text-label-md">Back to Live Feed</span>
+</a>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container font-code-chf text-code-chf text-on-surface-variant">
+<span class="text-outline">ID:</span>#SH-884920
+      </span>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-fixed"></span>
+<span>Discovered 18 minutes ago</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(255,255,255,0.6)]"></span>
+<span class="font-label-md text-label-md text-on-surface">Active on 2 Swiss Marketplaces</span>
+</div>
+<button class="p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Share dossier">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+<button class="p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container transition-all" title="Raw JSON trace">
+<span class="material-symbols-outlined text-[18px]">code</span>
+</button>
+</div>
+</div>
+<!-- Primary Two-Column Cockpit -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- LEFT COLUMN: Physical Asset Intel & Media Gallery (7 cols) -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg">
+<!-- Media Module -->
+<div class="rounded-xl bg-surface-container-low p-space-md flex flex-col gap-space-md shadow-sm">
+<!-- Main Stage Image -->
+<div class="relative w-full h-[460px] rounded-lg overflow-hidden bg-surface-container-lowest flex items-center justify-center">
+<img class="w-full h-full object-cover transition-opacity duration-300" data-alt="Studio photograph of a black Herman Miller Aeron chair Classic Size B on a matte concrete pedestal with dramatic studio directional lighting and obsidian black architectural background in high detail sharp focus." id="main-gallery-view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDI0O6U2QWEWYwQbXIRpXs7RD7uBF3ajfUMxXasMpG0hvEhP5819QluVC67wBtzwrG-FF0VkYORgC454ChL5Dq-YBMn9eXYm6LyObIIV0iNax2ziTJ9vcxVBmy4hyznSoZehQPCnfbOgjROjLkkIoaiaPnwpZiIp8IYrlaOu0xVJaiuFzgchx_4QJxh1N6lwnq9haa3a8CDpyYom_Uullcsqoy2ahdxxQL7q-Lgh0c"/>
+<div class="absolute top-4 left-4 flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm uppercase text-on-surface tracking-wider">
+              Asset Verified
+            </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-secondary-fixed">
+              EXCELLENT / LIKE NEW
+            </span>
+</div>
+<div class="absolute bottom-4 right-4 flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">photo_camera</span>
+<span>1 / 4 Verified Frames</span>
+</div>
+</div>
+<!-- Thumbnails Strip -->
+<div class="grid grid-cols-4 gap-space-sm">
+<button class="relative h-24 rounded-lg overflow-hidden bg-surface-container-lowest ring-1 ring-primary/40 focus:outline-none transition-all">
+<img class="w-full h-full object-cover" data-alt="Close up detailed side angle photo of Herman Miller Aeron Classic lumbar support mesh and mechanism with moody neutral lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJSJg_ifI0yMhUnBzmNRUTics37dSdYsccNDizA7pvCgLkyzaUSu3OOH5rMKcya69bOAbU_ETauR3i9JLf-A-QOFaSEaj2KJXBjQfv6YWh34So2bKPv3MgFHj9i3PkN_Oe9YRbzmEPZPMQp3liXaUHiCIkTkHTjpu06cMVgrlSDytJbVMLFSjJdEtgVpT1yDTMdheMzZ4w8nCBesG-Vs-PezLTMFuFbPFQahY79dA"/>
+<span class="absolute inset-0 bg-primary/5"></span>
+</button>
+<button class="relative h-24 rounded-lg overflow-hidden bg-surface-container-lowest hover:opacity-90 focus:outline-none transition-all">
+<img class="w-full h-full object-cover" data-alt="Macro detail shot of Herman Miller Aeron armrest mechanism and pellicle graphite weave texture under dark modern studio light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5X9a585pxvaY66K3dMehpZ-KWty907MdEhkqpkttuJYb4juSZDgyXFb8ce2tzSVVuA22siB2VLBZzqSz4scJJcKcejJZy3FkOZbBlh7u5-atWNfIi4dCYfGfnuFIBe-KJ6190dT7ysvtdLpvzKoryJyxMnizB9pj19tAMUv1Z9PYROA4It-Q4Gj9TbS3MIOVW887WLXJSjP1YlCCv3ICaIFOvztw2hDd8TTZyryc"/>
+</button>
+<button class="relative h-24 rounded-lg overflow-hidden bg-surface-container-lowest hover:opacity-90 focus:outline-none transition-all">
+<img class="w-full h-full object-cover" data-alt="Rear view of Herman Miller Aeron Size B back frame showing two embossed dots denoting size under crisp rim lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzI09EdXE1qPYQLBhUOU9EAb_urs-iXFdbTklIheT3tF0-JJCHqu3SP4Oc2vcQwhEwRMoDFPD1YNnXkORufnqR4sfYZv4GZWWprBkwWLdHLxd-HtuAw4SahDhU7ejplZONTeFFuO5H-FyWQB2EzTlrEapXJC_eVGf3OUCCidUWPRC4HM7jy_WhR2f5GsRsj0lMKw0vnQxtlfQCXzI5d4s2P3KJ6IYYeHxc-en_pHA"/>
+</button>
+<button class="relative h-24 rounded-lg overflow-hidden bg-surface-container-lowest hover:opacity-90 focus:outline-none transition-all">
+<img class="w-full h-full object-cover" data-alt="Base and hard floor roller castors of Herman Miller Aeron ergonomic desk chair on dark polished industrial flooring." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsPeSztXBWZpPf6-uYu6ZaP0JDD4xBvZlKhiWs4S-wvV8WrzYRI21eW4HmpBkpHKf82EldGA34KbX_Xn3tWqDEYRP2RaqBIB2ZK0udv5fGTk8zR0jA5a7ZEQWE_Uz1au3fm5JNoN5CfI7srln8mfQazBlh-vDFawuCR3j2mFZGzvc_sPa8CvNywEEQspvqKHElbjFUQo7H85pTOTWdrxqUb1te6AN2aju0ema7Nas"/>
+</button>
+</div>
+</div>
+<!-- Item Meta & Origin Snapshot -->
+<div class="rounded-xl bg-surface-container-low p-space-lg flex flex-col gap-space-md shadow-sm">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<span>OFFICE FURNITURE</span>
+<span>•</span>
+<span>ARCHITECTURAL SEATING</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Herman Miller Aeron Chair Classic (Size B)</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+            Fully optioned ergonomic icon configured in Graphite Pellicle weave. Fully loaded configuration with forward-tilt lock and PostureFit spinal support module.
+          </p>
+</div>
+<!-- Location & Distance Tag -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm p-space-md rounded-lg bg-surface-container">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">location_on</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary font-medium">Zürich 8005 (District 5 / Escher Wyss)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3.2 km from your default coordinate (Zürich Enge)</span>
+</div>
+</div>
+<span class="inline-flex self-start sm:self-center px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm uppercase tracking-wide">
+            Canton ZH
+          </span>
+</div>
+<!-- Seller Credential Block -->
+<div class="flex items-center justify-between p-space-md rounded-lg bg-surface-container">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary font-bold">
+              M
+            </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-semibold">Marc V.</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-secondary-fixed">Private Seller</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant text-[12px]">Member since Oct 2019 • 46 completed transactions</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high">
+<span class="material-symbols-outlined text-secondary-fixed text-[16px]">verified</span>
+<span class="font-label-md text-label-md text-primary font-medium">100% Positive</span>
+</div>
+</div>
+<!-- Hardware Specifications Matrix -->
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Verified Configuration Specs</span>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-space-sm">
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Frame Size</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Size B (Medium)</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lumbar Gear</span>
+<span class="font-label-md text-label-md text-primary font-semibold">PostureFit Active</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tilt Limiter</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Rear &amp; Forward Lock</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Armrests</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Fully Pivot-Adjustable</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Castors / Rollers</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Hard Floor Safe (PU)</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Production Run</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Classic Gen 2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Arbitrage Intelligence Engine & Duplicates (5 cols) -->
+<div class="xl:col-span-5 flex flex-col gap-space-lg">
+<!-- Superpower Banner: Duplicate Detection Intelligence -->
+<div class="rounded-xl bg-surface-container-high p-space-md flex flex-col gap-3 shadow-md relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">hub</span>
+<span class="font-label-md text-label-md font-bold text-primary tracking-wide uppercase">Cross-Platform Duplicate Matched</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-code-chf text-code-chf text-secondary-fixed font-semibold">
+            98.4% MATCH SCORE
+          </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-snug">
+          Identical item identified across <strong class="text-primary font-medium">Ricardo.ch</strong> and <strong class="text-primary font-medium">Tutti.ch</strong>. Automated perceptual image hash match (pHash: <code class="text-primary font-code-chf">0x9a3e21f</code>) confirmed by identical seller geolocation and matching background artifacts.
+        </p>
+<div class="flex items-center gap-2 pt-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px] text-secondary-fixed">phone_iphone</span>
+<span>Seller telephone prefix verification (+41 78 *** ** 84) matched on both accounts.</span>
+</div>
+</div>
+<!-- Comparison Split: Ricardo vs. Tutti -->
+<div class="flex flex-col gap-space-md">
+<!-- Matched Deal Card #1: Tutti.ch (Cheaper Arbitrage Option) -->
+<div class="relative rounded-xl bg-surface-container-low p-space-lg flex flex-col gap-space-md shadow-sm transition-all hover:bg-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold tracking-wider">
+                TUTTI.CH
+              </span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary-fixed">
+                Direct Purchase
+              </span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container-highest text-secondary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">trending_down</span>
+              CHEAPEST DELTA (-CHF 30)
+            </span>
+</div>
+<div class="flex items-baseline justify-between pt-1">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Direct Asking Price</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-hero text-price-hero text-primary font-bold">420.-</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant line-through ml-2">CHF 450.-</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Contact Terms</span>
+<p class="font-label-md text-label-md text-primary font-medium">WhatsApp / SMS Direct</p>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-lowest flex items-center justify-between text-on-surface-variant font-body-md text-body-md text-[13px]">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface">handshake</span>
+              Self-pickup in Zurich 8005 • Cash or TWINT
+            </span>
+<span class="font-code-chf text-code-chf text-secondary-fixed">Zero Auction Fees</span>
+</div>
+<a class="w-full py-2.5 px-4 rounded-lg bg-primary text-on-primary font-headline-sm text-headline-sm font-semibold flex items-center justify-center gap-2 hover:bg-secondary-fixed transition-colors shadow-sm" href="#">
+<span>Contact Seller on Tutti.ch</span>
+<span class="material-symbols-outlined text-[18px]">arrow_outward</span>
+</a>
+</div>
+<!-- Matched Deal Card #2: Ricardo.ch (Auction Platform) -->
+<div class="rounded-xl bg-surface-container-low p-space-lg flex flex-col gap-space-md shadow-sm transition-all hover:bg-surface-container">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-surface-container-high text-primary font-label-sm text-label-sm font-semibold tracking-wider">
+                RICARDO.CH
+              </span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">
+                Live Auction
+              </span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] animate-pulse">timer</span>
+<span>Ends in 3h 12m</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-1">
+<div class="flex flex-col p-3 rounded-lg bg-surface-container">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Current Bid</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-card text-price-card text-primary font-bold">450.-</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">14 bids placed</span>
+</div>
+<div class="flex flex-col p-3 rounded-lg bg-surface-container">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Buy Now Price</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-card text-price-card text-primary font-bold">520.-</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Instant purchase</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm px-1">
+<span>Listing Ref: #1258903348</span>
+<span>Buyer Protection Included</span>
+</div>
+<a class="w-full py-2.5 px-4 rounded-lg bg-surface-container-high text-on-surface font-headline-sm text-headline-sm font-medium flex items-center justify-center gap-2 hover:bg-surface-bright hover:text-primary transition-colors" href="#">
+<span>Open Auction on Ricardo.ch</span>
+<span class="material-symbols-outlined text-[18px]">arrow_outward</span>
+</a>
+</div>
+</div>
+<!-- Price History & Swiss Second-Hand Fair Value Sparkline -->
+<div class="rounded-xl bg-surface-container-low p-space-lg flex flex-col gap-space-md shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Automated Valuation Model</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-semibold mt-0.5">Swiss Market Fair Value</h2>
+</div>
+<div class="text-right">
+<span class="font-code-chf text-code-chf text-secondary-fixed font-bold">CHF 440 – 490</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Current price is in Optimal Buy Zone</div>
+</div>
+</div>
+<!-- 90-Day Trend Inline SVG Visualization -->
+<div class="flex flex-col gap-2 pt-2">
+<div class="h-28 w-full bg-surface-container-lowest rounded-lg p-3 flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm z-10">
+<span>90-Day Sale Trend (64 Completed Sales in Switzerland)</span>
+<span>Avg: CHF 465.-</span>
+</div>
+<!-- Custom Sparkline SVG with Fair Value Corridor -->
+<svg class="w-full h-16 text-secondary-fixed overflow-visible" preserveaspectratio="none" viewbox="0 0 400 60">
+<defs>
+<lineargradient id="fairZone" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="currentColor" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="currentColor" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Market corridor band -->
+<rect fill="url(#fairZone)" height="26" width="400" x="0" y="15"></rect>
+<line stroke="currentColor" stroke-dasharray="4 4" stroke-opacity="0.2" x1="0" x2="400" y1="28" y2="28"></line>
+<!-- Historical Transaction Curve -->
+<path d="M 0,42 Q 40,36 80,48 T 160,25 T 240,32 T 320,20 T 360,34 L 400,18" fill="none" stroke="currentColor" stroke-width="2"></path>
+<!-- Current Listing Point -->
+<circle class="animate-ping" cx="360" cy="34" fill="#ffffff" opacity="0.4" r="4"></circle>
+<circle cx="360" cy="34" fill="#ffffff" r="3.5"></circle>
+</svg>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm z-10">
+<span>90d ago (Nov)</span>
+<span>45d ago (Dec)</span>
+<span>Today (Feb)</span>
+</div>
+</div>
+</div>
+<!-- Metric Details -->
+<div class="grid grid-cols-3 gap-2 text-center pt-1">
+<div class="p-2 rounded bg-surface-container">
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Min Recorded</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">CHF 380.-</span>
+</div>
+<div class="p-2 rounded bg-surface-container">
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Avg Recorded</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">CHF 465.-</span>
+</div>
+<div class="p-2 rounded bg-surface-container">
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Max Recorded</span>
+<span class="font-code-chf text-code-chf text-primary font-medium">CHF 590.-</span>
+</div>
+</div>
+</div>
+<!-- Direct Action Utility Bar -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between gap-space-sm shadow-sm">
+<button class="flex-1 py-2.5 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center gap-2 transition-all" id="track-btn">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+<span class="font-label-md text-label-md font-medium">Track Price Drops</span>
+</button>
+<button class="py-2.5 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-all" title="Pin to Deal Radar">
+<span class="material-symbols-outlined text-[18px]">radar</span>
+<span class="hidden sm:inline font-label-md text-label-md">Radar</span>
+</button>
+<button class="py-2.5 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-error flex items-center justify-center gap-1.5 transition-all" title="Report False Positive Match">
+<span class="material-symbols-outlined text-[18px]">flag</span>
+<span class="hidden sm:inline font-label-md text-label-md">Flag Match</span>
+</button>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION: Canton Zürich Proximity Radar & Related Findings -->
+<div class="mt-space-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Canton Zürich Proximity Feed</span>
+<h2 class="font-headline-md text-headline-md text-primary font-semibold">Comparable Architectural &amp; Designer Pieces</h2>
+</div>
+<a class="inline-flex items-center gap-1 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors" href="#">
+<span>View all 28 items in Zürich</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</a>
+</div>
+<!-- Related Listings Grid (3 Columns) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- Related Item 1: USM Haller -->
+<div class="group rounded-xl bg-surface-container-low p-space-md flex flex-col gap-space-md shadow-sm transition-all hover:bg-surface-container">
+<div class="relative w-full h-48 rounded-lg overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="USM Haller modular sideboard in pure white with chrome frame in an upscale Zurich apartment living room with warm minimal lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3Dm4EFnM3JWW0fEIAOioRo84WrvFanQ84gKpg_kSNNWlJ-DWy7ab9VTRezi-GCyXp5KJgrIQglBLRPnX75Ufzfeg4yoa0AfFD6mN6lt17Jq5ntALTSmElLWKEu0sj9cG3LT2zoCliDm7DW8rtKeH9LE3HehhKxuMkiY0t8KYtucu8_tnXRMOBO8jQoTfgWCKGddbSLHuIdivhoAo93bh8eW_xovs9Mz3qHgrRnqI"/>
+<div class="absolute top-3 left-3">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-on-surface uppercase">
+              Ricardo.ch
+            </span>
+</div>
+<div class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-secondary-fixed">
+            Ends in 5h
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Zürich 8001 • 1.8 km</span>
+<span>Condition: Mint</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary font-medium line-clamp-1 group-hover:text-secondary-fixed transition-colors">
+            USM Haller Sideboard (2x2 Pure White)
+          </h3>
+<div class="flex items-baseline justify-between mt-2 pt-2 border-t border-transparent">
+<div class="flex items-baseline gap-1">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-card text-price-card text-primary font-semibold">890.-</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary-fixed">Fair Deal (Est. 950.-)</span>
+</div>
+</div>
+</div>
+<!-- Related Item 2: Vitra Eames -->
+<div class="group rounded-xl bg-surface-container-low p-space-md flex flex-col gap-space-md shadow-sm transition-all hover:bg-surface-container">
+<div class="relative w-full h-48 rounded-lg overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Authentic Vitra Eames Aluminum Group EA 108 office chair in black hopsak fabric and polished chrome on dark studio floor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxU9OI-zwX5CuD1YgJdVi__N_m7njKFIActHU_HfqZRROZtOHl7hf3OLADVSXrI_3jvQgnz61ZFg-bHVHj3u-lwp3xhZucXSKhXWTPf4k6d9EN-7tQXNxkWE-zrswFOJ4P8GI44iXR089wezs2Bm7DFCt0eoEaIq-DbirjGPgdIGzAfcmNMV-8kYtQ0vWRRGK_y2xAQXps86pojBgd6J0hs_kcOVK1S_gUXg06-0U"/>
+<div class="absolute top-3 left-3">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-on-surface uppercase">
+              Tutti.ch
+            </span>
+</div>
+<div class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-secondary-fixed">
+            Fixed Price
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Winterthur, ZH • 18 km</span>
+<span>Condition: Good</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary font-medium line-clamp-1 group-hover:text-secondary-fixed transition-colors">
+            Vitra Eames EA 108 Aluminium Chair
+          </h3>
+<div class="flex items-baseline justify-between mt-2 pt-2 border-t border-transparent">
+<div class="flex items-baseline gap-1">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-card text-price-card text-primary font-semibold">550.-</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Market Avg</span>
+</div>
+</div>
+</div>
+<!-- Related Item 3: Steelcase Gesture -->
+<div class="group rounded-xl bg-surface-container-low p-space-md flex flex-col gap-space-md shadow-sm transition-all hover:bg-surface-container">
+<div class="relative w-full h-48 rounded-lg overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Steelcase Gesture ergonomic desk chair in dark gray fabric with headrest positioned in modern minimal workspace interior." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChiNc_bfimj9G9lQi18iBuAcTOao39woXqTs66qI8RYPlGvhgyyrub0XqMTH-IoqU2f5nrAY9y7Ys9_IErl1bbFjssIf5ttjy3dq0_-4xvNE5UW9PudPyivdMzxheS4ta9jSyLnZdOEBPQDGlS4QW0HOQmcIfzLjbYR5AZNJHv-l7qV7V8yIWE7AGwcW0HvZBZDQgXdrfp11Ex61x_6G56EwK70xIWqqDqpE4Bf8U"/>
+<div class="absolute top-3 left-3">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-on-surface uppercase">
+              Anibis.ch
+            </span>
+</div>
+<div class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-surface-container-lowest/80 backdrop-blur-md font-label-sm text-label-sm text-secondary-fixed">
+            Direct Contact
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Zürich 8048 • 5.1 km</span>
+<span>Condition: Like New</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary font-medium line-clamp-1 group-hover:text-secondary-fixed transition-colors">
+            Steelcase Gesture with Headrest (Dark Grey)
+          </h3>
+<div class="flex items-baseline justify-between mt-2 pt-2 border-t border-transparent">
+<div class="flex items-baseline gap-1">
+<span class="font-code-chf text-code-chf text-on-surface-variant">CHF</span>
+<span class="font-price-card text-price-card text-primary font-semibold">490.-</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary-fixed">-22% under Market</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interaction for Track Price Drops Toggle
+  const trackBtn = document.getElementById('track-btn');
+  if (trackBtn) {
+    trackBtn.addEventListener('click', function() {
+      const isTracking = this.getAttribute('data-tracking') === 'true';
+      if (!isTracking) {
+        this.setAttribute('data-tracking', 'true');
+        this.classList.remove('bg-surface-container', 'text-on-surface');
+        this.classList.add('bg-primary', 'text-on-primary');
+        this.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span><span class="font-label-md text-label-md font-semibold">Monitoring Active</span>';
+      } else {
+        this.setAttribute('data-tracking', 'false');
+        this.classList.remove('bg-primary', 'text-on-primary');
+        this.classList.add('bg-surface-container', 'text-on-surface');
+        this.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications_active</span><span class="font-label-md text-label-md font-medium">Track Price Drops</span>';
+      }
+    });
+  }
+</script></main></div></body></html>

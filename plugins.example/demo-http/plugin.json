@@ -1,0 +1,9 @@
+{
+  "id": "demo-http",
+  "label": "Demo JSON products",
+  "description": "Minimal plugin example: maps a public JSON product search into Fundstück listings.",
+  "icon": "science",
+  "markets": ["CH"],
+  "module": "./index.js",
+  "docsUrl": "https://dummyjson.com/docs/products"
+}
