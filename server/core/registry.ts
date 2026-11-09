@@ -8,6 +8,9 @@ import { EbayAdapter } from '../adapters/ebay.adapter.js';
 import { createDepopAdapter } from '../adapters/depop.adapter.js';
 import { createKijijiAdapter } from '../adapters/kijiji.adapter.js';
 import { createKleinanzeigenAdapter } from '../adapters/kleinanzeigen.adapter.js';
+import { createMercariAdapter } from '../adapters/mercari.adapter.js';
+import { createBlocketAdapter } from '../adapters/blocket.adapter.js';
+import { createVintedAdapter } from '../adapters/vinted.adapter.js';
 import { JsonLdAdapter } from '../adapters/jsonld.adapter.js';
 import { createMarkoAdapter } from '../adapters/marko.adapter.js';
 import { SampleAdapter } from '../adapters/sample.adapter.js';
@@ -41,10 +44,13 @@ let defaultMarket = DEFAULT_MARKET;
 let serverCfg: ServerConfig | null = null;
 let regionCode = DEFAULT_MARKET;
 let selectedCountries: string[] = [DEFAULT_MARKET];
+let manuallyInstalled: Set<string> = new Set();
+let installedIds: Set<string> = new Set();
 let setupComplete = false;
 
 interface PersistedSettings {
   disabledSources: string[];
+  manuallyInstalled: string[];
 }
 
 /**
@@ -58,6 +64,7 @@ interface PersistedSettings {
 export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapter[]> {
   serverCfg = cfg;
   settingsFile = path.join(cfg.dataDir, 'adapter-settings.json');
+  const settingsExisted = fs.existsSync(path.join(cfg.dataDir, 'adapter-settings.json'));
   loadSettings();
   initAdapterConfig(cfg);
 
@@ -65,9 +72,36 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   setupComplete = setup.complete;
   regionCode = setup.region;
   defaultMarket = setup.region;
-  selectedCountries = setup.countries?.length ? setup.countries : [setup.region];
+  selectedCountries = setup.complete ? (setup.countries?.length ? setup.countries : [setup.region]) : [];
+
+  // Compute installed set: global + selected countries + manually installed.
+  const candidatePool = buildCandidatePool(cfg);
+  installedIds = new Set<string>();
+  for (const a of candidatePool) {
+    if (isGlobalAdapter(a) || a.markets.some((m) => selectedCountries.includes(m)) || manuallyInstalled.has(a.id)) {
+      installedIds.add(a.id);
+    }
+  }
+
+  // First run: disable restricted-by-default adapters.
+  if (!settingsExisted && setup.complete) {
+    runtimeDisabled = new Set(['vinted']);
+    persistSettings();
+  }
 
   rebuildBuiltIns();
+
+  // First run: disable adapters that are not global / not for selected countries.
+  if (!settingsExisted && setup.complete) {
+    const toDisable: string[] = [];
+    for (const a of builtInAdapters) {
+      const isDefault = isGlobalAdapter(a) || a.markets.some((m) => selectedCountries.includes(m));
+      if (!isDefault) toDisable.push(a.id);
+    }
+    for (const id of toDisable) runtimeDisabled.add(id);
+    persistSettings();
+  }
+
   await refreshDynamicAdapters();
 
   logEvent(
@@ -95,10 +129,15 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   return allAdapters;
 }
 
-function rebuildBuiltIns(): void {
-  const cfg = serverCfg;
-  if (!cfg) return;
-  const candidates: MarketplaceAdapter[] = [
+function isGlobalAdapter(adapter: MarketplaceAdapter): boolean {
+  // Adapters that are useful in every country (official APIs, etc.).
+  if (adapter.id === 'ebay') return true;
+  if (adapter.id === 'sample') return true;
+  return adapter.markets.length >= 50;
+}
+
+function buildCandidatePool(cfg: ServerConfig): MarketplaceAdapter[] {
+  return [
     new EbayAdapter(cfg.ebay),
     createTuttiAdapter(cfg.scrapers),
     createAnibisAdapter(cfg.scrapers),
@@ -110,6 +149,9 @@ function rebuildBuiltIns(): void {
     createWillhabenAdapter(cfg.scrapers),
     createKijijiAdapter(cfg.scrapers),
     createKleinanzeigenAdapter(cfg.scrapers),
+    createMercariAdapter(cfg.scrapers),
+    createBlocketAdapter(cfg.scrapers),
+    createVintedAdapter(cfg.scrapers),
     new JsonLdAdapter({
       id: 'tori',
       label: 'Tori.fi',
@@ -125,11 +167,19 @@ function rebuildBuiltIns(): void {
       userAgent: cfg.scrapers.userAgent,
       minIntervalMs: cfg.scrapers.minIntervalMs,
       searchUrl: (q) => `https://www.tori.fi/recommerce/forsale/search?q=${encodeURIComponent(q)}`,
+      searchPageUrl: (q, page) => `https://www.tori.fi/recommerce/forsale/search?q=${encodeURIComponent(q)}&page=${page}`,
     }),
     new SampleAdapter(cfg.enableSampleAdapter),
   ];
-  builtInAdapters = candidates.filter((adapter) => adapter.markets.some((m) => selectedCountries.includes(m)));
 }
+
+function rebuildBuiltIns(): void {
+  const cfg = serverCfg;
+  if (!cfg) return;
+  const candidates = buildCandidatePool(cfg);
+  builtInAdapters = candidates.filter((a) => installedIds.has(a.id));
+}
+
 
 /**
  * Rebuild custom + plugin adapters from disk. Called at boot and whenever
@@ -197,6 +247,22 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
   setupComplete = true;
 
   rebuildBuiltIns();
+
+  // Auto-enable adapters for the newly selected countries; disable the rest
+  // (except global ones) so only relevant providers are active.
+  const toEnable = new Set<string>();
+  const toDisable = new Set<string>();
+  for (const a of builtInAdapters) {
+    if (isGlobalAdapter(a) || a.markets.some((m) => codes.includes(m))) {
+      toEnable.add(a.id);
+    } else {
+      toDisable.add(a.id);
+    }
+  }
+  for (const id of toEnable) runtimeDisabled.delete(id);
+  for (const id of toDisable) runtimeDisabled.add(id);
+  persistSettings();
+
   await refreshDynamicAdapters();
   logEvent(
     'setup',
@@ -212,6 +278,41 @@ export function getSetupState(): SetupState {
 
 export function isSetupComplete(): boolean {
   return setupComplete;
+}
+
+
+export function availableAdaptersList(): MarketplaceAdapter[] {
+  if (!serverCfg) return [];
+  return buildCandidatePool(serverCfg).filter((a) => !installedIds.has(a.id));
+}
+
+export function installAdapter(id: string): MarketplaceAdapter | null {
+  if (!serverCfg) return null;
+  const pool = buildCandidatePool(serverCfg);
+  const adapter = pool.find((a) => a.id === id);
+  if (!adapter) return null;
+  manuallyInstalled.add(id);
+  installedIds.add(id);
+  runtimeDisabled.delete(id);
+  persistSettings();
+  rebuildBuiltIns();
+  allAdapters = [...builtInAdapters, ...dynamicAdapters];
+  return adapter;
+}
+
+export function uninstallAdapter(id: string): boolean {
+  if (!serverCfg) return false;
+  // Don't uninstall global adapters.
+  const pool = buildCandidatePool(serverCfg);
+  const adapter = pool.find((a) => a.id === id);
+  if (!adapter || isGlobalAdapter(adapter)) return false;
+  installedIds.delete(id);
+  manuallyInstalled.delete(id);
+  runtimeDisabled.delete(id);
+  persistSettings();
+  rebuildBuiltIns();
+  allAdapters = [...builtInAdapters, ...dynamicAdapters];
+  return true;
 }
 
 export function getRegion(): string {
@@ -313,12 +414,20 @@ export async function runHealthCheck(id: string): Promise<AdapterHealth | null> 
 
 function loadSettings(): void {
   runtimeDisabled = new Set();
+  manuallyInstalled = new Set();
   if (!settingsFile) return;
+  if (!fs.existsSync(settingsFile)) {
+    runtimeDisabled = new Set(['vinted']);
+    persistSettings();
+    return;
+  }
   try {
     const raw = fs.readFileSync(settingsFile, 'utf8');
     const parsed = JSON.parse(raw) as Partial<PersistedSettings>;
     const ids = Array.isArray(parsed.disabledSources) ? parsed.disabledSources : [];
     runtimeDisabled = new Set(ids.filter((id): id is string => typeof id === 'string'));
+    const mi = Array.isArray(parsed.manuallyInstalled) ? parsed.manuallyInstalled : [];
+    manuallyInstalled = new Set(mi.filter((id): id is string => typeof id === 'string'));
   } catch {
     /* no settings yet — all configured adapters stay enabled */
   }
@@ -330,7 +439,7 @@ function persistSettings(): void {
     fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
     fs.writeFileSync(
       settingsFile,
-      JSON.stringify({ disabledSources: [...runtimeDisabled] }, null, 2),
+      JSON.stringify({ disabledSources: [...runtimeDisabled], manuallyInstalled: [...manuallyInstalled] }, null, 2),
     );
   } catch (err) {
     logEvent('settings', 'error', `Could not persist adapter settings: ${(err as Error).message}`);

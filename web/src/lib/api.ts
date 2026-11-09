@@ -24,6 +24,7 @@ export interface SearchParams {
   maxPrice: number | null;
   category?: string | null;
   gender?: string | null;
+  size?: string | null;
 }
 
 export class ApiError extends Error {
@@ -46,6 +47,7 @@ export async function fetchSearch(params: SearchParams): Promise<SearchResponse>
   if (params.maxPrice != null) url.searchParams.set('maxPrice', String(params.maxPrice));
   if (params.category) url.searchParams.set('category', params.category);
   if (params.gender) url.searchParams.set('gender', params.gender);
+  if (params.size) url.searchParams.set('size', params.size);
 
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
@@ -210,6 +212,25 @@ export async function fetchEvents(limit = 80): Promise<ServerEvent[]> {
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   const body = (await res.json()) as { events: ServerEvent[] };
   return body.events;
+}
+
+export async function fetchAvailableAdapters(): Promise<AdapterInfo[]> {
+  const res = await fetch('/api/adapters/available');
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { adapters: AdapterInfo[] };
+  return body.adapters;
+}
+
+export async function installAdapter(id: string): Promise<AdapterInfo> {
+  const res = await fetch(`/api/adapters/${encodeURIComponent(id)}/install`, { method: 'POST' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { adapter: AdapterInfo };
+  return body.adapter;
+}
+
+export async function uninstallAdapter(id: string): Promise<void> {
+  const res = await fetch(`/api/adapters/${encodeURIComponent(id)}/uninstall`, { method: 'POST' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
 }
 
 export async function fetchSystem(): Promise<SystemInfo> {

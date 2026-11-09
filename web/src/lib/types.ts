@@ -13,6 +13,7 @@ export interface NormalizedListing {
   publishedAt: string | null;
   fetchedAt: string;
   gender?: 'male' | 'female' | 'unisex' | null;
+  size?: string | null;
 }
 
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';

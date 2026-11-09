@@ -16,6 +16,8 @@ export function FilterRail({
   currency,
   gender,
   onGenderChange,
+  size,
+  onSizeChange,
 }: {
   minPrice: string;
   maxPrice: string;
@@ -26,6 +28,8 @@ export function FilterRail({
   currency: string;
   gender?: string;
   onGenderChange?: (g: string) => void;
+  size?: string;
+  onSizeChange?: (s: string) => void;
 }) {
   return (
     <aside className={styles.rail}>
@@ -156,6 +160,23 @@ export function FilterRail({
           <p className={styles.hint}>
             Best-effort: derived from listing titles. Most marketplaces do not expose gender.
           </p>
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <label className={styles.label}>
+              Size
+              <span className={styles.soon}>inferred</span>
+            </label>
+          </div>
+          <input
+            type="text"
+            className={styles.sizeInput}
+            placeholder="e.g. 42, M, XL"
+            value={size || ''}
+            onChange={(e) => onSizeChange?.(e.target.value)}
+          />
+          <p className={styles.hint}>Best-effort: derived from listing titles.</p>
         </div>
 
         <div className={styles.section}>

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   deleteCustomSource,
+  fetchAvailableAdapters,
   fetchPlugins,
   fetchSources,
+  installAdapter,
   reloadPlugins,
   saveCustomSource,
   saveAdapterConfig,
@@ -197,6 +199,8 @@ function kindLabel(kind: CatalogEntry['kind']): string {
 export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }) {
   const [data, setData] = useState<PluginsResponse | null>(null);
   const [adapters, setAdapters] = useState<AdapterInfo[]>([]);
+  const [pluginQuery, setPluginQuery] = useState('');
+  const [available, setAvailable] = useState<AdapterInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -209,9 +213,10 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
 
   const refresh = useCallback(async () => {
     try {
-      const [plugins, sources] = await Promise.all([fetchPlugins(), fetchSources()]);
+      const [plugins, sources, avail] = await Promise.all([fetchPlugins(), fetchSources(), fetchAvailableAdapters()]);
       setData(plugins);
       setAdapters(sources);
+      setAvailable(avail);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load source settings.');
@@ -558,6 +563,65 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
       <section className={styles.section}>
         <div className={styles.sectionHead}>
           <div>
+            <h2 className={styles.sectionTitle}>Available built-in adapters</h2>
+            <p className={styles.sectionSub}>
+              Built-in adapters from countries you have not selected. Install one to enable it
+              without changing your country selection. Uninstall from the adapters page.
+            </p>
+          </div>
+        </div>
+        {available.length === 0 ? (
+          <p className={styles.empty}>All built-in adapters are already installed.</p>
+        ) : (
+          <div className={styles.catalogGrid}>
+            {available.map((a) => (
+              <article key={a.source} className={styles.catalogCard}>
+                <div className={styles.cardTop}>
+                  <div className={styles.identity}>
+                    <div className={styles.iconBox}>
+                      <Icon name={a.icon} size={18} />
+                    </div>
+                    <div className={styles.names}>
+                      <span className={styles.cardName}>{a.label}</span>
+                      <span className={styles.slug}>{a.source}</span>
+                    </div>
+                  </div>
+                  <span className={styles.kindBadge}>built-in</span>
+                </div>
+                <p className={styles.cardDesc}>{a.description}</p>
+                <div className={styles.chipRow}>
+                  {a.markets.slice(0, 6).map((m) => (
+                    <span key={m} className={styles.chip}>{m}</span>
+                  ))}
+                  {a.markets.length > 6 && <span className={styles.chip}>+{a.markets.length - 6}</span>}
+                </div>
+                <div className={styles.cardActions}>
+                  <button
+                    type="button"
+                    className={styles.primaryButton}
+                    onClick={async () => {
+                      try {
+                        await installAdapter(a.source);
+                        setNotice(`${a.label} installed.`);
+                        await refresh();
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'Install failed.');
+                      }
+                    }}
+                  >
+                    <Icon name="download" size={14} />
+                    Install
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <div>
             <h2 className={styles.sectionTitle}>Custom sources</h2>
             <p className={styles.sectionSub}>
               Persisted in <code>data/custom-sources.json</code>. Secrets belong in environment variables, not headers.
@@ -879,6 +943,16 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
           </div>
         </div>
 
+        {(data?.plugins.length ?? 0) > 0 && (
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Search plugins…"
+            value={pluginQuery}
+            onChange={(e) => setPluginQuery(e.target.value)}
+          />
+        )}
+
         {loadedPlugins === 0 && (data?.plugins.length ?? 0) === 0 ? (
           <div className={styles.emptyPanel}>
             No plugins installed. Drop a folder with <code>plugin.json</code> and an ESM module into{' '}
@@ -887,7 +961,7 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
           </div>
         ) : (
           <div className={styles.customGrid}>
-            {data?.plugins.map((plugin) => (
+            {(data?.plugins ?? []).filter((p) => !pluginQuery || p.label.toLowerCase().includes(pluginQuery.toLowerCase()) || p.id.toLowerCase().includes(pluginQuery.toLowerCase())).map((plugin) => (
               <article key={plugin.id} className={styles.customCard}>
                 <div className={styles.cardTop}>
                   <div className={styles.identity}>

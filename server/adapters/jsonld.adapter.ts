@@ -18,6 +18,8 @@ export interface JsonLdAdapterOptions {
   userAgent: string;
   minIntervalMs: number;
   searchUrl: (q: string) => string;
+  /** Optional: build a URL for a given page number (1-based). */
+  searchPageUrl?: (q: string, page: number) => string;
 }
 
 export class JsonLdAdapter implements MarketplaceAdapter {
@@ -124,6 +126,17 @@ export class JsonLdAdapter implements MarketplaceAdapter {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
     const html = await this.client.getHtml(this.opts.searchUrl(q));
+    return this.parse(html, new Date().toISOString()).slice(0, limit);
+  }
+
+  async searchPage({ q, limit }: AdapterSearchParams, page: number): Promise<NormalizedListing[]> {
+    if (!this.isEnabled()) {
+      throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+    }
+    const url = this.opts.searchPageUrl
+      ? this.opts.searchPageUrl(q, page)
+      : this.opts.searchUrl(q);
+    const html = await this.client.getHtml(url);
     return this.parse(html, new Date().toISOString()).slice(0, limit);
   }
 

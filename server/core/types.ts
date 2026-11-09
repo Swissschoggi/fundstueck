@@ -30,6 +30,8 @@ export interface NormalizedListing {
   fetchedAt: string;
   /** Inferred gender target: male/female/unisex, or null when unknown. Best-effort. */
   gender?: 'male' | 'female' | 'unisex' | null;
+  /** Inferred size (e.g. "M", "42", "L"), or null when unknown. Best-effort. */
+  size?: string | null;
 }
 
 export type AdapterMode = 'live' | 'sample';
@@ -43,6 +45,8 @@ export interface AdapterSearchParams {
   category?: string;
   /** Optional gender filter: male/female/unisex. */
   gender?: string;
+  /** Optional size filter (e.g. "M", "42"). */
+  size?: string;
 }
 
 /** Thrown by adapters on upstream/auth/network failure. Message must be safe to surface. */
@@ -80,6 +84,20 @@ export interface AdapterConfigField {
  * credentials via Config, timeouts on every request, and SourceError on
  * failure so one broken source never breaks a search.
  */
+export interface AdapterCapabilities {
+  search: boolean;
+  pagination: boolean;
+  detail: boolean;
+  categories: boolean;
+  locationFilter: boolean;
+  conditionFilter: boolean;
+  priceFilter: boolean;
+  sort: boolean;
+  images: boolean;
+  sellerInfo: boolean;
+  publishedDate: boolean;
+}
+
 export interface MarketplaceAdapter {
   /** Stable machine id, e.g. "ebay". */
   readonly id: string;
@@ -103,6 +121,8 @@ export interface MarketplaceAdapter {
   readonly docsUrl?: string;
   /** Declarative config fields editable in the UI (tokens, categories, ...). */
   readonly configFields?: AdapterConfigField[];
+  /** Structured capability declaration. Defaults to search-only. */
+  readonly adapterCapabilities?: AdapterCapabilities;
   /** True when credentials/configuration are present (ignores runtime toggles). */
   isEnabled(): boolean;
   /** Reason the adapter is unconfigured, null when configured. */
@@ -110,6 +130,12 @@ export interface MarketplaceAdapter {
   /** Lightweight, non-destructive probe used by the settings page. Never throws. */
   healthCheck(): Promise<AdapterHealth>;
   search(params: AdapterSearchParams): Promise<NormalizedListing[]>;
+  /** Optional: fetch a single listing by source id. */
+  getListing?(id: string): Promise<NormalizedListing | null>;
+  /** Optional: list categories supported by this source. */
+  listCategories?(): Promise<Array<{ id: string; label: string }>>;
+  /** Optional: fetch next page. Returns listings for that page. */
+  searchPage?(params: AdapterSearchParams, page: number): Promise<NormalizedListing[]>;
 }
 
 /** Adapter state exposed by the settings API. */

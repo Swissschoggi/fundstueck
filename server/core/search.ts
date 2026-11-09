@@ -17,6 +17,8 @@ export interface SearchQuery {
   category: string | null;
   /** Optional gender filter: male/female/unisex. */
   gender: string | null;
+  /** Optional size filter. */
+  size: string | null;
   sort: SortKey;
   minPrice: number | null;
   maxPrice: number | null;
@@ -49,6 +51,8 @@ export function parseSearchParams(
   const category = typeof raw['category'] === 'string' ? raw['category'].trim() : null;
   const genderRaw = typeof raw['gender'] === 'string' ? raw['gender'].trim().toLowerCase() : '';
   const gender = ['male', 'female', 'unisex'].includes(genderRaw) ? genderRaw : null;
+  const sizeRaw = typeof raw['size'] === 'string' ? raw['size'].trim() : '';
+  const size = sizeRaw ? sizeRaw.toLowerCase() : null;
 
   const q = typeof raw['q'] === 'string' ? raw['q'].trim() : '';
   if (!q) {
@@ -77,7 +81,7 @@ export function parseSearchParams(
     }
   }
 
-  return { q, market: market.code, category, gender, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
+  return { q, market: market.code, category, gender, size, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
 }
 
 function parsePrice(value: unknown, name: string): number | null {
@@ -160,6 +164,7 @@ export async function runSearch(
         market: query.market,
         category: query.category ?? undefined,
         gender: query.gender ?? undefined,
+        size: query.size ?? undefined,
       });
       return { adapter, listings, latencyMs: Date.now() - t0 };
     }),
@@ -215,12 +220,25 @@ export async function runSearch(
     }
   });
 
-  // Infer gender where missing, then apply the optional gender filter.
+  const inferSize = (title: string): string | null => {
+    const t = title.toLowerCase();
+    // EU numeric size like Gr. 42, size 42, 42 EU
+    const m = t.match(/(?:gr\.?|size|eu)\s*(\d{2,3})/);
+    if (m) return m[1];
+    const letter = t.match(/\b(xxs|xs|s|m|l|xl|xxl|xxxl)\b/);
+    if (letter) return letter[1].toUpperCase();
+    return null;
+  };
+  // Infer gender/size where missing, then apply filters.
   for (const l of listings) {
     if (l.gender == null) l.gender = inferGender(`${l.title} ${l.description ?? ''}`);
+    if (l.size == null) l.size = inferSize(`${l.title} ${l.description ?? ''}`);
   }
   if (query.gender) {
     listings = listings.filter((l) => l.gender === query.gender || l.gender == null);
+  }
+  if (query.size) {
+    listings = listings.filter((l) => !l.size || l.size.toLowerCase() === query.size);
   }
 
   listings = listings.filter((l) => {

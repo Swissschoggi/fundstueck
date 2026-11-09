@@ -12,10 +12,16 @@
     "dev:web": "vite --config web/vite.config.ts",
     "build": "vite build --config web/vite.config.ts",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p web"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p web",
+    "adapter:create": "node scripts/create-adapter.mjs",
+    "adapter:list": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('server/registry/marketplaces.json','utf8'));console.log(d.length+' marketplaces');for(const m of d)console.log(m.id, m.adapter_status, m.capability);\"",
+    "adapter:check": "npm run typecheck",
+    "test": "tsx --test server/adapters/marketplaces/tori/tests/search.test.ts"
   },
   "dependencies": {
+    "@googlarz/vinted-client": "^1.6.3",
     "express": "^4.21.2",
+    "mercapi": "^0.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

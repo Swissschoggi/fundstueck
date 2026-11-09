@@ -1,9 +1,16 @@
 .shell {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .content {
   min-width: 0;
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding-bottom: 0;
+  }
 }
 
 .head {
@@ -14,6 +21,8 @@
   flex-direction: column;
   gap: var(--space-md);
   padding: var(--space-md) var(--margin-mobile);
+  padding-top: max(var(--space-md), env(safe-area-inset-top));
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-default);
@@ -56,7 +65,7 @@
 }
 
 .boot {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;

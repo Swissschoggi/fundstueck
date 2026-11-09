@@ -126,8 +126,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 34px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--r-md);
   color: var(--outline);
   transition: color 120ms ease, background 120ms ease;
@@ -154,5 +156,11 @@
 
   .controls {
     flex: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .kbd {
+    display: none;
   }
 }

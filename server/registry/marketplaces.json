@@ -617,8 +617,8 @@
     "condition_available": null,
     "published_date_available": null,
     "last_verified_at": null,
-    "verification_notes": "fashion",
-    "adapter_status": "restricted"
+    "verification_notes": "Implemented via @googlarz/vinted-client (unofficial). Terms prohibit scraping - disabled by default.",
+    "adapter_status": "available"
   },
   {
     "id": "autoscout24-austria",
@@ -1851,8 +1851,8 @@
     "condition_available": null,
     "published_date_available": null,
     "last_verified_at": null,
-    "verification_notes": "",
-    "adapter_status": "not_implemented"
+    "verification_notes": "Implemented via blocket-api python library (CLI wrapper).",
+    "adapter_status": "implemented"
   },
   {
     "id": "tradera",
@@ -3391,8 +3391,8 @@
     "condition_available": null,
     "published_date_available": null,
     "last_verified_at": null,
-    "verification_notes": "",
-    "adapter_status": "not_implemented"
+    "verification_notes": "Implemented via mercapi npm package (unofficial Mercari Japan API).",
+    "adapter_status": "implemented"
   },
   {
     "id": "poshmark",

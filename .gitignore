@@ -7,3 +7,5 @@ web/dist
 data
 
 plugins
+docs/adapters.md
+docs/audit.md

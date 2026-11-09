@@ -10,8 +10,14 @@ export interface ScraperConfig {
   anibis: boolean;
   /** Marko.ch public search-page adapter (Switzerland, CHF). */
   marko: boolean;
+  /** Mercari Japan adapter. */
+  mercari: boolean;
   /** Depop public search-page adapter (GB/US/AU, multi-currency). */
   depop: boolean;
+  /** Blocket (Sweden) adapter. */
+  blocket: boolean;
+  /** Vinted adapter (unofficial, disabled by default). */
+  vinted: boolean;
   /** Optional regional public-page adapters (Marktplaats, Subito, …). */
   regional: boolean;
 }
@@ -76,10 +82,15 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       anibis: env.ENABLE_ANIBIS_ADAPTER !== 'false',
       // Marko.ch public search-page adapter (Switzerland, CHF).
       marko: env.ENABLE_MARKO_ADAPTER !== 'false',
+      // Mercari Japan (unofficial API).
+      mercari: env.ENABLE_MERCARI_ADAPTER !== 'false',
       // Depop public search-page adapter (GB/US/AU). On by default but marked
       // opt-in in the UI: Depop's robots.txt disallows /search/* for crawlers
       // and its terms prohibit scraping — review before enabling.
       depop: env.ENABLE_DEPOP_ADAPTER !== 'false',
+      blocket: env.ENABLE_BLOCKET_ADAPTER !== 'false',
+      // Vinted (unofficial API). Restricted terms — disabled by default.
+      vinted: env.ENABLE_VINTED_ADAPTER !== 'false',
       // Regional public search pages (only instantiated for the chosen region).
       regional: env.ENABLE_REGIONAL_ADAPTERS !== 'false',
     },

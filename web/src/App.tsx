@@ -18,6 +18,7 @@ import { Sidebar } from './components/Sidebar';
 import { SearchControls } from './components/SearchControls';
 import { SourcePills } from './components/SourcePills';
 import { FilterRail } from './components/FilterRail';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Results } from './components/Results';
 import { SettingsPage } from './components/SettingsPage';
 import { SourcesPage } from './components/SourcesPage';
@@ -418,6 +419,10 @@ export default function App() {
           </>
         )}
       </div>
+      <MobileBottomNav
+        active={path === '/' ? 'search' : path}
+        onNavigate={navigate}
+      />
     </div>
   );
 }

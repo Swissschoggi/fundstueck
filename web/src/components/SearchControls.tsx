@@ -16,10 +16,10 @@ export const SearchControls = forwardRef<
     input: string;
     onInputChange: (v: string) => void;
     onSubmit: () => void;
-    market: string;
-    markets: MarketInfo[];
-    marketLabel: string;
-    onMarketChange: (code: string) => void;
+    market?: string;
+    markets?: MarketInfo[];
+    marketLabel?: string;
+    onMarketChange?: (code: string) => void;
     sort: SortKey;
     onSortChange: (s: SortKey) => void;
     category: string;
@@ -34,10 +34,10 @@ export const SearchControls = forwardRef<
     input,
     onInputChange,
     onSubmit,
-    market,
-    markets,
-    marketLabel,
-    onMarketChange,
+    market: _market,
+    markets: _markets,
+    marketLabel: _marketLabel,
+    onMarketChange: _onMarketChange,
     sort,
     onSortChange,
     category,
@@ -65,7 +65,7 @@ export const SearchControls = forwardRef<
             ref={inputRef}
             type="text"
             className={styles.input}
-            placeholder={`Search ${marketLabel} marketplaces (e.g. ThinkPad, USM Haller, Leica M6)…`}
+            placeholder={`Search marketplaces (e.g. ThinkPad, USM Haller, Leica M6)…`}
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
             aria-label="Search query"
@@ -78,38 +78,6 @@ export const SearchControls = forwardRef<
       </form>
 
       <div className={styles.controls}>
-        <div className={styles.selectWrap}>
-          <Icon
-            name="public"
-            size={16}
-            style={{
-              color: 'var(--outline)',
-              position: 'absolute',
-              left: 10,
-              pointerEvents: 'none',
-            }}
-          />
-          <select
-            className={`${styles.select} ${styles.marketSelect}`}
-            value={market}
-            onChange={(e) => onMarketChange(e.target.value)}
-            aria-label="Buyer market"
-            title="Choose which country's marketplaces to search"
-          >
-            {markets.length === 0 ? (
-              <option value={market}>{market}</option>
-            ) : (
-              markets.map((m) => (
-                <option key={m.code} value={m.code}>
-                  {m.label} · {m.currency}
-                  {m.sources.enabled === 0 ? ' · no sources yet' : ''}
-                </option>
-              ))
-            )}
-          </select>
-          <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
-        </div>
-
         {categories.length > 0 && (
           <div className={styles.selectWrap}>
             <select

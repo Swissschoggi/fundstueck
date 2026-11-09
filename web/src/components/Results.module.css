@@ -185,3 +185,28 @@
   align-items: center;
   justify-content: space-between;
 }
+
+.suggestionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  justify-content: center;
+  margin-top: var(--space-md);
+  max-width: 480px;
+}
+
+.suggestionChip {
+  padding: 8px 14px;
+  min-height: 36px;
+  border-radius: var(--r-full);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.suggestionChip:active {
+  background: var(--surface-high);
+}

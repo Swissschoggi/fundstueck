@@ -65,6 +65,7 @@ export function Results({
   }
 
   if (status === 'idle') {
+    const suggestions = ['iPhone 15', 'Vitra Chair', 'Gravel Bike', 'Rolex', 'MacBook Pro', 'Lego'];
     return (
       <div className={styles.statePanel}>
         <div className={styles.stateIcon}>
@@ -77,6 +78,21 @@ export function Results({
           One query fans out to every connected marketplace. Results are normalised
           into a single feed — no listings are hosted here.
         </p>
+        <div className={styles.suggestionChips}>
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={styles.suggestionChip}
+              onClick={() => {
+                const ev = new CustomEvent('fundstueck:suggest', { detail: s });
+                window.dispatchEvent(ev);
+              }}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

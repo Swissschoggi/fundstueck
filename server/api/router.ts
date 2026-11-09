@@ -9,8 +9,11 @@ import {
   getPluginStatuses,
   getPluginsDir,
   getRegion,
+  availableAdaptersList,
   getReservedSourceIds,
   getSetupState,
+  installAdapter,
+  uninstallAdapter,
   isSetupComplete,
   refreshDynamicAdapters,
   runHealthCheck,
@@ -75,7 +78,7 @@ export function apiRouter(cfg: ServerConfig): Router {
         return;
       }
       const query = parseSearchParams(req.query, getDefaultMarket());
-      const enabled = enabledAdapters(query.market);
+      const enabled = enabledAdapters();
       if (enabled.length === 0) {
         const market = findMarket(query.market);
         res.status(503).json({
@@ -154,6 +157,31 @@ export function apiRouter(cfg: ServerConfig): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  // ---- Adapter install/uninstall (cross-country) ----
+
+  router.get('/adapters/available', (_req, res) => {
+    const adapters = availableAdaptersList().map(describeAdapter);
+    res.json({ adapters });
+  });
+
+  router.post('/adapters/:id/install', (req, res) => {
+    const adapter = installAdapter(req.params.id);
+    if (!adapter) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown or already installed adapter.' } });
+      return;
+    }
+    res.json({ adapter: describeAdapter(adapter) });
+  });
+
+  router.post('/adapters/:id/uninstall', (req, res) => {
+    const ok = uninstallAdapter(req.params.id);
+    if (!ok) {
+      res.status(400).json({ error: { code: 'CANNOT_UNINSTALL', message: 'Cannot uninstall this adapter (global or unknown).' } });
+      return;
+    }
+    res.json({ ok: true });
   });
 
   // ---- First-run region setup ----
