@@ -34,6 +34,7 @@ import { asRecord, str } from '../adapters/scrape.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
+import { fetchDeals } from '../core/deal-radar.js';
 import {
   listCountries,
   getCountry,
@@ -482,6 +483,15 @@ export function apiRouter(cfg: ServerConfig): Router {
         latencyMs: Date.now() - started,
         error: err instanceof Error ? err.message : 'Source test failed.',
       });
+    }
+  });
+
+  router.get('/deals', async (_req, res, next) => {
+    try {
+      const deals = await fetchDeals(50);
+      res.json({ deals });
+    } catch (err) {
+      next(err);
     }
   });
 

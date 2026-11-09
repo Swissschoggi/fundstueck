@@ -17,9 +17,15 @@ import type {
 import { Sidebar } from './components/Sidebar';
 import { SearchControls } from './components/SearchControls';
 import { FilterRail } from './components/FilterRail';
+import { Icon } from './components/Icon';
+import { useAuth } from './contexts/AuthContext';
+import { useFavorites } from './contexts/FavoritesContext';
+import { AuthModal } from './components/AuthModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Results } from './components/Results';
 import { SettingsPage } from './components/SettingsPage';
+import { SavedPage } from './components/SavedPage';
+import { DealRadarPage } from './components/DealRadarPage';
 import { SourcesPage } from './components/SourcesPage';
 import { Onboarding } from './components/Onboarding';
 import styles from './App.module.css';
@@ -64,7 +70,9 @@ export default function App() {
   const [size, setSize] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
-  const [savedCount, setSavedCount] = useState(0);
+  const { user, signOut } = useAuth();
+  const { savedIds } = useFavorites();
+  const [authOpen, setAuthOpen] = useState(false);
 
   const [pendingMin, setPendingMin] = useState('');
   const [pendingMax, setPendingMax] = useState('');
@@ -124,12 +132,6 @@ export default function App() {
     };
     window.addEventListener('fundstueck:suggest', handler);
     return () => window.removeEventListener('fundstueck:suggest', handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = () => setSavedCount((c) => c + 1);
-    window.addEventListener('fundstueck:favorite', handler);
-    return () => window.removeEventListener('fundstueck:favorite', handler);
   }, []);
 
   // Minimal history-API routing (no router dependency needed for two views).
@@ -330,6 +332,8 @@ export default function App() {
   // The installed-source metadata can lag behind dynamically loaded adapters.
   const isSources = path.startsWith('/settings/sources');
   const isSettings = path.startsWith('/settings');
+  const isSaved = path === '/saved';
+  const isDeals = path === '/deals' || path === '/deal-radar';
   const currentMarket = markets.find((m) => m.code === market);
   const marketLabel = currentMarket?.label ?? market;
   const categories = useMemo(() => {
@@ -386,12 +390,26 @@ export default function App() {
           <SourcesPage onNavigate={navigate} />
         ) : isSettings ? (
           <SettingsPage onNavigate={navigate} />
+        ) : isSaved ? (
+          <SavedPage />
+        ) : isDeals ? (
+          <DealRadarPage />
         ) : (
           <>
             <div className={styles.head}>
-              <div className={styles.statusBadge}>
-                <span className={styles.statusDot} />
-                {sources.filter((s) => s.enabled).length} sources active · live search
+              <div className={styles.headTop}>
+                <div className={styles.statusBadge}>
+                  <span className={styles.statusDot} />
+                  {sources.filter((s) => s.enabled).length} sources active · live search
+                </div>
+                <button
+                  type="button"
+                  className={styles.accountBtn}
+                  onClick={() => (user ? signOut() : setAuthOpen(true))}
+                >
+                  <Icon name={user ? 'logout' : 'person'} size={16} />
+                  <span>{user ? (user.email ?? 'Account') : 'Sign in'}</span>
+                </button>
               </div>
               <SearchControls
                 ref={inputRef}
@@ -452,8 +470,9 @@ export default function App() {
       <MobileBottomNav
         active={path === '/' ? 'search' : path}
         onNavigate={navigate}
-        savedCount={savedCount}
+        savedCount={savedIds.size}
       />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
 }

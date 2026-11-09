@@ -5,8 +5,8 @@ import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
   { id: 'search', label: 'Search', icon: 'search', path: '/' },
-  { id: 'saved', label: 'Saved queries', icon: 'bookmark', soon: true },
-  { id: 'deals', label: 'Deal radar', icon: 'monitoring', soon: true },
+  { id: 'saved', label: 'Saved items', icon: 'bookmark', path: '/saved' },
+  { id: 'deals', label: 'Deal radar', icon: 'monitoring', path: '/deals' },
   { id: 'alerts', label: 'Alerts', icon: 'notifications', soon: true },
 ];
 

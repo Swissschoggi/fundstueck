@@ -8,6 +8,7 @@ import {
 } from '../core/types.js';
 import { logEvent } from './events.js';
 import { DEFAULT_MARKET, findMarket, MARKETS } from './markets.js';
+import { recordPrices } from './deal-radar.js';
 
 export interface SearchQuery {
   q: string;
@@ -425,6 +426,9 @@ export async function runSearch(
     delete (l as unknown as Record<string, unknown>)._convertedPrice;
     delete (l as unknown as Record<string, unknown>)._duplicateLinks;
   }
+
+  // Record prices for deal radar (best-effort, non-blocking).
+  recordPrices(listings).catch(() => {});
 
   return {
     query: query.q,

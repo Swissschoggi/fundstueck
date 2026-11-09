@@ -123,3 +123,24 @@
   background: #34d399;
   box-shadow: 0 0 6px #34d39966;
 }
+
+.headTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.accountBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  color: var(--on-surface);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}

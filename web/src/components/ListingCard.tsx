@@ -2,13 +2,15 @@ import { useState } from 'react';
 import type { NormalizedListing } from '../lib/types';
 import { formatChf, sourceAccent, timeAgo } from '../lib/format';
 import { Icon } from './Icon';
+import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
 export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
 }) {
   const [imgError, setImgError] = useState(false);
-  const [favorited, setFavorited] = useState(false);
+  const { isSaved, toggle } = useFavorites();
+  const favorited = isSaved(listing.id);
   const accent = sourceAccent(listing.source);
   const showImage = listing.imageUrl && !imgError;
   const converted = listing.marketPrice != null && listing.marketCurrency;
@@ -41,10 +43,8 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
             type="button"
             className={`${styles.favBtn} ${favorited ? styles.favActive : ''}`}
             aria-label={favorited ? 'Saved' : 'Save listing'}
-            onClick={() => {
-              if (favorited) return;
-              setFavorited(true);
-              window.dispatchEvent(new CustomEvent('fundstueck:favorite'));
+            onClick={async () => {
+              await toggle(listing);
             }}
           >
             <Icon name={favorited ? 'favorite' : 'favorite_border'} size={20} />
