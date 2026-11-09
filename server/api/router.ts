@@ -32,8 +32,6 @@ import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
 import { execFile } from 'node:child_process';
-import path from 'node:path';
-import fs from 'node:fs';
 import { promisify } from 'node:util';
 import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
 import {
@@ -72,7 +70,7 @@ export function apiRouter(cfg: ServerConfig): Router {
         res.status(409).json({
           error: {
             code: 'SETUP_REQUIRED',
-            message: 'Choose your region first so Fundstück can install that region’s sources.',
+            message: 'Choose your region first so Fundstueck can install that region’s sources.',
           },
         });
         return;
@@ -369,25 +367,15 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
     try {
       const { stdout, stderr } = await promisify(execFile)(entry.installCommand[0], entry.installCommand.slice(1), {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          FUNDSTUECK_RICARDO_VENV: process.env.FUNDSTUECK_RICARDO_VENV ?? '/app/.venvs/ricardo',
+        },
         timeout: 300_000,
         maxBuffer: 10 * 1024 * 1024,
       });
-      // Post-install: bundle the pinned camoufox helper into site-packages so
-      // ricardo-scraper (which imports it at startup) keeps working.
-      let extra = '';
-      const pinScript = path.resolve(process.cwd(), 'scripts', 'pin_camoufox_browser.py');
-      if (entry.id === 'ricardo-community' && fs.existsSync(pinScript)) {
-        try {
-          const { stdout: out2 } = await promisify(execFile)('python3', ['-c', `import shutil, ricardo_scraper, os; shutil.copyfile(${JSON.stringify(pinScript)}, os.path.dirname(ricardo_scraper.__file__) + '/pin_camoufox_browser.py')`], {
-            timeout: 60_000,
-            maxBuffer: 1024 * 1024,
-          });
-          extra = (out2 || '').trim();
-        } catch (e) {
-          extra = `pin-script copy failed: ${(e as Error).message}`;
-        }
-      }
-      res.json({ ok: true, stdout: (stdout + (extra ? '\n' + extra : '')).slice(-2000), stderr: stderr.slice(-2000) });
+      res.json({ ok: true, stdout: stdout.slice(-2000), stderr: stderr.slice(-2000) });
     } catch (err) {
       res.status(500).json({
         error: { code: 'INSTALL_FAILED', message: (err as Error).message.slice(0, 500) },
