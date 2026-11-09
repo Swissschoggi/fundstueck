@@ -244,3 +244,27 @@
     width: auto;
   }
 }
+
+.freshnessBadge {
+  color: var(--outline);
+  border: 1px solid var(--border-default);
+  background: var(--surface-low);
+  border-radius: var(--r-full);
+  padding: 2px 7px;
+  font: var(--fs-label-sm);
+  white-space: nowrap;
+}
+.duplicateLinks {
+  color: var(--outline);
+  font: var(--fs-label-sm);
+  margin-top: 4px;
+}
+.duplicateLinks a {
+  color: var(--primary-fixed-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.originalPrice {
+  color: var(--outline);
+  font: var(--fs-label-sm);
+}
