@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchRegistryCountries, fetchRegistryCountry, saveSetup } from '../lib/api';
+import { fetchRegistryCountries, fetchRegistryCountry, saveRegistryEnabled, saveSetup } from '../lib/api';
 import type { RegistryCountry, RegistryCountryResponse } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './Onboarding.module.css';
@@ -67,12 +67,14 @@ export function Onboarding({
     if (!selected.length) return;
     setLoadingSources(true);
     setCountryData(null);
-    fetchRegistryCountry(selected[0])
-      .then((d) => {
-        setCountryData(d);
-        setEnabled(d.enabled || []);
+    Promise.all(selected.map((code) => fetchRegistryCountry(code)))
+      .then((results) => {
+        const first = results[0];
+        const marketplaces = [...new Map(results.flatMap((d) => d.marketplaces).map((m) => [m.id, m])).values()];
+        setCountryData({ ...first, marketplaces });
+        setEnabled([...new Set(results.flatMap((d) => d.enabled || []))]);
       })
-      .catch(() => setError('Could not load sources for this country.'))
+      .catch(() => setError('Could not load sources for the selected countries.'))
       .finally(() => setLoadingSources(false));
   }, [selected]);
 
@@ -108,12 +110,14 @@ export function Onboarding({
     setError(null);
     try {
       const primary = selected[0];
-      // persist enabled prefs for primary country
-      await fetch(`/api/registry/enabled/${primary}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled }),
-      });
+      // Save marketplace preferences separately for each selected country.
+      const countrySources = await Promise.all(selected.map(async (code) => ({
+        code,
+        data: await fetchRegistryCountry(code),
+      })));
+      await Promise.all(countrySources.map(({ code, data }) =>
+        saveRegistryEnabled(code, enabled.filter((id) => data.marketplaces.some((m) => m.id === id))),
+      ));
       const next = await saveSetup(primary, selected);
       onComplete(next);
     } catch (err) {
@@ -153,9 +157,9 @@ export function Onboarding({
           </span>
           <h1 className={styles.title}>Where should Fundstück search?</h1>
           <p className={styles.subtitle}>
-            Pick your country. Fundstück loads every marketplace known for that region and
+            Pick your countries. Fundstück loads every implemented marketplace adapter available across them and
             honestly reports which ones are actually implemented, restricted or unverified.
-            Nothing is silently enabled.
+            Only implemented, authorized sources can be enabled.
           </p>
         </div>
 
@@ -221,7 +225,7 @@ export function Onboarding({
         {selectedCountry && (
           <section className={styles.sourceSection}>
             <h2 className={styles.sectionTitle}>
-              Sources for {selectedCountry.flag} {selectedCountry.name}
+              Sources across {selected.length} selected {selected.length === 1 ? 'country' : 'countries'}
             </h2>
             {loadingSources ? (
               <div className={styles.emptyPanel}>Loading sources…</div>
@@ -237,7 +241,7 @@ export function Onboarding({
                       m.capability.startsWith('D');
                     const isEligible =
                       !isRestricted &&
-                      (m.adapter_status === 'implemented' || m.adapter_status === 'available');
+                      (m.adapter_status === 'implemented' && m.automation_permission === 'authorized');
                     const checked = enabled.includes(m.id);
                     return (
                       <label
