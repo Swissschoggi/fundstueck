@@ -80,6 +80,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
       const updated = await setAdapterEnabled(adapter.source, enabled);
       setAdapters((prev) => prev.map((a) => (a.source === updated.source ? updated : a)));
       refreshEvents();
+      window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Could not update adapter.');
     } finally {

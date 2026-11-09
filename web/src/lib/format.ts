@@ -24,19 +24,6 @@ export function timeAgo(iso: string, now = Date.now()): string {
 }
 
 /** Accent colour per marketplace source (design tokens). */
-export function sourceAccent(source: string): string {
-  switch (source) {
-    case 'ricardo':
-      return 'var(--accent-ricardo)';
-    case 'tutti':
-      return 'var(--accent-tutti)';
-    case 'anibis':
-      return 'var(--accent-anibis)';
-    case 'ebay':
-      return 'var(--accent-ebay)';
-    case 'sample':
-      return 'var(--accent-sample)';
-    default:
-      return 'var(--accent-default)';
-  }
+export function sourceAccent(_source: string): string {
+  return '#94a3b8';
 }

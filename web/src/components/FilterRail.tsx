@@ -1,5 +1,5 @@
 import type { SourceInfo } from '../lib/types';
-import { sourceAccent } from '../lib/format';
+
 import { Icon } from './Icon';
 import styles from './FilterRail.module.css';
 
@@ -18,6 +18,8 @@ export function FilterRail({
   onGenderChange,
   size,
   onSizeChange,
+  sourceFilter,
+  onSourceFilterChange,
 }: {
   minPrice: string;
   maxPrice: string;
@@ -30,6 +32,8 @@ export function FilterRail({
   onGenderChange?: (g: string) => void;
   size?: string;
   onSizeChange?: (s: string) => void;
+  sourceFilter?: string;
+  onSourceFilterChange?: (s: string) => void;
 }) {
   return (
     <aside className={styles.rail}>
@@ -181,27 +185,25 @@ export function FilterRail({
 
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <label className={styles.label}>Sources</label>
+            <label className={styles.label}>Filter by source</label>
           </div>
-          <div className={styles.sourceList}>
-            {sources.map((s) => (
-              <div key={s.source} className={styles.sourceRow}>
-                <span
-                  className={styles.sourceDot}
-                  style={{
-                    background: s.enabled ? sourceAccent(s.source) : 'var(--outline-variant)',
-                  }}
-                />
-                <div className={styles.sourceMeta}>
-                  <span className={styles.sourceName}>
-                    {s.label}
-                    {s.mode === 'sample' && <span className={styles.soon}>sample</span>}
-                  </span>
-                  <span className={styles.sourceHint}>
-                    {s.enabled ? 'Enabled' : (s.disabledReason ?? 'Disabled')}
-                  </span>
-                </div>
-              </div>
+          <div className={styles.sourceFilterList}>
+            <button
+              type="button"
+              className={`${styles.sourceFilterBtn} ${!sourceFilter || sourceFilter === 'all' ? styles.sourceFilterActive : ''}`}
+              onClick={() => onSourceFilterChange?.('all')}
+            >
+              All sources
+            </button>
+            {sources.filter((s) => s.enabled).map((s) => (
+              <button
+                key={s.source}
+                type="button"
+                className={`${styles.sourceFilterBtn} ${sourceFilter === s.source ? styles.sourceFilterActive : ''}`}
+                onClick={() => onSourceFilterChange?.(s.source)}
+              >
+                {s.label}
+              </button>
             ))}
           </div>
         </div>

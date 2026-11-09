@@ -8,6 +8,7 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
 }) {
   const [imgError, setImgError] = useState(false);
+  const [favorited, setFavorited] = useState(false);
   const accent = sourceAccent(listing.source);
   const showImage = listing.imageUrl && !imgError;
   const converted = listing.marketPrice != null && listing.marketCurrency;
@@ -36,6 +37,18 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
             {listing.location && <span className={styles.location}>{listing.location}</span>}
             {freshnessLabel && <span className={styles.freshnessBadge} title={listing.ageDays == null ? 'Publication date is old' : 'Published ' + listing.ageDays + ' days ago'}>{freshnessLabel}</span>}
           </div>
+          <button
+            type="button"
+            className={`${styles.favBtn} ${favorited ? styles.favActive : ''}`}
+            aria-label={favorited ? 'Saved' : 'Save listing'}
+            onClick={() => {
+              if (favorited) return;
+              setFavorited(true);
+              window.dispatchEvent(new CustomEvent('fundstueck:favorite'));
+            }}
+          >
+            <Icon name={favorited ? 'favorite' : 'favorite_border'} size={20} />
+          </button>
         </div>
         <div className={styles.imageWrap}>
           {showImage ? <img className={styles.image} src={listing.imageUrl!} alt={listing.title} loading="lazy" referrerPolicy="no-referrer" onError={() => setImgError(true)} />

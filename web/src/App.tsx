@@ -16,7 +16,6 @@ import type {
 } from './lib/types';
 import { Sidebar } from './components/Sidebar';
 import { SearchControls } from './components/SearchControls';
-import { SourcePills } from './components/SourcePills';
 import { FilterRail } from './components/FilterRail';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { Results } from './components/Results';
@@ -65,6 +64,7 @@ export default function App() {
   const [size, setSize] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [savedCount, setSavedCount] = useState(0);
 
   const [pendingMin, setPendingMin] = useState('');
   const [pendingMax, setPendingMax] = useState('');
@@ -114,6 +114,24 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === 'string' && detail.trim()) {
+        setInput(detail);
+        setQuery(detail);
+      }
+    };
+    window.addEventListener('fundstueck:suggest', handler);
+    return () => window.removeEventListener('fundstueck:suggest', handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setSavedCount((c) => c + 1);
+    window.addEventListener('fundstueck:favorite', handler);
+    return () => window.removeEventListener('fundstueck:favorite', handler);
+  }, []);
+
   // Minimal history-API routing (no router dependency needed for two views).
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname);
@@ -122,6 +140,12 @@ export default function App() {
   }, []);
 
   const navigate = useCallback((to: string) => {
+    if (to === '/') {
+      setInput('');
+      setQuery(null);
+      setResult(null);
+      setStatus('idle');
+    }
     if (to === window.location.pathname) return;
     window.history.pushState(null, '', to);
     setPath(to);
@@ -171,13 +195,19 @@ export default function App() {
   }, []);
 
   // Marketplace source metadata for the active market (pills, rail, sidebar).
-  // Refetched on navigation so settings toggles are reflected instantly.
+  // Refetched on navigation or when adapters are toggled in settings.
   useEffect(() => {
     if (!setup?.complete) return;
     fetchSources(market)
       .then(setSources)
       .catch(() => setSources([]));
   }, [path, market, refreshNonce, setup?.complete]);
+
+  useEffect(() => {
+    const handler = () => setRefreshNonce((n) => n + 1);
+    window.addEventListener('fundstueck:adapters-changed', handler);
+    return () => window.removeEventListener('fundstueck:adapters-changed', handler);
+  }, []);
 
   // Restore state from URL so searches are shareable.
   useEffect(() => {
@@ -240,9 +270,9 @@ export default function App() {
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
   useEffect(() => {
-    if (query == null || path !== '/') return;
+    if (path !== '/') return;
     const p = new URLSearchParams();
-    p.set('q', query);
+    if (query) p.set('q', query);
     p.set('market', market);
     p.set('sort', sort);
     p.set('view', view);
@@ -250,7 +280,8 @@ export default function App() {
     if (maxPrice) p.set('max', maxPrice);
     if (gender) p.set('gender', gender);
     if (size) p.set('size', size);
-    window.history.replaceState(null, '', `?${p.toString()}`);
+    const qs = p.toString();
+    window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
   }, [query, market, sort, view, minPrice, maxPrice, gender, size, path]);
 
   const submit = useCallback(() => {
@@ -289,13 +320,6 @@ export default function App() {
     setSize('');
   }, []);
 
-  const counts = useMemo(() => {
-    if (!result) return null;
-    const map: Record<string, number> = {};
-    for (const l of result.listings) map[l.source] = (map[l.source] ?? 0) + 1;
-    return map;
-  }, [result]);
-
   const filteredListings = useMemo(() => {
     if (!result) return [];
     if (sourceFilter === 'all') return result.listings;
@@ -304,10 +328,6 @@ export default function App() {
 
   // Once a search has run, show the adapters that actually participated in it.
   // The installed-source metadata can lag behind dynamically loaded adapters.
-  const pillSources = result
-    ? result.sources.filter((s) => s.enabled)
-    : sources.filter((s) => s.enabled);
-
   const isSources = path.startsWith('/settings/sources');
   const isSettings = path.startsWith('/settings');
   const currentMarket = markets.find((m) => m.code === market);
@@ -369,11 +389,16 @@ export default function App() {
         ) : (
           <>
             <div className={styles.head}>
+              <div className={styles.statusBadge}>
+                <span className={styles.statusDot} />
+                {sources.filter((s) => s.enabled).length} sources active · live search
+              </div>
               <SearchControls
                 ref={inputRef}
                 input={input}
                 onInputChange={setInput}
                 onSubmit={submit}
+                onClear={() => { setInput(''); setQuery(null); setResult(null); setStatus('idle'); }}
                 market={market}
                 markets={visibleMarkets}
                 marketLabel={marketLabel}
@@ -387,14 +412,6 @@ export default function App() {
                 onViewChange={setView}
                 isSearching={status === 'loading'}
               />
-              {pillSources.length > 0 && (
-                <SourcePills
-                  sources={pillSources}
-                  counts={counts}
-                  active={sourceFilter}
-                  onChange={setSourceFilter}
-                />
-              )}
               {priceError && <div className={styles.priceError}>{priceError}</div>}
             </div>
 
@@ -415,6 +432,8 @@ export default function App() {
                 onGenderChange={setGender}
                 size={size}
                 onSizeChange={setSize}
+                sourceFilter={sourceFilter}
+                onSourceFilterChange={setSourceFilter}
               />
               <Results
                 status={status}
@@ -433,6 +452,7 @@ export default function App() {
       <MobileBottomNav
         active={path === '/' ? 'search' : path}
         onNavigate={navigate}
+        savedCount={savedCount}
       />
     </div>
   );

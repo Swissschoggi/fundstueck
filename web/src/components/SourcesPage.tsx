@@ -621,6 +621,7 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
                         await installAdapter(a.source);
                         setNotice(`${a.label} installed.`);
                         await refresh();
+                        window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
                       } catch (err) {
                         setError(err instanceof Error ? err.message : 'Install failed.');
                       }

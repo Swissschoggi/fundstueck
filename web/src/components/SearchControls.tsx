@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 import type { CategoryOption, MarketInfo, SortKey, ViewMode } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './SearchControls.module.css';
@@ -16,6 +16,7 @@ export const SearchControls = forwardRef<
     input: string;
     onInputChange: (v: string) => void;
     onSubmit: () => void;
+    onClear?: () => void;
     market?: string;
     markets?: MarketInfo[];
     marketLabel?: string;
@@ -34,6 +35,7 @@ export const SearchControls = forwardRef<
     input,
     onInputChange,
     onSubmit,
+    onClear,
     market: _market,
     markets: _markets,
     marketLabel: _marketLabel,
@@ -49,6 +51,23 @@ export const SearchControls = forwardRef<
   },
   inputRef,
 ) {
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const suggestions = [
+    "Search 'Herman Miller'…",
+    "Search 'Rolex Submariner'…",
+    "Search 'Gravel Bike'…",
+    "Search 'Vitra Chair'…",
+    "Search 'iPhone 15'…",
+  ];
+  const activeFilters = (category ? 1 : 0) + (sort !== 'best' ? 1 : 0);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setPlaceholderIdx((i) => (i + 1) % suggestions.length);
+    }, 3500);
+    return () => window.clearInterval(id);
+  }, []);
+
   return (
     <div className={styles.strip}>
       <form
@@ -65,54 +84,40 @@ export const SearchControls = forwardRef<
             ref={inputRef}
             type="text"
             className={styles.input}
-            placeholder={`Search marketplaces (e.g. ThinkPad, USM Haller, Leica M6)…`}
+            placeholder={suggestions[placeholderIdx]}
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
             aria-label="Search query"
             autoComplete="off"
             spellCheck={false}
           />
+          {input && (
+            <button
+              type="button"
+              className={styles.clearBtn}
+              aria-label="Clear search"
+              onClick={() => {
+                onInputChange('');
+                onClear?.();
+              }}
+            >
+              <Icon name="close" size={18} />
+            </button>
+          )}
           {isSearching && <span className={styles.spinner} aria-label="Searching" />}
           <span className={styles.kbd}>⌘K</span>
         </div>
       </form>
 
-      <div className={styles.controls}>
-        {categories.length > 0 && (
-          <div className={styles.selectWrap}>
-            <select
-              className={styles.select}
-              value={category}
-              onChange={(e) => onCategoryChange(e.target.value)}
-              aria-label="Category filter"
-            >
-              <option value="">All categories</option>
-              {categories.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
-          </div>
-        )}
-
-        <div className={styles.selectWrap}>
-          <select
-            className={styles.select}
-            value={sort}
-            onChange={(e) => onSortChange(e.target.value as SortKey)}
-            aria-label="Sort results"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-          <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
-        </div>
-
+      <div className={styles.controlsRow}>
+        <button
+          type="button"
+          className={`${styles.filtersBtn} ${activeFilters > 0 ? styles.filtersActive : ''}`}
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          <Icon name="tune" size={16} />
+          Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
+        </button>
         <div className={styles.viewToggle} role="group" aria-label="Result view">
           <button
             type="button"
@@ -132,6 +137,43 @@ export const SearchControls = forwardRef<
           </button>
         </div>
       </div>
+
+      <div className={`${styles.filterPanel} ${filtersOpen ? styles.filterPanelOpen : ''}`}>
+          {categories.length > 0 && (
+            <div className={styles.selectWrap}>
+              <select
+                className={styles.select}
+                value={category}
+                onChange={(e) => onCategoryChange(e.target.value)}
+                aria-label="Category filter"
+              >
+                <option value="">All categories</option>
+                {categories.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+              <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
+            </div>
+          )}
+
+          <div className={styles.selectWrap}>
+            <select
+              className={styles.select}
+              value={sort}
+              onChange={(e) => onSortChange(e.target.value as SortKey)}
+              aria-label="Sort results"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
+          </div>
+        </div>
     </div>
   );
 });

@@ -79,7 +79,7 @@ export type SortKey = (typeof SORTS)[number];
 
 export interface SourceStatus {
   source: string; label: string; mode: AdapterMode; enabled: boolean; disabledReason: string | null;
-  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; error?: string;
+  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; timedOut?: boolean; error?: string;
 }
 
 export interface SearchResponse {

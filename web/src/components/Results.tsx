@@ -46,13 +46,20 @@ export function Results({
   }
 
   if (status === 'idle') {
-    const suggestions = ['iPhone 15', 'Vitra Chair', 'Gravel Bike', 'Rolex', 'MacBook Pro', 'Lego'];
+    const suggestions = [
+      { label: '📱 iPhone 15', q: 'iPhone 15' },
+      { label: '🪑 Vitra Chair', q: 'Vitra Chair' },
+      { label: '🚴 Gravel Bike', q: 'Gravel Bike' },
+      { label: '⌚ Rolex', q: 'Rolex' },
+      { label: '💻 MacBook Pro', q: 'MacBook Pro' },
+      { label: '🧱 Lego', q: 'Lego' },
+    ];
     return <div className={styles.statePanel}>
       <div className={styles.stateIcon}><Icon name="manage_search" size={26} style={{ color: 'var(--outline)' }} /></div>
       <h2 className={`t-headline-md ${styles.stateTitle}`}>Search {marketLabel} marketplaces</h2>
       <p className={`t-body-md ${styles.stateText}`}>One query fans out to every connected marketplace. Results are normalised into a single feed — no listings are hosted here.</p>
       <div className={styles.suggestionChips}>
-        {suggestions.map((s) => <button key={s} type="button" className={styles.suggestionChip} onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: s }))}>{s}</button>)}
+        {suggestions.map((sug) => <button key={sug.q} type="button" className={styles.suggestionChip} onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: sug.q }))}>{sug.label}</button>)}
       </div>
     </div>;
   }
