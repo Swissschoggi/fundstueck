@@ -36,7 +36,7 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
     docsUrl: 'https://github.com/danyk20/ricardo-scraper',
     // Install into an isolated venv; do not use Debian's externally-managed
     // system Python or rely on a globally exposed console-script PATH.
-    installCommand: ['bash', 'scripts/install-ricardo.sh'],
+    installCommand: ['sh', 'scripts/install-ricardo.sh'],
     risk:
       'Not bundled and disabled until you save it. This scraper uses camoufox to satisfy ricardo.ch’s Cloudflare challenge, so it may conflict with Ricardo/Cloudflare terms. Review those terms and keep the default request delay.',
     template: {
