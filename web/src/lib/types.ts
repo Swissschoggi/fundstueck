@@ -14,6 +14,15 @@ export interface NormalizedListing {
   fetchedAt: string;
   gender?: 'male' | 'female' | 'unisex' | null;
   size?: string | null;
+  marketPrice?: number | null;
+  marketCurrency?: string;
+  fxRate?: number | null;
+  normalizedLocation?: { raw: string; countryCode: string | null; region: string | null; city: string | null; postalCode: string | null; latitude: number | null; longitude: number | null } | null;
+  relevanceScore?: number;
+  freshness?: 'fresh' | 'aging' | 'stale' | 'unknown';
+  ageDays?: number | null;
+  duplicateCount?: number;
+  duplicateListings?: Array<{ source: string; listingUrl: string }>;
 }
 
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';
@@ -30,7 +39,7 @@ export interface SourceStatus {
   mode: 'live' | 'sample';
   enabled: boolean;
   disabledReason: string | null;
-  status?: 'ok' | 'error';
+  status?: 'ok' | 'error' | 'timeout';
   count?: number;
   latencyMs?: number;
   error?: string;
@@ -42,6 +51,10 @@ export interface SearchResponse {
   sort: SortKey;
   total: number;
   tookMs: number;
+  normalizedQuery?: string;
+  marketCurrency?: string;
+  rawTotal?: number;
+  duplicatesRemoved?: number;
   isSampleData: boolean;
   listings: NormalizedListing[];
   sources: SourceStatus[];
