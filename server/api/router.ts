@@ -254,12 +254,32 @@ export function apiRouter(cfg: ServerConfig): Router {
   router.post('/registry/enabled/:code', (req, res) => {
     const code = req.params.code.toUpperCase();
     const body = req.body as { enabled?: unknown } | undefined;
-    if (!Array.isArray(body?.enabled)) {
+    if (!getCountry(code)) {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown country.' } });
+      return;
+    }
+    if (!Array.isArray(body?.enabled) || body.enabled.some((id) => typeof id !== 'string')) {
       res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must be { "enabled": string[] }.' } });
       return;
     }
+    const requested = body.enabled as string[];
+    const eligible = new Set(countryMarketplaces(code)
+      .filter((m) => m.adapter_status === 'implemented')
+      .filter((m) => m.automation_permission === 'authorized')
+      .map((m) => m.id));
+    const rejected = requested.filter((id) => !eligible.has(id));
+    if (rejected.length) {
+      res.status(400).json({
+        error: {
+          code: 'SOURCE_NOT_ELIGIBLE',
+          message: 'Only implemented sources explicitly assessed as authorized can be enabled.',
+          sources: rejected,
+        },
+      });
+      return;
+    }
     const prefs = readEnabledSources(cfg.dataDir);
-    prefs[code] = body.enabled as string[];
+    prefs[code] = [...new Set(requested)];
     writeEnabledSources(cfg.dataDir, prefs);
     res.json({ country: code, enabled: prefs[code] });
   });
