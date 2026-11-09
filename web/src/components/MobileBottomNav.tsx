@@ -5,17 +5,15 @@ export function MobileBottomNav({
   active,
   onNavigate,
   savedCount = 0,
-  hasUnread = false,
 }: {
   active: string;
   onNavigate: (to: string) => void;
   savedCount?: number;
-  hasUnread?: boolean;
 }) {
   const tabs = [
     { id: 'search', label: 'Search', icon: 'search', path: '/' },
     { id: 'saved', label: 'Saved', icon: 'bookmark', path: '/saved', badge: savedCount },
-    { id: 'alerts', label: 'Alerts', icon: 'notifications', path: '/alerts', dot: hasUnread },
+    { id: 'deals', label: 'Deals', icon: 'trending_down', path: '/deals' },
     { id: 'settings', label: 'Settings', icon: 'tune', path: '/settings/adapters' },
   ];
 
@@ -34,7 +32,6 @@ export function MobileBottomNav({
             <span className={styles.iconWrap}>
               <Icon name={t.icon} size={22} />
               {t.badge && t.badge > 0 ? <span className={styles.badge}>{t.badge}</span> : null}
-              {t.dot ? <span className={styles.dot} /> : null}
             </span>
             <span className={styles.label}>{t.label}</span>
           </button>

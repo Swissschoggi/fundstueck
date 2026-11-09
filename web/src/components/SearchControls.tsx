@@ -138,7 +138,7 @@ export const SearchControls = forwardRef<
         </div>
       </div>
 
-      <div className={`${styles.filterPanel} ${filtersOpen ? styles.filterPanelOpen : ''}`}>
+      <div className={styles.filterPanel}>
           {categories.length > 0 && (
             <div className={styles.selectWrap}>
               <select

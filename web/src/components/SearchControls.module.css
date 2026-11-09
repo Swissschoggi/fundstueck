@@ -174,7 +174,7 @@
 }
 
 .filtersBtn {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 6px;
   min-height: 40px;
@@ -193,27 +193,19 @@
 }
 
 .filterPanel {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-sm) 0 var(--space-xs);
   border-top: 1px solid var(--border-default);
 }
 
-.filterPanelOpen {
-  display: flex;
-}
-
 @media (min-width: 768px) {
   .filterPanel {
-    display: flex;
     flex-direction: row;
     align-items: center;
     border-top: none;
     padding: 0;
-  }
-  .filtersBtn {
-    display: none;
   }
 }
 
