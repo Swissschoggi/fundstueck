@@ -23,6 +23,7 @@ export interface SearchParams {
   minPrice: number | null;
   maxPrice: number | null;
   category?: string | null;
+  gender?: string | null;
 }
 
 export class ApiError extends Error {
@@ -44,6 +45,7 @@ export async function fetchSearch(params: SearchParams): Promise<SearchResponse>
   if (params.minPrice != null) url.searchParams.set('minPrice', String(params.minPrice));
   if (params.maxPrice != null) url.searchParams.set('maxPrice', String(params.maxPrice));
   if (params.category) url.searchParams.set('category', params.category);
+  if (params.gender) url.searchParams.set('gender', params.gender);
 
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) {
@@ -76,11 +78,11 @@ export async function fetchSetup(): Promise<SetupResponse> {
   return (await res.json()) as SetupResponse;
 }
 
-export async function saveSetup(region: string): Promise<SetupResponse> {
+export async function saveSetup(region: string, countries?: string[]): Promise<SetupResponse> {
   const res = await fetch('/api/setup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ region }),
+    body: JSON.stringify({ region, countries }),
   });
   if (!res.ok) {
     let message = `HTTP ${res.status}`;

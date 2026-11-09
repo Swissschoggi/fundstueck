@@ -8,6 +8,7 @@ import { EbayAdapter } from '../adapters/ebay.adapter.js';
 import { createDepopAdapter } from '../adapters/depop.adapter.js';
 import { createKijijiAdapter } from '../adapters/kijiji.adapter.js';
 import { createKleinanzeigenAdapter } from '../adapters/kleinanzeigen.adapter.js';
+import { JsonLdAdapter } from '../adapters/jsonld.adapter.js';
 import { createMarkoAdapter } from '../adapters/marko.adapter.js';
 import { SampleAdapter } from '../adapters/sample.adapter.js';
 import { createSubitoAdapter } from '../adapters/subito.adapter.js';
@@ -23,6 +24,7 @@ import {
 } from './custom-sources.js';
 import { loadPlugins, type PluginStatus } from './plugins.js';
 import {
+  readSetupCountries,
   resolveSetup,
   saveSetupRegion,
   type SetupState,
@@ -38,6 +40,7 @@ let settingsFile: string | null = null;
 let defaultMarket = DEFAULT_MARKET;
 let serverCfg: ServerConfig | null = null;
 let regionCode = DEFAULT_MARKET;
+let selectedCountries: string[] = [DEFAULT_MARKET];
 let setupComplete = false;
 
 interface PersistedSettings {
@@ -62,6 +65,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   setupComplete = setup.complete;
   regionCode = setup.region;
   defaultMarket = setup.region;
+  selectedCountries = setup.countries?.length ? setup.countries : [setup.region];
 
   rebuildBuiltIns();
   await refreshDynamicAdapters();
@@ -106,9 +110,25 @@ function rebuildBuiltIns(): void {
     createWillhabenAdapter(cfg.scrapers),
     createKijijiAdapter(cfg.scrapers),
     createKleinanzeigenAdapter(cfg.scrapers),
+    new JsonLdAdapter({
+      id: 'tori',
+      label: 'Tori.fi',
+      markets: ['FI'],
+      currency: 'EUR',
+      icon: 'search',
+      description: 'Finnish classifieds via JSON-LD structured data.',
+      docsUrl: 'https://www.tori.fi/recommerce/forsale/search?query=iphone',
+      envVar: 'ENABLE_TORI_ADAPTER',
+      enabled: cfg.scrapers.regional !== false,
+      capabilities: ['Public web search', 'JSON-LD structured data'],
+      acceptLanguage: 'fi-FI,fi;q=0.9',
+      userAgent: cfg.scrapers.userAgent,
+      minIntervalMs: cfg.scrapers.minIntervalMs,
+      searchUrl: (q) => `https://www.tori.fi/recommerce/forsale/search?q=${encodeURIComponent(q)}`,
+    }),
     new SampleAdapter(cfg.enableSampleAdapter),
   ];
-  builtInAdapters = candidates.filter((adapter) => adapter.markets.includes(regionCode));
+  builtInAdapters = candidates.filter((adapter) => adapter.markets.some((m) => selectedCountries.includes(m)));
 }
 
 /**
@@ -161,14 +181,19 @@ export async function refreshDynamicAdapters(): Promise<void> {
 }
 
 /** Complete first-run setup (or change region) and re-install its sources. */
-export async function setRegion(region: string): Promise<void> {
+export async function setRegion(region: string, countries?: string[]): Promise<void> {
   if (!serverCfg) throw new Error('Registry is not initialised.');
   const market = findMarket(region);
   if (!market) throw new Error(`Unknown region ${region}`);
+  const codes = (countries && countries.length ? countries : [market.code])
+    .map((c) => findMarket(c)?.code)
+    .filter((c): c is string => Boolean(c));
+  if (codes.length === 0) codes.push(market.code);
 
-  saveSetupRegion(serverCfg, market.code);
+  saveSetupRegion(serverCfg, market.code, codes);
   regionCode = market.code;
   defaultMarket = market.code;
+  selectedCountries = codes;
   setupComplete = true;
 
   rebuildBuiltIns();
@@ -181,7 +206,8 @@ export async function setRegion(region: string): Promise<void> {
 }
 
 export function getSetupState(): SetupState {
-  return { complete: setupComplete, region: regionCode };
+  const countries = readSetupCountries(serverCfg!);
+  return { complete: setupComplete, region: regionCode, countries: countries.length ? countries : [regionCode] };
 }
 
 export function isSetupComplete(): boolean {
@@ -190,6 +216,10 @@ export function isSetupComplete(): boolean {
 
 export function getRegion(): string {
   return regionCode;
+}
+
+export function getSelectedCountries(): string[] {
+  return [...selectedCountries];
 }
 
 export function getCustomSources(): CustomSourceConfig[] {

@@ -218,3 +218,10 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+  font-style: italic;
+}

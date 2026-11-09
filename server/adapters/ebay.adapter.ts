@@ -7,6 +7,7 @@ import type {
   NormalizedListing,
 } from '../core/types.js';
 import { SourceError } from '../core/types.js';
+import { getAdapterConfig } from '../core/adapter-config.js';
 
 /** Request time budget for every outbound eBay call. */
 const TIMEOUT_MS = 8_000;
@@ -80,7 +81,7 @@ export class EbayAdapter implements MarketplaceAdapter {
   get capabilities(): string[] {
     return [
       'Official public API',
-      `Fallback marketplace: ${this.cfg.marketplaceId}`,
+      `Fallback marketplace: ${this.ebayCfg().marketplaceId}`,
       'Market per search',
       'Fixed-price listings',
       'Condition labels',
@@ -94,18 +95,52 @@ export class EbayAdapter implements MarketplaceAdapter {
     'marketplace follows the buyer market chosen for each search; EBAY_MARKETPLACE_ID ' +
     'is only the fallback context.';
 
+  readonly configFields = [
+    {
+      key: 'client_id',
+      label: 'eBay Client ID (App ID)',
+      secret: true,
+      placeholder: 'paste your eBay App ID',
+      help: 'From developer.ebay.com → My Account → Application Keys. Stored in data/adapter-config.json.',
+    },
+    {
+      key: 'client_secret',
+      label: 'eBay Client Secret (Cert ID)',
+      secret: true,
+      placeholder: 'paste your eBay Cert ID',
+      help: 'Stored securely. Takes precedence over EBAY_CLIENT_SECRET env var.',
+    },
+    {
+      key: 'marketplace_id',
+      label: 'Fallback marketplace ID',
+      placeholder: 'EBAY_CH',
+      help: 'eBay marketplace used when no buyer market is specified (e.g. EBAY_CH, EBAY_DE, EBAY_US).',
+    },
+  ];
+
   private token: { value: string; expiresAt: number } | null = null;
 
   constructor(private readonly cfg: ServerConfig['ebay']) {}
 
+  private ebayCfg() {
+    const stored = getAdapterConfig(this.id);
+    return {
+      clientId: (stored.client_id || this.cfg.clientId || '').trim() || undefined,
+      clientSecret: (stored.client_secret || this.cfg.clientSecret || '').trim() || undefined,
+      marketplaceId: (stored.marketplace_id || this.cfg.marketplaceId || 'EBAY_CH').trim(),
+      apiBase: this.cfg.apiBase,
+    };
+  }
+
   isEnabled(): boolean {
-    return Boolean(this.cfg.clientId && this.cfg.clientSecret);
+    const c = this.ebayCfg();
+    return Boolean(c.clientId && c.clientSecret);
   }
 
   disabledReason(): string | null {
     return this.isEnabled()
       ? null
-      : 'Not configured — set EBAY_CLIENT_ID and EBAY_CLIENT_SECRET (see README)';
+      : 'Not configured — set Client ID & Secret via Config, or EBAY_CLIENT_ID/EBAY_CLIENT_SECRET env vars.';
   }
 
   async healthCheck(): Promise<AdapterHealth> {
@@ -120,7 +155,7 @@ export class EbayAdapter implements MarketplaceAdapter {
       return {
         ok: true,
         latencyMs: Date.now() - started,
-        message: `OAuth token issued for marketplace ${this.cfg.marketplaceId}.`,
+        message: `OAuth token issued for marketplace ${this.ebayCfg().marketplaceId}.`,
       };
     } catch (err) {
       const message = err instanceof SourceError ? err.message : 'Health check failed.';
@@ -131,11 +166,11 @@ export class EbayAdapter implements MarketplaceAdapter {
   async search(params: AdapterSearchParams): Promise<NormalizedListing[]> {
     const market =
       findMarket(params.market ?? '') ??
-      marketForEbayMarketplace(this.cfg.marketplaceId) ??
+      marketForEbayMarketplace(this.ebayCfg().marketplaceId) ??
       findMarket('CH')!;
     const marketplaceId = market.ebayMarketplaceId;
     const token = await this.getToken();
-    const url = new URL(`${this.cfg.apiBase}/buy/browse/v1/item_summary/search`);
+    const url = new URL(`${this.ebayCfg().apiBase}/buy/browse/v1/item_summary/search`);
     url.searchParams.set('q', params.q);
     url.searchParams.set('limit', String(params.limit));
 
@@ -221,14 +256,16 @@ export class EbayAdapter implements MarketplaceAdapter {
       return this.token.value;
     }
 
-    const { clientId, clientSecret } = this.cfg;
+    const c = this.ebayCfg();
+    const clientId = c.clientId;
+    const clientSecret = c.clientSecret;
     if (!clientId || !clientSecret) {
       throw new SourceError('eBay adapter is not configured', 'AUTH');
     }
 
     let res: Response;
     try {
-      res = await fetch(`${this.cfg.apiBase}/identity/v1/oauth2/token`, {
+      res = await fetch(`${this.ebayCfg().apiBase}/identity/v1/oauth2/token`, {
         method: 'POST',
         headers: {
           Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,

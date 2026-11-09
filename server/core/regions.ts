@@ -34,6 +34,7 @@ const LIVE = {
   willhaben: { id: 'willhaben', label: 'Willhaben.at', kind: 'live' },
   kijiji: { id: 'kijiji', label: 'Kijiji.ca', kind: 'live' },
   kleinanzeigen: { id: 'kleinanzeigen', label: 'Kleinanzeigen.de', kind: 'live' },
+  tori: { id: 'tori', label: 'Tori.fi', kind: 'live' },
 } as const satisfies Record<string, RegionSource>;
 
 const EBAY: RegionSource = {
@@ -173,12 +174,14 @@ export function installedSourceIds(code: string): string[] {
 
 interface SetupRecord {
   region: string;
+  countries: string[];
   completedAt: string;
 }
 
 export interface SetupState {
   complete: boolean;
   region: string;
+  countries: string[];
 }
 
 export function setupFile(cfg: ServerConfig): string {
@@ -186,22 +189,40 @@ export function setupFile(cfg: ServerConfig): string {
 }
 
 export function readSetupRegion(cfg: ServerConfig): string | null {
+  return readSetupCountries(cfg)[0] ?? null;
+}
+
+export function readSetupCountries(cfg: ServerConfig): string[] {
   try {
     const raw = fs.readFileSync(setupFile(cfg), 'utf8');
     const parsed = JSON.parse(raw) as Partial<SetupRecord>;
-    if (typeof parsed.region !== 'string') return null;
-    return findMarket(parsed.region)?.code ?? null;
+    const codes: string[] = [];
+    if (Array.isArray(parsed.countries)) {
+      for (const c of parsed.countries) {
+        const m = findMarket(String(c));
+        if (m) codes.push(m.code);
+      }
+    }
+    if (codes.length === 0 && typeof parsed.region === 'string') {
+      const m = findMarket(parsed.region);
+      if (m) codes.push(m.code);
+    }
+    return codes;
   } catch {
-    return null;
+    return [];
   }
 }
 
-export function saveSetupRegion(cfg: ServerConfig, region: string): void {
+export function saveSetupRegion(cfg: ServerConfig, region: string, countries?: string[]): void {
   const market = findMarket(region);
   if (!market) throw new Error(`Unknown region ${region}`);
+  const codes = (countries && countries.length ? countries : [market.code])
+    .map((c) => findMarket(c)?.code)
+    .filter((c): c is string => Boolean(c));
+  if (codes.length === 0) codes.push(market.code);
   const file = setupFile(cfg);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const record: SetupRecord = { region: market.code, completedAt: new Date().toISOString() };
+  const record: SetupRecord = { region: market.code, countries: codes, completedAt: new Date().toISOString() };
   fs.writeFileSync(file, JSON.stringify(record, null, 2));
 }
 
@@ -219,15 +240,15 @@ function hasExistingInstall(cfg: ServerConfig): boolean {
  * - otherwise the UI must show onboarding.
  */
 export function resolveSetup(cfg: ServerConfig): SetupState {
-  const saved = readSetupRegion(cfg);
-  if (saved) return { complete: true, region: saved };
+  const saved = readSetupCountries(cfg);
+  if (saved.length) return { complete: true, region: saved[0], countries: saved };
   if (cfg.region) {
     saveSetupRegion(cfg, cfg.region);
-    return { complete: true, region: cfg.region };
+    return { complete: true, region: cfg.region, countries: [cfg.region] };
   }
   if (hasExistingInstall(cfg)) {
     saveSetupRegion(cfg, cfg.defaultMarket);
-    return { complete: true, region: cfg.defaultMarket };
+    return { complete: true, region: cfg.defaultMarket, countries: [cfg.defaultMarket] };
   }
-  return { complete: false, region: cfg.defaultMarket };
+  return { complete: false, region: cfg.defaultMarket, countries: [cfg.defaultMarket] };
 }

@@ -168,7 +168,8 @@ export function apiRouter(cfg: ServerConfig): Router {
 
   router.post('/setup', async (req, res, next) => {
     try {
-      const region = asRecord(req.body)?.['region'];
+      const body = asRecord(req.body) ?? {};
+      const region = body['region'];
       if (typeof region !== 'string' || !findMarket(region.trim())) {
         res.status(400).json({
           error: {
@@ -178,7 +179,11 @@ export function apiRouter(cfg: ServerConfig): Router {
         });
         return;
       }
-      await setRegion(region.trim().toUpperCase());
+      const countriesRaw = body['countries'];
+      const countries = Array.isArray(countriesRaw)
+        ? countriesRaw.map((c) => String(c).trim().toUpperCase()).filter((c) => findMarket(c))
+        : undefined;
+      await setRegion(region.trim().toUpperCase(), countries);
       const state = getSetupState();
       res.json({
         ...state,

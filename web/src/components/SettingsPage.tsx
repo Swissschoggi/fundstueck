@@ -41,6 +41,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [runningAll, setRunningAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [regionCode, setRegionCode] = useState<string>('CH');
+  const [countries, setCountries] = useState<string[]>(['CH']);
   const [registry, setRegistry] = useState<RegistryCountryResponse | null>(null);
   const [registryEnabled, setRegistryEnabled] = useState<string[]>([]);
 
@@ -69,19 +70,27 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
 
   useEffect(() => {
     fetchSetup()
-      .then((s) => setRegionCode(s.region || 'CH'))
+      .then((s) => {
+        setRegionCode(s.region || 'CH');
+        setCountries(s.countries?.length ? s.countries : [s.region || 'CH']);
+      })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!regionCode) return;
-    fetchRegistryCountry(regionCode)
-      .then((d) => {
-        setRegistry(d);
-        setRegistryEnabled(d.enabled || []);
+    if (!countries.length) return;
+    Promise.all(countries.map((c) => fetchRegistryCountry(c)))
+      .then((results) => {
+        const merged: RegistryCountryResponse = {
+          country: results[0].country,
+          marketplaces: results.flatMap((r) => r.marketplaces),
+          enabled: results[0].enabled || [],
+        };
+        setRegistry(merged);
+        setRegistryEnabled(merged.enabled);
       })
       .catch(() => {});
-  }, [regionCode]);
+  }, [countries]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -269,8 +278,8 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
           <div>
             <h2 className={styles.sectionTitle}>Country &amp; marketplace registry</h2>
             <p className={styles.sectionSub}>
-              Country: {regionCode}. {registry ? `${registry.marketplaces.length} marketplaces known for this country.` : ''}
-              {' '}<a href="/setup" className={styles.inlineLink}>Change country</a>
+              Countries: {countries.join(', ')}. {registry ? `${registry.marketplaces.length} marketplaces known.` : ''}
+              {' '}Manage in <a href="/setup" className={styles.inlineLink}>onboarding</a>.
             </p>
           </div>
         </div>
@@ -281,30 +290,48 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
               const restricted =
                 m.automation_permission === 'prohibited_without_authorization' ||
                 m.capability.startsWith('D');
+              const canInstall = m.adapter_status === 'not_implemented' && m.domain;
               return (
-                <label key={m.id} className={styles.registryRow}>
-                  <input
-                    type="checkbox"
-                    disabled={restricted}
-                    checked={checked}
-                    onChange={async () => {
-                      const next = checked
-                        ? registryEnabled.filter((x) => x !== m.id)
-                        : [...registryEnabled, m.id];
-                      setRegistryEnabled(next);
-                      try {
-                        await saveRegistryEnabled(regionCode, next);
-                      } catch {
-                        setRegistryEnabled(registryEnabled);
-                      }
-                    }}
-                  />
-                  <span className={styles.registryName}>{m.name}</span>
-                  <span className={styles.registryDomain}>{m.domain}</span>
-                  <span className={styles.badge}>{m.capability.split('/')[0]}</span>
-                  <span className={styles.statusBadge}>{m.adapter_status}</span>
-                  {restricted && <span className={styles.restrictedReason}>Restricted</span>}
-                </label>
+                <div key={m.id} className={styles.registryCard}>
+                  <div className={styles.registryCardHead}>
+                    <input
+                      type="checkbox"
+                      disabled={restricted}
+                      checked={checked}
+                      onChange={async () => {
+                        const next = checked
+                          ? registryEnabled.filter((x) => x !== m.id)
+                          : [...registryEnabled, m.id];
+                        setRegistryEnabled(next);
+                        try {
+                          await saveRegistryEnabled(regionCode, next);
+                        } catch {
+                          setRegistryEnabled(registryEnabled);
+                        }
+                      }}
+                    />
+                    <span className={styles.registryName}>{m.name}</span>
+                    <span className={styles.registryDomain}>{m.domain}</span>
+                  </div>
+                  <div className={styles.registryCardMeta}>
+                    <span className={styles.badge} title="Capability">{m.capability.split('/')[0]}</span>
+                    <span className={styles.statusBadge}>{m.adapter_status.replace(/_/g, ' ')}</span>
+                    {restricted && <span className={styles.restrictedReason}>Restricted</span>}
+                    {canInstall && (
+                      <button
+                        type="button"
+                        className={styles.smallButton}
+                        onClick={() => onNavigate('/sources')}
+                        title="Add this source manually via custom HTTP source"
+                      >
+                        Add as source
+                      </button>
+                    )}
+                  </div>
+                  {m.verification_notes && (
+                    <p className={styles.registryNote}>{m.verification_notes}</p>
+                  )}
+                </div>
               );
             })}
           </div>

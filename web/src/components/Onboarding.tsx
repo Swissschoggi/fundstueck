@@ -49,7 +49,7 @@ export function Onboarding({
   const [countries, setCountries] = useState<RegistryCountry[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(true);
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<string>(setup?.region || 'CH');
+  const [selected, setSelected] = useState<string[]>(setup?.countries?.length ? setup.countries : [setup?.region || 'CH']);
   const [countryData, setCountryData] = useState<RegistryCountryResponse | null>(null);
   const [loadingSources, setLoadingSources] = useState(false);
   const [enabled, setEnabled] = useState<string[]>([]);
@@ -64,10 +64,10 @@ export function Onboarding({
   }, []);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected.length) return;
     setLoadingSources(true);
     setCountryData(null);
-    fetchRegistryCountry(selected)
+    fetchRegistryCountry(selected[0])
       .then((d) => {
         setCountryData(d);
         setEnabled(d.enabled || []);
@@ -92,6 +92,12 @@ export function Onboarding({
     return groups;
   }, [filtered]);
 
+  const toggleCountry = (code: string) => {
+    setSelected((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+    );
+  };
+
   const toggle = (id: string) => {
     setEnabled((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
@@ -101,13 +107,14 @@ export function Onboarding({
     setSaving(true);
     setError(null);
     try {
-      // persist enabled prefs
-      await fetch(`/api/registry/enabled/${selected}`, {
+      const primary = selected[0];
+      // persist enabled prefs for primary country
+      await fetch(`/api/registry/enabled/${primary}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled }),
       });
-      const next = await saveSetup(selected);
+      const next = await saveSetup(primary, selected);
       onComplete(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not complete setup.');
@@ -116,7 +123,7 @@ export function Onboarding({
     }
   };
 
-  const selectedCountry = countries.find((c) => c.code === selected);
+  const selectedCountry = countries.find((c) => c.code === selected[0]);
 
   return (
     <div className={styles.page}>
@@ -180,13 +187,13 @@ export function Onboarding({
               </div>
               <div className={styles.grid}>
                 {grouped[group].map((c) => {
-                  const isSelected = c.code === selected;
+                  const isSelected = selected.includes(c.code);
                   return (
                     <button
                       key={c.code}
                       type="button"
                       className={`${styles.card} ${isSelected ? styles.selected : ''}`}
-                      onClick={() => setSelected(c.code)}
+                      onClick={() => toggleCountry(c.code)}
                       aria-pressed={isSelected}
                     >
                       <div className={styles.cardTop}>
@@ -268,7 +275,7 @@ export function Onboarding({
         <div className={styles.footerText}>
           <span className={styles.footerLabel}>Selected country</span>
           <span className={styles.footerValue}>
-            {selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name} · ${selectedCountry.currency}` : '—'}
+            {selected.length ? `${selected.length} countr${selected.length === 1 ? 'y' : 'ies'} selected` : '—'}
           </span>
         </div>
         <button
@@ -278,7 +285,7 @@ export function Onboarding({
           disabled={saving || !selectedCountry}
         >
           <Icon name={saving ? 'hourglass_top' : 'check'} size={16} />
-          {saving ? 'Saving…' : `Continue with ${selectedCountry?.name ?? 'this country'}`}
+          {saving ? 'Saving…' : `Continue with ${selected.length} countr${selected.length === 1 ? 'y' : 'ies'}`}
         </button>
       </footer>
     </div>

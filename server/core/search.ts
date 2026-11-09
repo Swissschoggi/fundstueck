@@ -15,6 +15,8 @@ export interface SearchQuery {
   market: string;
   /** Optional category filter. */
   category: string | null;
+  /** Optional gender filter: male/female/unisex. */
+  gender: string | null;
   sort: SortKey;
   minPrice: number | null;
   maxPrice: number | null;
@@ -45,6 +47,8 @@ export function parseSearchParams(
   }
 
   const category = typeof raw['category'] === 'string' ? raw['category'].trim() : null;
+  const genderRaw = typeof raw['gender'] === 'string' ? raw['gender'].trim().toLowerCase() : '';
+  const gender = ['male', 'female', 'unisex'].includes(genderRaw) ? genderRaw : null;
 
   const q = typeof raw['q'] === 'string' ? raw['q'].trim() : '';
   if (!q) {
@@ -73,7 +77,7 @@ export function parseSearchParams(
     }
   }
 
-  return { q, market: market.code, category, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
+  return { q, market: market.code, category, gender, sort: sortRaw as SortKey, minPrice, maxPrice, limit };
 }
 
 function parsePrice(value: unknown, name: string): number | null {
@@ -98,25 +102,38 @@ function sortListings(listings: NormalizedListing[], sort: SortKey): NormalizedL
       return [...listings].sort(byPrice(1));
     case 'price_desc':
       return [...listings].sort(byPrice(-1));
-    case 'newest':
-      return [...listings].sort((a, b) => {
-        // Fall back to fetchedAt when a source exposes no publish time (e.g.
-        // Marko), so those listings are not pushed to the very end and sliced
-        // out of the merged result set.
-        const ta = a.publishedAt
-          ? Date.parse(a.publishedAt)
-          : a.fetchedAt
-            ? Date.parse(a.fetchedAt)
+    case 'newest': {
+      // Sort each source's own listings by date descending first.
+      const byDate = (x: NormalizedListing) =>
+        x.publishedAt
+          ? Date.parse(x.publishedAt)
+          : x.fetchedAt
+            ? Date.parse(x.fetchedAt)
             : 0;
-        const tb = b.publishedAt
-          ? Date.parse(b.publishedAt)
-          : b.fetchedAt
-            ? Date.parse(b.fetchedAt)
-            : 0;
-        if (tb !== ta) return tb - ta;
-        // Stable-ish tie-break by source so equal timestamps interleave.
-        return a.source < b.source ? -1 : a.source > b.source ? 1 : 0;
-      });
+      const groups = new Map<string, NormalizedListing[]>();
+      for (const l of listings) {
+        const g = groups.get(l.source) ?? [];
+        g.push(l);
+        groups.set(l.source, g);
+      }
+      for (const g of groups.values()) g.sort((a, b) => byDate(b) - byDate(a));
+      // Interleave across sources (round-robin) so a single high-volume or
+      // undated source cannot starve the others in the merged top-N.
+      const result: NormalizedListing[] = [];
+      const iters = [...groups.values()];
+      let progressed = true;
+      while (result.length < listings.length && progressed) {
+        progressed = false;
+        for (const g of iters) {
+          if (g.length > 0) {
+            result.push(g.shift()!);
+            progressed = true;
+            if (result.length >= listings.length) break;
+          }
+        }
+      }
+      return result;
+    }
     case 'best':
     default:
       return listings; // keep adapter ranking order
@@ -142,6 +159,7 @@ export async function runSearch(
         limit: perAdapterLimit,
         market: query.market,
         category: query.category ?? undefined,
+        gender: query.gender ?? undefined,
       });
       return { adapter, listings, latencyMs: Date.now() - t0 };
     }),
@@ -149,6 +167,14 @@ export async function runSearch(
 
   let listings: NormalizedListing[] = [];
   const sources: SearchResponse['sources'] = [];
+
+  const inferGender = (title: string): 'male' | 'female' | 'unisex' | null => {
+    const t = ` ${title.toLowerCase()} `;
+    if (/\b(unisex|unisexe)\b/.test(t)) return 'unisex';
+    if (/\b(damen|frauen|women|woman|female|femmes|femme|ladies|girls?|donna|donne|mujer(?:es)?|vrouw(?:en)?|feminin)\b/.test(t)) return 'female';
+    if (/\b(herren|männer|manner|men|man|male|hommes|homme|boys?|uomo|uomini|hombre(?:s)?|mannelijk|masculin)\b/.test(t)) return 'male';
+    return null;
+  };
 
   settled.forEach((result, i) => {
     const adapter = adapters[i];
@@ -188,6 +214,14 @@ export async function runSearch(
       logEvent(adapter.id, 'error', `Q "${query.q}" failed — ${message}`);
     }
   });
+
+  // Infer gender where missing, then apply the optional gender filter.
+  for (const l of listings) {
+    if (l.gender == null) l.gender = inferGender(`${l.title} ${l.description ?? ''}`);
+  }
+  if (query.gender) {
+    listings = listings.filter((l) => l.gender === query.gender || l.gender == null);
+  }
 
   listings = listings.filter((l) => {
     if (query.minPrice != null && l.price != null && l.price < query.minPrice) return false;

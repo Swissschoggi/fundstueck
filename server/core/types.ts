@@ -28,6 +28,8 @@ export interface NormalizedListing {
   publishedAt: string | null;
   /** ISO-8601 time when Fundstück fetched this listing. */
   fetchedAt: string;
+  /** Inferred gender target: male/female/unisex, or null when unknown. Best-effort. */
+  gender?: 'male' | 'female' | 'unisex' | null;
 }
 
 export type AdapterMode = 'live' | 'sample';
@@ -39,6 +41,8 @@ export interface AdapterSearchParams {
   market?: string;
   /** Optional category filter (marketplace-specific, e.g. marko category slug). */
   category?: string;
+  /** Optional gender filter: male/female/unisex. */
+  gender?: string;
 }
 
 /** Thrown by adapters on upstream/auth/network failure. Message must be safe to surface. */

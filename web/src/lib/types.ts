@@ -12,6 +12,7 @@ export interface NormalizedListing {
   listingUrl: string;
   publishedAt: string | null;
   fetchedAt: string;
+  gender?: 'male' | 'female' | 'unisex' | null;
 }
 
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';
@@ -130,6 +131,7 @@ export interface RegionPack {
 export interface SetupResponse {
   complete: boolean;
   region: string;
+  countries: string[];
   regions: RegionPack[];
 }
 

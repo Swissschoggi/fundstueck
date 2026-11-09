@@ -2149,8 +2149,8 @@
     "condition_available": null,
     "published_date_available": null,
     "last_verified_at": null,
-    "verification_notes": "",
-    "adapter_status": "not_implemented"
+    "verification_notes": "Implemented via JSON-LD structured data (CollectionPage/ItemList).",
+    "adapter_status": "implemented"
   },
   {
     "id": "huuto",

@@ -14,6 +14,8 @@ export function FilterRail({
   sources,
   market,
   currency,
+  gender,
+  onGenderChange,
 }: {
   minPrice: string;
   maxPrice: string;
@@ -22,6 +24,8 @@ export function FilterRail({
   sources: SourceInfo[];
   market: string;
   currency: string;
+  gender?: string;
+  onGenderChange?: (g: string) => void;
 }) {
   return (
     <aside className={styles.rail}>
@@ -128,6 +132,30 @@ export function FilterRail({
               </button>
             ))}
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <label className={styles.label}>
+              Gender
+              <span className={styles.soon}>inferred</span>
+            </label>
+          </div>
+          <div className={styles.segmented}>
+            {['all', 'male', 'female', 'unisex'].map((g) => (
+              <button
+                key={g}
+                type="button"
+                className={`${styles.segment} ${(gender || 'all') === g ? styles.segmentActive : ''}`}
+                onClick={() => onGenderChange?.(g === 'all' ? '' : g)}
+              >
+                {g === 'all' ? 'All' : g.charAt(0).toUpperCase() + g.slice(1)}
+              </button>
+            ))}
+          </div>
+          <p className={styles.hint}>
+            Best-effort: derived from listing titles. Most marketplaces do not expose gender.
+          </p>
         </div>
 
         <div className={styles.section}>
