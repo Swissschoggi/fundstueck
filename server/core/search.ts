@@ -1,26 +1,13 @@
 import {
-  SORTS,
-  SourceError,
-  type MarketplaceAdapter,
-  type NormalizedListing,
-  type NormalizedLocation,
-  type SearchResponse,
-  type SortKey,
-  type SourceStatus,
+  SORTS, SourceError, type MarketplaceAdapter, type NormalizedListing, type SearchResponse,
+  type SortKey, type SourceStatus,
 } from '../core/types.js';
 import { logEvent } from './events.js';
 import { DEFAULT_MARKET, findMarket, MARKETS } from './markets.js';
 
 export interface SearchQuery {
-  q: string;
-  market: string;
-  category: string | null;
-  gender: string | null;
-  size: string | null;
-  sort: SortKey;
-  minPrice: number | null;
-  maxPrice: number | null;
-  limit: number;
+  q: string; market: string; category: string | null; gender: string | null; size: string | null;
+  sort: SortKey; minPrice: number | null; maxPrice: number | null; limit: number;
 }
 
 const ADAPTER_TIMEOUT_MS = Math.max(3_000, Number(process.env.SEARCH_ADAPTER_TIMEOUT_MS) || 18_000);
@@ -65,23 +52,22 @@ function parsePrice(value: unknown, name: string): number | null {
   return n;
 }
 
-/** Accent-, punctuation- and whitespace-insensitive query representation. */
+/** Accent-, punctuation- and whitespace-insensitive canonical query/title representation. */
 export function normalizeSearchText(value: string): string {
   return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase()
     .replace(/[’'']/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
 }
 
 const EQUIVALENTS: Record<string, string[]> = {
-  bike: ['bicycle', 'velo', 'fahrrad', 'fahrrad'],
-  bicycle: ['bike', 'velo', 'fahrrad'],
-  velo: ['bike', 'bicycle', 'fahrrad'],
-  fahrrad: ['bike', 'bicycle', 'velo'],
-  sofa: ['couch', 'canape'],
-  couch: ['sofa', 'canape'],
-  phone: ['smartphone', 'mobile'],
-  smartphone: ['phone', 'mobile'],
-  sneakers: ['trainers', 'turnschuhe'],
-  trainers: ['sneakers', 'turnschuhe'],
+  bike: ['bicycle', 'velo', 'fahrrad'], bicycle: ['bike', 'velo', 'fahrrad'],
+  velo: ['bike', 'bicycle', 'fahrrad'], fahrrad: ['bike', 'bicycle', 'velo'],
+  sofa: ['couch', 'canape'], couch: ['sofa', 'canape'], canape: ['sofa', 'couch'],
+  phone: ['smartphone', 'mobile', 'handy'], smartphone: ['phone', 'mobile', 'handy'],
+  sneakers: ['trainers', 'turnschuhe'], trainers: ['sneakers', 'turnschuhe'],
+  jacket: ['coat', 'jacke', 'veste'], coat: ['jacket', 'mantel'],
+  watch: ['uhr', 'montre'], uhr: ['watch', 'montre'],
+  chair: ['stuhl', 'chaise'], stuhl: ['chair', 'chaise'],
+  table: ['tisch', 'table'], tisch: ['table'],
 };
 
 function queryTerms(query: string): string[] {
@@ -89,62 +75,94 @@ function queryTerms(query: string): string[] {
   return [...new Set(terms.flatMap((t) => [t, ...(EQUIVALENTS[t] ?? [])]))];
 }
 
+function editDistanceAtMostOne(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1 || Math.min(a.length, b.length) < 5) return false;
+  let i = 0; let j = 0; let edits = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (a.length > b.length) i++;
+    else if (b.length > a.length) j++;
+    else { i++; j++; }
+  }
+  return edits + ((i < a.length || j < b.length) ? 1 : 0) <= 1;
+}
+
 export function scoreRelevance(query: string, listing: Pick<NormalizedListing, 'title' | 'description'>): number {
   const normalizedQuery = normalizeSearchText(query);
   const title = normalizeSearchText(listing.title);
   const description = normalizeSearchText(listing.description ?? '');
   if (!normalizedQuery || !title) return 0;
-  const originalTerms = normalizedQuery.split(' ').filter(Boolean);
-  const expandedTerms = queryTerms(query);
-  const matched = expandedTerms.filter((term) => title.split(' ').includes(term) || description.split(' ').includes(term));
-  const titleMatched = expandedTerms.filter((term) => title.split(' ').includes(term));
-  const coverage = matched.length / Math.max(1, expandedTerms.length);
-  const titleCoverage = titleMatched.length / Math.max(1, expandedTerms.length);
-  let score = titleCoverage * 62 + coverage * 18;
-  if (title.includes(normalizedQuery)) score += 20;
-  else if (normalizedQuery.split(' ').every((term) => title.includes(term))) score += 10;
-  if (originalTerms.length === 1 && title.startsWith(normalizedQuery)) score += 4;
+  const original = normalizedQuery.split(' ').filter(Boolean);
+  const expanded = queryTerms(query);
+  const titleTokens = title.split(' ');
+  const descriptionTokens = description.split(' ');
+  const matches = (term: string, tokens: string[]) => tokens.some((token) => token === term || editDistanceAtMostOne(term, token));
+  const titleMatched = original.filter((term) => matches(term, titleTokens) || (EQUIVALENTS[term] ?? []).some((alt) => matches(alt, titleTokens)));
+  const bodyMatched = original.filter((term) => matches(term, descriptionTokens) || (EQUIVALENTS[term] ?? []).some((alt) => matches(alt, descriptionTokens)));
+  const coverage = titleMatched.length / Math.max(1, original.length);
+  const bodyCoverage = bodyMatched.length / Math.max(1, original.length);
+  const expandedTitleHits = expanded.filter((term) => matches(term, titleTokens)).length;
+  let score = coverage * 72 + bodyCoverage * 12 + Math.min(12, expandedTitleHits * 4);
+  if (title.includes(normalizedQuery)) score += 16;
+  else if (original.length > 1 && original.every((term) => title.includes(term))) score += 8;
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 function canonicalUrl(raw: string): string {
   try {
-    const u = new URL(raw);
-    u.hash = '';
-    for (const key of [...u.searchParams.keys()]) {
-      if (/^(utm_|ref$|source$|campaign$|tracking)/i.test(key)) u.searchParams.delete(key);
-    }
+    const u = new URL(raw); u.hash = '';
+    for (const key of [...u.searchParams.keys()]) if (/^(utm_|ref$|source$|campaign$|tracking)/i.test(key)) u.searchParams.delete(key);
     u.hostname = u.hostname.toLowerCase().replace(/^www\./, '');
     return u.toString().replace(/\/$/, '');
   } catch { return raw.trim().toLowerCase().replace(/\/$/, ''); }
 }
 
-function fingerprint(l: NormalizedListing): string {
-  const title = normalizeSearchText(l.title);
-  const price = l.price == null ? 'na' : `${Math.round(l.price * 100) / 100}:${l.currency.toUpperCase()}`;
-  const location = normalizeSearchText(l.location ?? '');
-  return [title, price, location].join('|');
+function titleSimilarity(a: string, b: string): number {
+  const aa = new Set(normalizeSearchText(a).split(' ').filter((x) => x.length > 1));
+  const bb = new Set(normalizeSearchText(b).split(' ').filter((x) => x.length > 1));
+  if (!aa.size || !bb.size) return 0;
+  let intersection = 0;
+  for (const token of aa) if (bb.has(token)) intersection++;
+  return intersection / (aa.size + bb.size - intersection);
 }
 
-/** Conservative cross-source grouping; title/price/location must all agree. */
+function samePrice(a: NormalizedListing, b: NormalizedListing): boolean {
+  if (a.price == null || b.price == null) return a.price == null && b.price == null;
+  if (a.currency.toUpperCase() !== b.currency.toUpperCase()) return false;
+  const max = Math.max(a.price, b.price, 1);
+  return Math.abs(a.price - b.price) / max <= 0.02;
+}
+
+function sameLocation(a: NormalizedListing, b: NormalizedListing): boolean {
+  const aa = normalizeSearchText(a.location ?? '');
+  const bb = normalizeSearchText(b.location ?? '');
+  if (!aa || !bb) return !aa && !bb;
+  return aa === bb || aa.includes(bb) || bb.includes(aa);
+}
+
+/** Conservative cross-marketplace grouping: identical URL or near-identical title + price + location. */
 export function deduplicateListings(input: NormalizedListing[]): { listings: NormalizedListing[]; removed: number } {
   const groups: NormalizedListing[][] = [];
-  const byUrl = new Map<string, number>();
-  const byFingerprint = new Map<string, number>();
+  const urlGroups = new Map<string, number>();
   for (const listing of input) {
     const url = canonicalUrl(listing.listingUrl);
-    const fp = fingerprint(listing);
-    const urlGroup = url ? byUrl.get(url) : undefined;
-    const fpGroup = byFingerprint.get(fp);
-    let index = urlGroup ?? fpGroup;
+    let index = urlGroups.get(url);
+    if (index == null) {
+      index = groups.findIndex((group) => group.some((candidate) =>
+        candidate.source !== listing.source &&
+        titleSimilarity(candidate.title, listing.title) >= 0.82 &&
+        samePrice(candidate, listing) && sameLocation(candidate, listing)));
+      if (index < 0) index = undefined;
+    }
     if (index != null && groups[index].some((x) => x.source !== listing.source)) {
       groups[index].push(listing);
+      if (url) urlGroups.set(url, index);
       continue;
     }
-    index = groups.length;
+    const next = groups.length;
     groups.push([listing]);
-    if (url) byUrl.set(url, index);
-    byFingerprint.set(fp, index);
+    if (url) urlGroups.set(url, next);
   }
   const listings = groups.map((group) => {
     const primary = { ...group[0] };
@@ -159,17 +177,18 @@ export function deduplicateListings(input: NormalizedListing[]): { listings: Nor
   return { listings, removed: input.length - listings.length };
 }
 
-function normalizeLocation(raw: string | null, market: string): NormalizedLocation | null {
+/** Parse location fields without claiming geocoding; coordinates remain null until a geocoder is configured. */
+export function normalizeLocation(raw: string | null, market: string): NonNullable<NormalizedListing['normalizedLocation']> | null {
   if (!raw?.trim()) return null;
   const text = raw.trim();
   const postal = text.match(/\b(\d{4,6})\b/)?.[1] ?? null;
   const parts = text.split(/[,·|]/).map((x) => x.trim()).filter(Boolean);
-  const region = parts.length > 1 ? parts[parts.length - 1] : null;
-  const city = parts.find((p) => !/\b\d{4,6}\b/.test(p) && p !== region) ?? (postal ? text.slice(0, text.indexOf(postal)).trim() || null : null);
-  return { raw: text, countryCode: market, region, city, postalCode: postal, latitude: null, longitude: null };
+  const city = parts[0]?.replace(/\b\d{4,6}\b/g, '').trim() || (postal ? text.slice(0, text.indexOf(postal)).trim() || null : text);
+  const region = parts.length > 1 ? parts.slice(1).join(', ') : null;
+  return { raw: text, countryCode: market.toUpperCase(), region, city, postalCode: postal, latitude: null, longitude: null };
 }
 
-function freshness(publishedAt: string | null, fetchedAt: string): { freshness: NonNullable<NormalizedListing['freshness']>; ageDays: number | null } {
+function freshness(publishedAt: string | null): { freshness: NonNullable<NormalizedListing['freshness']>; ageDays: number | null } {
   if (!publishedAt) return { freshness: 'unknown', ageDays: null };
   const date = Date.parse(publishedAt);
   if (!Number.isFinite(date) || date > Date.now() + 86_400_000) return { freshness: 'unknown', ageDays: null };
@@ -194,9 +213,9 @@ async function getFxRate(from: string, to: string): Promise<number | null> {
 }
 
 function sortListings(listings: NormalizedListing[], sort: SortKey): NormalizedListing[] {
+  const price = (l: NormalizedListing) => l.marketPrice ?? (l.currency.toUpperCase() === l.marketCurrency ? l.price : null);
   const byPrice = (dir: 1 | -1) => (a: NormalizedListing, b: NormalizedListing) => {
-    const ap = a.marketPrice ?? (a.currency === a.marketCurrency ? a.price : null);
-    const bp = b.marketPrice ?? (b.currency === b.marketCurrency ? b.price : null);
+    const ap = price(a); const bp = price(b);
     if (ap == null && bp == null) return 0;
     if (ap == null) return 1;
     if (bp == null) return -1;
@@ -205,10 +224,7 @@ function sortListings(listings: NormalizedListing[], sort: SortKey): NormalizedL
   switch (sort) {
     case 'price_asc': return [...listings].sort(byPrice(1));
     case 'price_desc': return [...listings].sort(byPrice(-1));
-    case 'newest': return [...listings].sort((a, b) => {
-      const date = (x: NormalizedListing) => x.publishedAt ? Date.parse(x.publishedAt) : 0;
-      return date(b) - date(a);
-    });
+    case 'newest': return [...listings].sort((a, b) => Date.parse(b.publishedAt ?? '') - Date.parse(a.publishedAt ?? ''));
     case 'best':
     default: return [...listings].sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0));
   }
@@ -230,7 +246,7 @@ function inferSize(title: string): string | null {
   return letter ? letter[1].toUpperCase() : null;
 }
 
-function timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(Object.assign(new Error(`Adapter timed out after ${ms}ms`), { code: 'TIMEOUT' })), ms);
     promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); });
@@ -244,13 +260,9 @@ export async function runSearch(adapters: MarketplaceAdapter[], query: SearchQue
   const settled = await Promise.all(adapters.map(async (adapter) => {
     const t0 = Date.now();
     try {
-      const listings = await timeout(adapter.search({
-        q: normalizedQuery || query.q,
-        limit: query.limit,
-        market: query.market,
-        category: query.category ?? undefined,
-        gender: query.gender ?? undefined,
-        size: query.size ?? undefined,
+      const listings = await withTimeout(adapter.search({
+        q: normalizedQuery || query.q, limit: query.limit, market: query.market,
+        category: query.category ?? undefined, gender: query.gender ?? undefined, size: query.size ?? undefined,
       }), ADAPTER_TIMEOUT_MS);
       return { adapter, listings, latencyMs: Date.now() - t0, status: 'ok' as const };
     } catch (error) {
@@ -272,35 +284,35 @@ export async function runSearch(adapters: MarketplaceAdapter[], query: SearchQue
     return { source: result.adapter.id, label: result.adapter.label, mode: result.adapter.mode, enabled: true, disabledReason: null, status: result.status, count: 0, latencyMs: result.latencyMs, error: result.error };
   });
 
-  for (const l of listings) {
-    if (l.gender == null) l.gender = inferGender(`${l.title} ${l.description ?? ''}`);
-    if (l.size == null) l.size = inferSize(`${l.title} ${l.description ?? ''}`);
-    l.relevanceScore = scoreRelevance(query.q, l);
-    l.normalizedLocation = normalizeLocation(l.location, query.market);
-    const fresh = freshness(l.publishedAt, l.fetchedAt);
-    l.freshness = fresh.freshness;
-    l.ageDays = fresh.ageDays;
-    l.marketCurrency = marketCurrency;
+  for (const listing of listings) {
+    if (listing.gender == null) listing.gender = inferGender(`${listing.title} ${listing.description ?? ''}`);
+    if (listing.size == null) listing.size = inferSize(`${listing.title} ${listing.description ?? ''}`);
+    listing.relevanceScore = scoreRelevance(query.q, listing);
+    listing.normalizedLocation = normalizeLocation(listing.location, query.market);
+    const age = freshness(listing.publishedAt);
+    listing.freshness = age.freshness;
+    listing.ageDays = age.ageDays;
+    listing.marketCurrency = marketCurrency;
   }
 
-  // Convert each source currency to the market currency once per distinct pair.
   const currencies = [...new Set(listings.map((l) => l.currency.toUpperCase()).filter((c) => c && c !== marketCurrency))];
   const rates = new Map<string, number | null>();
   await Promise.all(currencies.map(async (currency) => rates.set(currency, await getFxRate(currency, marketCurrency))));
-  for (const l of listings) {
-    const currency = l.currency.toUpperCase();
+  for (const listing of listings) {
+    const currency = listing.currency.toUpperCase();
     const rate = currency === marketCurrency ? 1 : rates.get(currency) ?? null;
-    l.fxRate = rate;
-    l.marketPrice = l.price == null || rate == null ? null : Math.round(l.price * rate * 100) / 100;
+    listing.fxRate = rate;
+    listing.marketPrice = listing.price == null || rate == null ? null : Math.round(listing.price * rate * 100) / 100;
   }
 
   if (query.gender) listings = listings.filter((l) => l.gender === query.gender || l.gender == null);
   if (query.size) listings = listings.filter((l) => !l.size || l.size.toLowerCase() === query.size);
+  // Unknown conversion rates remain visible rather than disappearing from price-filtered searches.
   listings = listings.filter((l) => {
-    const price = l.marketPrice;
-    if (price == null) return query.minPrice == null && query.maxPrice == null ? true : false;
-    if (query.minPrice != null && price < query.minPrice) return false;
-    if (query.maxPrice != null && price > query.maxPrice) return false;
+    const comparable = l.marketPrice;
+    if (comparable == null) return true;
+    if (query.minPrice != null && comparable < query.minPrice) return false;
+    if (query.maxPrice != null && comparable > query.maxPrice) return false;
     return true;
   });
 
@@ -311,17 +323,8 @@ export async function runSearch(adapters: MarketplaceAdapter[], query: SearchQue
     adapters.find((a) => a.id === listings[0].source)?.mode === 'sample';
 
   return {
-    query: query.q,
-    normalizedQuery,
-    market: query.market,
-    marketCurrency,
-    sort: query.sort,
-    total: listings.length,
-    rawTotal,
-    duplicatesRemoved: deduped.removed,
-    tookMs: Date.now() - started,
-    isSampleData,
-    listings,
-    sources,
+    query: query.q, normalizedQuery, market: query.market, marketCurrency, sort: query.sort,
+    total: listings.length, rawTotal, duplicatesRemoved: deduped.removed, tookMs: Date.now() - started,
+    isSampleData, listings, sources,
   };
 }
