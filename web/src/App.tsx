@@ -62,6 +62,7 @@ export default function App() {
   const [sort, setSort] = useState<SortKey>('newest');
   const [category, setCategory] = useState('');
   const [gender, setGender] = useState('');
+  const [size, setSize] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
 
@@ -186,12 +187,14 @@ export default function App() {
     const mn = p.get('min');
     const mx = p.get('max');
     const g = p.get('gender');
+    const z = p.get('size');
     const v = p.get('view');
     if (v === 'grid' || v === 'list') setView(v);
     if (s && SORTS.includes(s as SortKey)) setSort(s as SortKey);
     if (mn) { setPendingMin(mn); setMinPrice(mn); }
     if (mx) { setPendingMax(mx); setMaxPrice(mx); }
     if (g && ['male','female','unisex'].includes(g)) setGender(g);
+    if (z) setSize(z);
     if (q) {
       setInput(q);
       setQuery(q);
@@ -215,6 +218,7 @@ export default function App() {
       maxPrice: maxPrice !== '' && Number.isFinite(Number(maxPrice)) ? Number(maxPrice) : null,
       category: category || null,
       gender: gender || null,
+      size: size.trim() || null,
     })
       .then((r) => {
         if (cancelled) return;
@@ -231,7 +235,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [query, market, sort, minPrice, maxPrice, category, gender, nonce]);
+  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce]);
 
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
@@ -245,8 +249,9 @@ export default function App() {
     if (minPrice) p.set('min', minPrice);
     if (maxPrice) p.set('max', maxPrice);
     if (gender) p.set('gender', gender);
+    if (size) p.set('size', size);
     window.history.replaceState(null, '', `?${p.toString()}`);
-  }, [query, market, sort, view, minPrice, maxPrice, path]);
+  }, [query, market, sort, view, minPrice, maxPrice, gender, size, path]);
 
   const submit = useCallback(() => {
     const q = input.trim();
@@ -281,6 +286,7 @@ export default function App() {
     setMaxPrice('');
     setPriceError(null);
     setGender('');
+    setSize('');
   }, []);
 
   const counts = useMemo(() => {
@@ -404,6 +410,8 @@ export default function App() {
                 currency={currentMarket?.currency ?? 'CHF'}
                 gender={gender}
                 onGenderChange={setGender}
+                size={size}
+                onSizeChange={setSize}
               />
               <Results
                 status={status}
