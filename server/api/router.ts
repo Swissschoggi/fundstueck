@@ -78,7 +78,7 @@ export function apiRouter(cfg: ServerConfig): Router {
         return;
       }
       const query = parseSearchParams(req.query, getDefaultMarket());
-      const enabled = enabledAdapters();
+      const enabled = enabledAdapters(query.market);
       if (enabled.length === 0) {
         const market = findMarket(query.market);
         res.status(503).json({
