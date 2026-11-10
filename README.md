@@ -134,6 +134,21 @@ The CLI is not downloaded or bundled by Fundstück; it drives fingerprint-patche
 Firefox (camoufox) to satisfy Cloudflare, so review Ricardo's and Cloudflare's
 terms before enabling it. Fundstück itself never solves a CAPTCHA.
 
+Camoufox (the patched Firefox build this CLI drives) is a real browser and
+needs the same OS-level libraries and sandbox permissions any headless
+Firefox does. The official Docker image already handles both: it installs
+Firefox's runtime shared libraries (`libgtk-3-0`, `libasound2`, `libnss3`,
+...) and sets `MOZ_DISABLE_CONTENT_SANDBOX=1`, because Docker's default
+seccomp profile blocks the syscall Firefox's own sandbox self-test needs
+(`clone(CLONE_NEWUSER)`), which otherwise fails with
+`CanCreateUserNamespace() clone() failure: EPERM` on first launch. If you're
+installing `scripts/install-ricardo.sh` outside that image (bare metal or a
+different base image), it now runs `playwright install-deps firefox`
+automatically when possible, and warns in the install log — instead of
+failing silently — if it can't. A failed warmup search no longer passes
+silently either: check the install log for a "Ricardo warmup search failed"
+warning if the source still won't return results after installing.
+
 If a source fails mid-search (auth error, CAPTCHA, upstream timeout, rate
 limit), the search still returns results from the other sources and the failing
 source is reported in the response and shown as degraded in the UI.

@@ -822,6 +822,32 @@ interface CommandResult {
   code: number | null;
 }
 
+/**
+ * Pick the most useful line(s) out of a failed command's stderr.
+ *
+ * Browser-automation CLIs (Playwright, camoufox, ...) commonly print several
+ * lines of process lifecycle/cleanup logging (`<launching>`, `<gracefully
+ * close start/end>`, ...) *after* the actual error, so naively keeping only
+ * the last line — as this used to do — surfaces the cleanup noise instead of
+ * the failure. Prefer lines that look like a genuine error; fall back to the
+ * tail of the output when nothing matches.
+ */
+function extractErrorDetail(stderr: string): string {
+  const lines = stderr
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return '';
+
+  const errorish = lines.filter((line) =>
+    /\b(err(or)?|exception|traceback|fail(ed|ure)?|eperm|enoent|enoexec|cannot|could not|no such file)\b/i.test(
+      line,
+    ),
+  );
+  const picked = (errorish.length > 0 ? errorish : lines).slice(-3);
+  return picked.join(' | ').slice(0, 500);
+}
+
 function runCommand(
   command: string,
   args: string[],
@@ -872,11 +898,11 @@ function runCommand(
     });
     child.on('close', (code) => {
       if (code !== 0) {
-        const detail = stderr.trim().split('\n').slice(-1)[0] ?? '';
+        const detail = extractErrorDetail(stderr);
         finish(() =>
           reject(
             new SourceError(
-              `Command exited with code ${code ?? '?'}${detail ? `: ${detail.slice(0, 200)}` : ''}.`,
+              `Command exited with code ${code ?? '?'}${detail ? `: ${detail}` : ''}.`,
               'UPSTREAM',
             ),
           ),
