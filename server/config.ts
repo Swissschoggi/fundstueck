@@ -93,7 +93,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       depop: env.ENABLE_DEPOP_ADAPTER !== 'false',
       blocket: env.ENABLE_BLOCKET_ADAPTER !== 'false',
       // Vinted (unofficial API). Restricted terms — disabled by default.
-      vinted: env.ENABLE_VINTED_ADAPTER !== 'false',
+      vinted: env.ENABLE_VINTED_ADAPTER === 'true',
       // Regional public search pages (only instantiated for the chosen region).
       regional: env.ENABLE_REGIONAL_ADAPTERS !== 'false',
     },
