@@ -335,6 +335,7 @@ export async function runSearch(
   }
 
   // Deduplication: group by canonical URL, then by normalized title+price+location
+  const rawTotal = listings.length;
   const groups = new Map<string, NormalizedListing[]>();
   for (const l of listings) {
     const key = dedupKey(l);
@@ -347,10 +348,12 @@ export async function runSearch(
     if (g.length === 1) {
       deduped.push(g[0]);
     } else {
-      // Keep the first as primary, but store duplicate links in rawMetadata.
       const primary = g[0];
-      const links = g.map((x) => x.listingUrl);
-      (primary as NormalizedListing & { _duplicateLinks?: string[] })._duplicateLinks = links;
+      primary.duplicateListings = g.slice(1).map((x) => ({
+        source: x.source,
+        listingUrl: x.listingUrl,
+      }));
+      primary.duplicateCount = g.length - 1;
       deduped.push(primary);
     }
   }
@@ -424,7 +427,6 @@ export async function runSearch(
     }
     delete (l as unknown as Record<string, unknown>)._score;
     delete (l as unknown as Record<string, unknown>)._convertedPrice;
-    delete (l as unknown as Record<string, unknown>)._duplicateLinks;
   }
 
   // Record prices for deal radar (best-effort, non-blocking).
@@ -435,6 +437,8 @@ export async function runSearch(
     market: query.market,
     sort: query.sort,
     total: listings.length,
+    rawTotal,
+    duplicatesRemoved: rawTotal - listings.length,
     tookMs: Date.now() - started,
     isSampleData,
     listings,
