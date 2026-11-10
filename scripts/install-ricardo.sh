@@ -18,4 +18,8 @@ python3 -m venv "$VENV_PATH"
 # installed package so ricardo-scraper imports the same pin used by Fundstueck.
 "$PYTHON_BIN" -c 'import os, shutil, ricardo_scraper, sys; shutil.copyfile(sys.argv[1], os.path.join(os.path.dirname(ricardo_scraper.__file__), "pin_camoufox_browser.py"))' "$SCRIPT_DIR/pin_camoufox_browser.py"
 
+# Warm up the pinned browser build so the first health check/search is faster.
+"$VENV_PATH/bin/ricardo-scraper" "fundstueck" --no-detail --max-results 1 --locale de --out /tmp/fundstueck-ricardo-warmup --quiet >/dev/null 2>&1 || true
+rm -f /tmp/fundstueck-ricardo-warmup.json /tmp/fundstueck-ricardo-warmup.csv
+
 echo "Ricardo scraper installed in $VENV_PATH"

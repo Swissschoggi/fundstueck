@@ -246,7 +246,7 @@ export function validateCustomSource(
   if (cwd && cwd.length > 1000) return fail('"command.cwd" is too long.');
   const timeoutRaw = Number(raw.timeoutMs ?? 60000);
   const timeoutMs = Number.isFinite(timeoutRaw)
-    ? Math.min(Math.max(Math.round(timeoutRaw), 1000), 120000)
+    ? Math.min(Math.max(Math.round(timeoutRaw), 1000), 300000)
     : 60000;
   const outputFile = str(raw.outputFile);
   if (outputFile && outputFile.length > 1000) return fail('"command.outputFile" is too long.');
@@ -564,7 +564,12 @@ class CustomCommandAdapter implements MarketplaceAdapter {
       }
     }
 
-    // Real search probe: runs the configured command end-to-end.
+    // Real search probe: runs the configured command end-to-end, but capped
+    // at 30 s so a slow first run (browser download, Cloudflare) does not
+    // hang the settings page.
+    const commandRef = this.cfg.command!;
+    const originalTimeout = commandRef.timeoutMs;
+    commandRef.timeoutMs = Math.min(originalTimeout, 30000);
     try {
       const listings = await this.search({ q: 'velo', limit: 1, market: this.markets[0] });
       const prefix = preflight ? `${preflight} · ` : '';
@@ -579,6 +584,8 @@ class CustomCommandAdapter implements MarketplaceAdapter {
         latencyMs: Date.now() - started,
         message: err instanceof Error ? err.message : 'Health check failed.',
       };
+    } finally {
+      commandRef.timeoutMs = originalTimeout;
     }
   }
 }
