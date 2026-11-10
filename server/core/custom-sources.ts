@@ -59,6 +59,8 @@ export interface CommandOptions {
   timeoutMs: number;
   outputFile?: string;
   format: CustomOutputFormat;
+  /** Arguments used by the health check instead of a full search (e.g. ["--version"]). */
+  healthArgs?: string[];
 }
 
 export interface CustomSourceConfig {
@@ -249,10 +251,17 @@ export function validateCustomSource(
   const outputFile = str(raw.outputFile);
   if (outputFile && outputFile.length > 1000) return fail('"command.outputFile" is too long.');
   const format: CustomOutputFormat = raw.format === 'ricardo' ? 'ricardo' : 'auto';
+  const healthArgs = Array.isArray(raw.healthArgs)
+    ? raw.healthArgs.filter((a): a is string => typeof a === 'string').map((a) => a.slice(0, 500)).slice(0, 10)
+    : undefined;
 
   return {
     ok: true,
-    value: { ...base, type, command: { command, args, cwd, timeoutMs, outputFile, format } },
+    value: {
+      ...base,
+      type,
+      command: { command, args, cwd, timeoutMs, outputFile, format, healthArgs },
+    },
   };
 }
 
@@ -529,11 +538,48 @@ class CustomCommandAdapter implements MarketplaceAdapter {
         message: `Executable not found: ${command.command}`,
       };
     }
-    return {
-      ok: true,
-      latencyMs: Date.now() - started,
-      message: `Executable found: ${resolved} (not executed by this probe).`,
-    };
+    let preflight = '';
+    // Quick preflight (e.g. --version) to confirm the executable runs.
+    if (command.healthArgs && command.healthArgs.length > 0) {
+      const replace = (value: string) =>
+        value
+          .replaceAll('{query}', 'velo')
+          .replaceAll('{limit}', '1')
+          .replaceAll('{market}', this.markets[0] ?? '')
+          .replaceAll('{tmp}', path.join(os.tmpdir(), `fundstueck-health-${this.id}`));
+      const args = command.healthArgs.map(replace);
+      try {
+        const result = await runCommand(command.command, args, {
+          cwd: command.cwd,
+          timeoutMs: Math.min(command.timeoutMs, 10000),
+          env: { ...process.env },
+        });
+        preflight = result.stdout.trim().split('\n')[0]?.trim() ?? '';
+      } catch (err) {
+        return {
+          ok: false,
+          latencyMs: Date.now() - started,
+          message: err instanceof Error ? err.message : 'Health check failed.',
+        };
+      }
+    }
+
+    // Real search probe: runs the configured command end-to-end.
+    try {
+      const listings = await this.search({ q: 'velo', limit: 1, market: this.markets[0] });
+      const prefix = preflight ? `${preflight} · ` : '';
+      return {
+        ok: true,
+        latencyMs: Date.now() - started,
+        message: `${prefix}Search probe passed — ${listings.length} listing(s) returned.`,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        latencyMs: Date.now() - started,
+        message: err instanceof Error ? err.message : 'Health check failed.',
+      };
+    }
   }
 }
 

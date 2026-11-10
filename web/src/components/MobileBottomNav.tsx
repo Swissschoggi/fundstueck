@@ -13,6 +13,7 @@ export function MobileBottomNav({
   const tabs = [
     { id: 'search', label: 'Search', icon: 'search', path: '/' },
     { id: 'sources', label: 'Sources', icon: 'extension', path: '/settings/sources' },
+    { id: 'deals', label: 'Deals', icon: 'trending_down', path: '/deals' },
     { id: 'settings', label: 'Settings', icon: 'tune', path: '/settings/adapters' },
     { id: 'saved', label: 'Saved', icon: 'bookmark', path: '/saved', badge: savedCount },
   ];

@@ -42,7 +42,7 @@ export interface SetupResponse { complete: boolean; region: string; countries: s
 export interface SystemInfo { node: string; platform: string; env: string; uptimeSec: number; rssMb: number; heapUsedMb: number; adapters: { total: number; configured: number; enabled: number } }
 export interface CustomFieldMap { id?: string; title?: string; price?: string; currency?: string; location?: string; image?: string; url?: string; description?: string; publishedAt?: string }
 export interface CustomHttpOptions { url: string; method: 'GET' | 'POST'; headers: Record<string, string>; apiKeyEnv?: string; responsePath?: string; fields: CustomFieldMap; priceFactor: number }
-export interface CustomCommandOptions { command: string; args: string[]; cwd?: string; timeoutMs: number; outputFile?: string; format: 'auto' | 'ricardo' }
+export interface CustomCommandOptions { command: string; args: string[]; cwd?: string; timeoutMs: number; outputFile?: string; format: 'auto' | 'ricardo'; healthArgs?: string[] }
 export interface CustomSourceConfig { id: string; label: string; description: string; markets: string[]; enabled: boolean; icon: string; type: 'http-json' | 'command'; http?: CustomHttpOptions; command?: CustomCommandOptions }
 export type CustomSourceDraft = Omit<CustomSourceConfig, 'enabled'> & { enabled?: boolean };
 export interface PluginStatus { id: string; label: string; description: string; icon: string; markets: string[]; envVars: string[]; docsUrl?: string; configFields?: AdapterConfigField[]; dir: string; loaded: boolean; error?: string; adapterIds: string[] }

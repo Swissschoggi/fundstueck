@@ -51,6 +51,7 @@ interface FormState {
   timeoutMs: string;
   outputFile: string;
   format: 'auto' | 'ricardo';
+  healthArgsText: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -81,6 +82,7 @@ const EMPTY_FORM: FormState = {
   timeoutMs: '60000',
   outputFile: '',
   format: 'auto',
+  healthArgsText: '',
 };
 
 function formFromDraft(draft: CustomSourceDraft): FormState {
@@ -115,6 +117,7 @@ function formFromDraft(draft: CustomSourceDraft): FormState {
     timeoutMs: String(command?.timeoutMs ?? 60000),
     outputFile: command?.outputFile ?? '',
     format: command?.format ?? 'auto',
+    healthArgsText: command?.healthArgs?.join('\n') ?? '',
   };
 }
 
@@ -177,6 +180,10 @@ function draftFromForm(form: FormState): CustomSourceDraft {
       timeoutMs: Number(form.timeoutMs) || 60000,
       outputFile: form.outputFile.trim() || undefined,
       format: form.format,
+      healthArgs: form.healthArgsText
+        .split('\n')
+        .map((a) => a.trim())
+        .filter(Boolean),
     },
   };
 }
@@ -932,6 +939,15 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
                     onChange={(e) => update('argsText', e.target.value)}
                     rows={5}
                     placeholder={'{query}\n--max-results\n{limit}'}
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>Health check arguments (one per line, optional)</span>
+                  <textarea
+                    value={form.healthArgsText}
+                    onChange={(e) => update('healthArgsText', e.target.value)}
+                    rows={2}
+                    placeholder={'--version'}
                   />
                 </label>
               </div>

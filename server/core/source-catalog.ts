@@ -63,6 +63,7 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
         timeoutMs: 120000,
         outputFile: '{tmp}.json',
         format: 'ricardo',
+        healthArgs: ['--version'],
       },
     },
   },
