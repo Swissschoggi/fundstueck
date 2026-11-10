@@ -27,6 +27,8 @@ export interface ServerConfig {
   port: number;
   nodeEnv: string;
   dataDir: string;
+  /** Postgres connection string; when set, all persisted state lives in Postgres. */
+  databaseUrl: string | undefined;
   /** Directory scanned for optional source plugins (empty/missing by default). */
   pluginsDir: string;
   /** Set ENABLE_PLUGINS=false to ignore PLUGINS_DIR entirely. */
@@ -56,6 +58,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     port: Number(env.PORT ?? 3001),
     nodeEnv,
     dataDir: env.DATA_DIR ? path.resolve(env.DATA_DIR) : path.resolve(process.cwd(), 'data'),
+    databaseUrl: env.DATABASE_URL || undefined,
     pluginsDir: env.PLUGINS_DIR
       ? path.resolve(env.PLUGINS_DIR)
       : path.resolve(process.cwd(), 'plugins'),

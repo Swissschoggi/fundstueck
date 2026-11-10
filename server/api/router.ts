@@ -125,7 +125,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     });
   });
 
-  router.post('/sources/:id/enabled', (req, res) => {
+  router.post('/sources/:id/enabled', async (req, res) => {
     const enabled = (req.body as { enabled?: unknown } | undefined)?.enabled;
     if (typeof enabled !== 'boolean') {
       res.status(400).json({
@@ -133,7 +133,7 @@ export function apiRouter(cfg: ServerConfig): Router {
       });
       return;
     }
-    const info = setAdapterEnabled(req.params.id, enabled);
+    const info = await setAdapterEnabled(req.params.id, enabled);
     if (!info) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
       return;
@@ -332,7 +332,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ fields, values, hasSecret: Object.fromEntries(fields.map((f) => [f.key, Boolean(stored[f.key])])) });
   });
 
-  router.post('/sources/:id/config', (req, res) => {
+  router.post('/sources/:id/config', async (req, res) => {
     const adapter = getAdapters().find((a) => a.id === req.params.id);
     if (!adapter) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
@@ -352,7 +352,7 @@ export function apiRouter(cfg: ServerConfig): Router {
       if (v === '') delete next[f.key];
       else next[f.key] = v;
     }
-    setAdapterConfig(req.params.id, next);
+    await setAdapterConfig(req.params.id, next);
     res.json({ ok: true });
   });
 
@@ -421,7 +421,7 @@ export function apiRouter(cfg: ServerConfig): Router {
         return;
       }
 
-      upsertCustomSource(cfg, result.value);
+      await upsertCustomSource(cfg, result.value);
       await refreshDynamicAdapters();
       const adapter = getAdapters().find((a) => a.id === result.value.id);
       if (!adapter) {
@@ -444,7 +444,7 @@ export function apiRouter(cfg: ServerConfig): Router {
 
   router.delete('/custom-sources/:id', async (req, res, next) => {
     try {
-      const removed = removeCustomSource(cfg, req.params.id);
+      const removed = await removeCustomSource(cfg, req.params.id);
       if (!removed) {
         res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown custom source.' } });
         return;

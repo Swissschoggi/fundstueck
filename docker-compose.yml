@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fundstueck
+      POSTGRES_USER: fundstueck
+      POSTGRES_PASSWORD: fundstueck
+    volumes:
+      - fundstueck_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U fundstueck -d fundstueck']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  fundstueck:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATA_DIR: /app/data
+      DATABASE_URL: postgres://fundstueck:fundstueck@postgres:5432/fundstueck
+      # Optional first-run region; leave empty to use onboarding.
+      # REGION: CH
+      ENABLE_PLUGINS: 'false'
+    ports:
+      - '3001:3001'
+    volumes:
+      - fundstueck_data:/app/data
+      - fundstueck_plugins:/app/plugins
+
+volumes:
+  fundstueck_pg:
+  fundstueck_data:
+  fundstueck_plugins:

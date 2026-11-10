@@ -1,6 +1,5 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import type { ServerConfig } from '../config.js';
+import { readState, writeState } from './storage.js';
 
 export interface AdapterConfig {
   [key: string]: string;
@@ -11,17 +10,10 @@ export interface AdapterConfigStore {
 }
 
 let store: AdapterConfigStore = {};
-let storeFile: string | null = null;
 
-export function initAdapterConfig(cfg: ServerConfig): void {
-  storeFile = path.join(cfg.dataDir, 'adapter-config.json');
-  try {
-    const raw = fs.readFileSync(storeFile, 'utf8');
-    const parsed = JSON.parse(raw) as AdapterConfigStore;
-    if (parsed && typeof parsed === 'object') store = parsed;
-  } catch {
-    store = {};
-  }
+export async function initAdapterConfig(cfg: ServerConfig): Promise<void> {
+  const parsed = await readState<AdapterConfigStore>('adapter-config');
+  store = parsed && typeof parsed === 'object' ? parsed : {};
 }
 
 export function getAdapterConfig(adapterId: string): AdapterConfig {
@@ -32,23 +24,21 @@ export function getAdapterConfigValue(adapterId: string, key: string): string | 
   return store[adapterId]?.[key];
 }
 
-export function setAdapterConfig(adapterId: string, config: AdapterConfig): void {
+export async function setAdapterConfig(adapterId: string, config: AdapterConfig): Promise<void> {
   store[adapterId] = { ...config };
-  persist();
+  await persist();
 }
 
 export function setAdapterConfigValue(adapterId: string, key: string, value: string): void {
   if (!store[adapterId]) store[adapterId] = {};
   if (value === '') delete store[adapterId][key];
   else store[adapterId][key] = value;
-  persist();
+  void persist();
 }
 
-function persist(): void {
-  if (!storeFile) return;
+async function persist(): Promise<void> {
   try {
-    fs.mkdirSync(path.dirname(storeFile), { recursive: true });
-    fs.writeFileSync(storeFile, JSON.stringify(store, null, 2));
+    await writeState('adapter-config', store);
   } catch {
     /* best effort */
   }

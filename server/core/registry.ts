@@ -18,6 +18,8 @@ import { createSubitoAdapter } from '../adapters/subito.adapter.js';
 import { createTuttiAdapter } from '../adapters/tutti.adapter.js';
 import { createWillhabenAdapter } from '../adapters/willhaben.adapter.js';
 import { logEvent } from './events.js';
+import { initStorage, readState, writeState } from './storage.js';
+import { initEnabledSources } from './marketplace-registry.js';
 import { initAdapterConfig, getAdapterConfig, setAdapterConfig } from './adapter-config.js';
 import type { AdapterHealth, AdapterInfo, MarketplaceAdapter } from './types.js';
 import {
@@ -48,6 +50,7 @@ let manuallyInstalled: Set<string> = new Set();
 let manuallyRemoved: Set<string> = new Set();
 let installedIds: Set<string> = new Set();
 let setupComplete = false;
+let setupState: SetupState = { complete: false, region: DEFAULT_MARKET, countries: [DEFAULT_MARKET] };
 
 interface PersistedSettings {
   disabledSources: string[];
@@ -65,16 +68,20 @@ interface PersistedSettings {
  */
 export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapter[]> {
   serverCfg = cfg;
+  await initStorage(cfg);
   settingsFile = path.join(cfg.dataDir, 'adapter-settings.json');
-  const settingsExisted = fs.existsSync(path.join(cfg.dataDir, 'adapter-settings.json'));
-  loadSettings();
-  initAdapterConfig(cfg);
+  const existingSettings = await readState<Partial<PersistedSettings>>('adapter-settings');
+  const settingsExisted = existingSettings !== null;
+  await loadSettings();
+  await initAdapterConfig(cfg);
+  await initEnabledSources(cfg);
 
-  const setup = resolveSetup(cfg);
+  const setup = await resolveSetup(cfg);
   setupComplete = setup.complete;
   regionCode = setup.region;
   defaultMarket = setup.region;
   selectedCountries = setup.complete ? (setup.countries?.length ? setup.countries : [setup.region]) : [];
+  setupState = setup;
 
   // Compute installed set: global + selected countries + manually installed.
   const candidatePool = buildCandidatePool(cfg);
@@ -88,7 +95,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   // First run: disable restricted-by-default adapters.
   if (!settingsExisted && setup.complete) {
     runtimeDisabled = new Set(['vinted']);
-    persistSettings();
+    await persistSettings();
   }
 
   rebuildBuiltIns();
@@ -101,7 +108,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
       if (!isDefault) toDisable.push(a.id);
     }
     for (const id of toDisable) runtimeDisabled.add(id);
-    persistSettings();
+    await persistSettings();
   }
 
   await refreshDynamicAdapters();
@@ -190,7 +197,7 @@ function rebuildBuiltIns(): void {
 export async function refreshDynamicAdapters(): Promise<void> {
   if (!serverCfg) return;
   const cfg = serverCfg;
-  customSources = loadCustomSources(cfg);
+  customSources = await loadCustomSources(cfg);
   const reserved = new Set(builtInAdapters.map((a) => a.id));
   const customAdapters: MarketplaceAdapter[] = [];
 
@@ -229,7 +236,7 @@ export async function refreshDynamicAdapters(): Promise<void> {
       pruned = true;
     }
   }
-  if (pruned) persistSettings();
+  if (pruned) await persistSettings();
 }
 
 /** Complete first-run setup (or change region) and re-install its sources. */
@@ -242,11 +249,12 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
     .filter((c): c is string => Boolean(c));
   if (codes.length === 0) codes.push(market.code);
 
-  saveSetupRegion(serverCfg, market.code, codes);
+  await saveSetupRegion(serverCfg, market.code, codes);
   regionCode = market.code;
   defaultMarket = market.code;
   selectedCountries = codes;
   setupComplete = true;
+  setupState = { complete: true, region: market.code, countries: codes };
 
   // Reconcile the installed set from the complete country selection. Keep
   // explicit manual installs, but remove country-managed adapters no longer
@@ -282,8 +290,7 @@ export async function setRegion(region: string, countries?: string[]): Promise<v
 }
 
 export function getSetupState(): SetupState {
-  const countries = readSetupCountries(serverCfg!);
-  return { complete: setupComplete, region: regionCode, countries: countries.length ? countries : [regionCode] };
+  return setupState;
 }
 
 export function isSetupComplete(): boolean {
@@ -398,12 +405,12 @@ export function describeAdapter(adapter: MarketplaceAdapter): AdapterInfo {
   };
 }
 
-export function setAdapterEnabled(id: string, enabled: boolean): AdapterInfo | null {
+export async function setAdapterEnabled(id: string, enabled: boolean): Promise<AdapterInfo | null> {
   const adapter = allAdapters.find((a) => a.id === id);
   if (!adapter) return null;
   if (enabled) runtimeDisabled.delete(id);
   else runtimeDisabled.add(id);
-  persistSettings();
+  await persistSettings();
   logEvent(
     adapter.id,
     'info',
@@ -424,19 +431,18 @@ export async function runHealthCheck(id: string): Promise<AdapterHealth | null> 
   return health;
 }
 
-function loadSettings(): void {
+async function loadSettings(): Promise<void> {
   runtimeDisabled = new Set();
   manuallyInstalled = new Set();
   manuallyRemoved = new Set();
   if (!settingsFile) return;
-  if (!fs.existsSync(settingsFile)) {
-    runtimeDisabled = new Set(['vinted']);
-    persistSettings();
-    return;
-  }
   try {
-    const raw = fs.readFileSync(settingsFile, 'utf8');
-    const parsed = JSON.parse(raw) as Partial<PersistedSettings>;
+    const parsed = await readState<Partial<PersistedSettings>>('adapter-settings');
+    if (!parsed) {
+      runtimeDisabled = new Set(['vinted']);
+      await persistSettings();
+      return;
+    }
     const ids = Array.isArray(parsed.disabledSources) ? parsed.disabledSources : [];
     runtimeDisabled = new Set(ids.filter((id): id is string => typeof id === 'string'));
     const mi = Array.isArray(parsed.manuallyInstalled) ? parsed.manuallyInstalled : [];
@@ -448,14 +454,14 @@ function loadSettings(): void {
   }
 }
 
-function persistSettings(): void {
+async function persistSettings(): Promise<void> {
   if (!settingsFile) return;
   try {
-    fs.mkdirSync(path.dirname(settingsFile), { recursive: true });
-    fs.writeFileSync(
-      settingsFile,
-      JSON.stringify({ disabledSources: [...runtimeDisabled], manuallyInstalled: [...manuallyInstalled], manuallyRemoved: [...manuallyRemoved] }, null, 2),
-    );
+    await writeState('adapter-settings', {
+      disabledSources: [...runtimeDisabled],
+      manuallyInstalled: [...manuallyInstalled],
+      manuallyRemoved: [...manuallyRemoved],
+    });
   } catch (err) {
     logEvent('settings', 'error', `Could not persist adapter settings: ${(err as Error).message}`);
   }
@@ -468,6 +474,6 @@ export function getAdapterConfigValues(id: string): Record<string, string> {
 }
 
 /** Persist operator config for an adapter. */
-export function setAdapterConfigValues(id: string, values: Record<string, string>): void {
-  setAdapterConfig(id, values);
+export async function setAdapterConfigValues(id: string, values: Record<string, string>): Promise<void> {
+  await setAdapterConfig(id, values);
 }

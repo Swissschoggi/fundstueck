@@ -4,6 +4,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import type { ServerConfig } from '../config.js';
+import { readState, writeState } from './storage.js';
 import { findMarket } from './markets.js';
 import { getAdapterConfig } from './adapter-config.js';
 import type {
@@ -95,11 +96,10 @@ export function customSourcesFile(cfg: ServerConfig): string {
   return path.join(cfg.dataDir, STORE_FILE);
 }
 
-export function loadCustomSources(cfg: ServerConfig): CustomSourceConfig[] {
+export async function loadCustomSources(cfg: ServerConfig): Promise<CustomSourceConfig[]> {
   try {
-    const raw = fs.readFileSync(customSourcesFile(cfg), 'utf8');
-    const parsed = JSON.parse(raw) as Partial<SourceStore>;
-    if (!Array.isArray(parsed.sources)) return [];
+    const parsed = await readState<Partial<SourceStore>>('custom-sources');
+    if (!parsed || !Array.isArray(parsed.sources)) return [];
     return parsed.sources
       .map((item) => validateCustomSource(item, { reservedIds: new Set() }))
       .filter((r): r is { ok: true; value: CustomSourceConfig } => r.ok)
@@ -110,31 +110,27 @@ export function loadCustomSources(cfg: ServerConfig): CustomSourceConfig[] {
   }
 }
 
-export function saveCustomSources(cfg: ServerConfig, sources: CustomSourceConfig[]): void {
-  const file = customSourcesFile(cfg);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify({ sources } satisfies SourceStore, null, 2));
-  fs.renameSync(tmp, file);
+export async function saveCustomSources(cfg: ServerConfig, sources: CustomSourceConfig[]): Promise<void> {
+  await writeState('custom-sources', { sources } satisfies SourceStore);
 }
 
-export function upsertCustomSource(
+export async function upsertCustomSource(
   cfg: ServerConfig,
   source: CustomSourceConfig,
-): CustomSourceConfig[] {
-  const sources = loadCustomSources(cfg);
+): Promise<CustomSourceConfig[]> {
+  const sources = await loadCustomSources(cfg);
   const index = sources.findIndex((s) => s.id === source.id);
   if (index >= 0) sources[index] = source;
   else sources.push(source);
-  saveCustomSources(cfg, sources.slice(0, MAX_SOURCES));
+  await saveCustomSources(cfg, sources.slice(0, MAX_SOURCES));
   return sources;
 }
 
-export function removeCustomSource(cfg: ServerConfig, id: string): boolean {
-  const sources = loadCustomSources(cfg);
+export async function removeCustomSource(cfg: ServerConfig, id: string): Promise<boolean> {
+  const sources = await loadCustomSources(cfg);
   const next = sources.filter((s) => s.id !== id);
   if (next.length === sources.length) return false;
-  saveCustomSources(cfg, next);
+  await saveCustomSources(cfg, next);
   return true;
 }
 

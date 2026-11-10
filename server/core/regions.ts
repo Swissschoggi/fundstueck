@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { ServerConfig } from '../config.js';
 import { findMarket } from './markets.js';
+import { readState, writeState } from './storage.js';
 
 /** A source a region can install. */
 export interface RegionSource {
@@ -188,14 +189,15 @@ export function setupFile(cfg: ServerConfig): string {
   return path.join(cfg.dataDir, 'setup.json');
 }
 
-export function readSetupRegion(cfg: ServerConfig): string | null {
-  return readSetupCountries(cfg)[0] ?? null;
+export async function readSetupRegion(cfg: ServerConfig): Promise<string | null> {
+  const countries = await readSetupCountries(cfg);
+  return countries[0] ?? null;
 }
 
-export function readSetupCountries(cfg: ServerConfig): string[] {
+export async function readSetupCountries(cfg: ServerConfig): Promise<string[]> {
   try {
-    const raw = fs.readFileSync(setupFile(cfg), 'utf8');
-    const parsed = JSON.parse(raw) as Partial<SetupRecord>;
+    const parsed = await readState<Partial<SetupRecord>>('setup');
+    if (!parsed) return [];
     const codes: string[] = [];
     if (Array.isArray(parsed.countries)) {
       for (const c of parsed.countries) {
@@ -213,17 +215,15 @@ export function readSetupCountries(cfg: ServerConfig): string[] {
   }
 }
 
-export function saveSetupRegion(cfg: ServerConfig, region: string, countries?: string[]): void {
+export async function saveSetupRegion(cfg: ServerConfig, region: string, countries?: string[]): Promise<void> {
   const market = findMarket(region);
   if (!market) throw new Error(`Unknown region ${region}`);
   const codes = (countries && countries.length ? countries : [market.code])
     .map((c) => findMarket(c)?.code)
     .filter((c): c is string => Boolean(c));
   if (codes.length === 0) codes.push(market.code);
-  const file = setupFile(cfg);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
   const record: SetupRecord = { region: market.code, countries: codes, completedAt: new Date().toISOString() };
-  fs.writeFileSync(file, JSON.stringify(record, null, 2));
+  await writeState('setup', record);
 }
 
 function hasExistingInstall(cfg: ServerConfig): boolean {
@@ -239,15 +239,15 @@ function hasExistingInstall(cfg: ServerConfig): boolean {
  * - an existing install (adapter/custom-settings file) is upgraded in place;
  * - otherwise the UI must show onboarding.
  */
-export function resolveSetup(cfg: ServerConfig): SetupState {
-  const saved = readSetupCountries(cfg);
+export async function resolveSetup(cfg: ServerConfig): Promise<SetupState> {
+  const saved = await readSetupCountries(cfg);
   if (saved.length) return { complete: true, region: saved[0], countries: saved };
   if (cfg.region) {
-    saveSetupRegion(cfg, cfg.region);
+    await saveSetupRegion(cfg, cfg.region);
     return { complete: true, region: cfg.region, countries: [cfg.region] };
   }
   if (hasExistingInstall(cfg)) {
-    saveSetupRegion(cfg, cfg.defaultMarket);
+    await saveSetupRegion(cfg, cfg.defaultMarket);
     return { complete: true, region: cfg.defaultMarket, countries: [cfg.defaultMarket] };
   }
   return { complete: false, region: cfg.defaultMarket, countries: [cfg.defaultMarket] };

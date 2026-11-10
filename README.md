@@ -196,6 +196,13 @@ works in every market once `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` are set — i
 marketplace follows the buyer market; `EBAY_MARKETPLACE_ID` is only the fallback.
 FR, ES, GB, US and AU currently rely on eBay plus custom sources.
 
+## Database (Postgres)
+
+Fundstück can store all mutable state in Postgres. Set `DATABASE_URL` and the
+server creates the `fundstueck_state` table on boot; otherwise it falls back to
+JSON files in `DATA_DIR`. A ready-to-use `docker-compose.yml` (app + Postgres)
+is included.
+
 ## Production
 
 ```bash
@@ -230,7 +237,8 @@ demo sample data in production builds (results remain clearly labelled).
 | `ENABLE_REGIONAL_ADAPTERS` | `true` | Marktplaats, 2dehands, Kleinanzeigen, Willhaben, Subito, Kijiji |
 | `SCRAPER_MIN_INTERVAL_MS` | `3000` | Min spacing between requests per adapter |
 | `SCRAPER_USER_AGENT` | `FundstueckBot/0.1 (…)` | Identifying UA for public-page requests |
-| `DATA_DIR` | `./data` | Persisted runtime toggles, `setup.json` + `custom-sources.json` |
+| `DATA_DIR` | `./data` | Persisted runtime toggles, `setup.json` + `custom-sources.json` (file mode) |
+| `DATABASE_URL` | — | Postgres connection string; when set, all persisted state lives in Postgres |
 | `PLUGINS_DIR` | `./plugins` | Optional source-plugin directory (empty by default) |
 | `ENABLE_PLUGINS` | `true` | Set `false` to ignore `PLUGINS_DIR` |
 | `API_PROXY_TARGET` | `http://localhost:3001` | Vite dev proxy target |

@@ -63,6 +63,7 @@ function readJson<T>(name: string): T {
 let countriesCache: RegistryCountry[] | null = null;
 let marketplacesCache: RegistryMarketplace[] | null = null;
 let mappingsCache: RegistryCountryMarketplace[] | null = null;
+let enabledSourcesCache: Record<string, string[]> = {};
 
 export function listCountries(): RegistryCountry[] {
   if (!countriesCache) countriesCache = readJson<RegistryCountry[]>('countries.json');
@@ -117,24 +118,24 @@ export function reloadRegistry(): void {
 }
 
 // ---- User preferences (enabled sources per country) ----
-import { readSetupRegion } from './regions.js';
+import { readState, writeState } from './storage.js';
+
+export async function initEnabledSources(cfg: { dataDir: string }): Promise<void> {
+  const parsed = await readState<Record<string, string[]>>('enabled-sources');
+  enabledSourcesCache = parsed && typeof parsed === 'object' ? parsed : {};
+}
 
 export function enabledSourcesFile(dataDir: string): string {
   return path.join(dataDir, 'enabled-sources.json');
 }
 
-export function readEnabledSources(dataDir: string): Record<string, string[]> {
-  try {
-    return JSON.parse(fs.readFileSync(enabledSourcesFile(dataDir), 'utf8'));
-  } catch {
-    return {};
-  }
+export function readEnabledSources(_dataDir: string): Record<string, string[]> {
+  return { ...enabledSourcesCache };
 }
 
-export function writeEnabledSources(dataDir: string, prefs: Record<string, string[]>): void {
-  const file = enabledSourcesFile(dataDir);
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(prefs, null, 2));
+export function writeEnabledSources(_dataDir: string, prefs: Record<string, string[]>): void {
+  enabledSourcesCache = { ...prefs };
+  void writeState('enabled-sources', prefs);
 }
 
 export function enabledForCountry(dataDir: string, code: string): string[] {
