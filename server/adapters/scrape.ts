@@ -50,6 +50,11 @@ export class PoliteClient {
     this.acceptLanguage = opts.acceptLanguage ?? 'de-CH,de;q=0.9,fr;q=0.8,en;q=0.7';
   }
 
+  /** Rate-limit only: wait for this adapter's turn without fetching. */
+  async wait(): Promise<void> {
+    await this.waitTurn();
+  }
+
   async getHtml(url: string, options: { fresh?: boolean } = {}): Promise<string> {
     const cached = this.cache.get(url);
     if (!options.fresh && cached && Date.now() - cached.at < this.cacheTtlMs) {

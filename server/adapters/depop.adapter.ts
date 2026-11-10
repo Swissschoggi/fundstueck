@@ -1,5 +1,6 @@
 import type { NormalizedListing } from '../core/types.js';
 import { SourceError } from '../core/types.js';
+import { PoliteClient } from './scrape.js';
 import { execFile } from 'node:child_process';
 import { getAdapterConfig } from '../core/adapter-config.js';
 import { promisify } from 'node:util';
@@ -54,7 +55,7 @@ export class DepopAdapter implements MarketplaceAdapter {
   ];
 
   private readonly opts: DepopAdapterOptions;
-  private lastRequestAt = 0;
+  private readonly client: PoliteClient;
   private readonly cache = new Map<string, { at: number; html: string }>();
   private readonly cacheTtlMs = 60_000;
 
@@ -68,6 +69,12 @@ export class DepopAdapter implements MarketplaceAdapter {
     this.docsUrl = opts.docsUrl;
     this.capabilities = [...opts.capabilities];
     this.envVars = [opts.envVar, 'SCRAPER_MIN_INTERVAL_MS', 'SCRAPER_USER_AGENT'];
+    this.client = new PoliteClient({
+      source: opts.label,
+      userAgent: opts.userAgent,
+      minIntervalMs: opts.minIntervalMs,
+      acceptLanguage: opts.acceptLanguage,
+    });
   }
 
   isEnabled(): boolean {
@@ -76,16 +83,6 @@ export class DepopAdapter implements MarketplaceAdapter {
 
   disabledReason(): string | null {
     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
-  }
-
-  private async waitTurn(): Promise<void> {
-    const now = Date.now();
-    const wait = Math.max(
-      0,
-      this.lastRequestAt + this.opts.minIntervalMs + Math.random() * 750 - now,
-    );
-    this.lastRequestAt = now + wait;
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   }
 
   private flaresolverrUrl(): string | null {
@@ -131,7 +128,7 @@ export class DepopAdapter implements MarketplaceAdapter {
     if (!fresh && cached && Date.now() - cached.at < this.cacheTtlMs) {
       return cached.html;
     }
-    await this.waitTurn();
+    await this.client.wait();
     let stdout: string;
     if (this.flaresolverrUrl()) {
       stdout = await this.fetchViaFlaresolverr(url);

@@ -3,6 +3,7 @@ import { SourceError } from '../core/types.js';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { MarketplaceAdapter, AdapterHealth, AdapterSearchParams } from '../core/types.js';
+import { PoliteClient } from './scrape.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -34,7 +35,7 @@ export class BlocketAdapter implements MarketplaceAdapter {
   readonly description: string;
 
   private readonly opts: BlocketAdapterOptions;
-  private lastRequestAt = 0;
+  private readonly client: PoliteClient;
 
   constructor(opts: BlocketAdapterOptions) {
     this.opts = opts;
@@ -46,21 +47,19 @@ export class BlocketAdapter implements MarketplaceAdapter {
     this.docsUrl = opts.docsUrl;
     this.capabilities = [...opts.capabilities];
     this.envVars = [opts.envVar, 'SCRAPER_MIN_INTERVAL_MS'];
+    this.client = new PoliteClient({
+      source: opts.label,
+      userAgent: opts.userAgent,
+      minIntervalMs: opts.minIntervalMs,
+    });
   }
 
   isEnabled(): boolean { return this.opts.enabled; }
   disabledReason(): string | null { return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`; }
 
-  private async waitTurn(): Promise<void> {
-    const now = Date.now();
-    const wait = Math.max(0, this.lastRequestAt + this.opts.minIntervalMs - now);
-    this.lastRequestAt = now + wait;
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  }
-
   async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.isEnabled()) throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
-    await this.waitTurn();
+    await this.client.wait();
     const fetchedAt = new Date().toISOString();
     let stdout: string;
     try {

@@ -2,6 +2,7 @@ import type { NormalizedListing } from '../core/types.js';
 import { SourceError } from '../core/types.js';
 import type { MarketplaceAdapter, AdapterHealth, AdapterSearchParams } from '../core/types.js';
 import { VintedClient, opSearch } from '@googlarz/vinted-client';
+import { PoliteClient } from './scrape.js';
 
 export interface VintedAdapterOptions {
   id: string;
@@ -31,7 +32,7 @@ export class VintedAdapter implements MarketplaceAdapter {
   readonly description: string;
 
   private readonly opts: VintedAdapterOptions;
-  private lastRequestAt = 0;
+  private readonly client: PoliteClient;
 
   constructor(opts: VintedAdapterOptions) {
     this.opts = opts;
@@ -43,21 +44,19 @@ export class VintedAdapter implements MarketplaceAdapter {
     this.docsUrl = opts.docsUrl;
     this.capabilities = [...opts.capabilities];
     this.envVars = [opts.envVar, 'SCRAPER_MIN_INTERVAL_MS'];
+    this.client = new PoliteClient({
+      source: opts.label,
+      userAgent: opts.userAgent,
+      minIntervalMs: opts.minIntervalMs,
+    });
   }
 
   isEnabled(): boolean { return this.opts.enabled; }
   disabledReason(): string | null { return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`; }
 
-  private async waitTurn(): Promise<void> {
-    const now = Date.now();
-    const wait = Math.max(0, this.lastRequestAt + this.opts.minIntervalMs - now);
-    this.lastRequestAt = now + wait;
-    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  }
-
   async search({ q, limit, market }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.isEnabled()) throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
-    await this.waitTurn();
+    await this.client.wait();
     const fetchedAt = new Date().toISOString();
     const country = (market && VINTED_COUNTRY[market]) || 'de';
     let res: { items?: unknown[]; totalCount?: number };
