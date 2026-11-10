@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useState } from 'react';
-import type { CategoryOption, MarketInfo, SortKey, ViewMode } from '../lib/types';
+import type { CategoryOption, SortKey, ViewMode } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './SearchControls.module.css';
 
@@ -17,10 +17,6 @@ export const SearchControls = forwardRef<
     onInputChange: (v: string) => void;
     onSubmit: () => void;
     onClear?: () => void;
-    market?: string;
-    markets?: MarketInfo[];
-    marketLabel?: string;
-    onMarketChange?: (code: string) => void;
     sort: SortKey;
     onSortChange: (s: SortKey) => void;
     category: string;
@@ -47,10 +43,6 @@ export const SearchControls = forwardRef<
     onInputChange,
     onSubmit,
     onClear,
-    market: _market,
-    markets: _markets,
-    marketLabel: _marketLabel,
-    onMarketChange: _onMarketChange,
     sort,
     onSortChange,
     category,

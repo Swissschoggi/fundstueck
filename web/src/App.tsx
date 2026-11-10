@@ -186,16 +186,6 @@ export default function App() {
     [],
   );
 
-  const changeMarket = useCallback((code: string) => {
-    setMarket(code);
-    try {
-      window.localStorage.setItem(MARKET_STORAGE_KEY, code);
-    } catch {
-      /* ignore storage access errors */
-    }
-    setSourceFilter('all');
-  }, []);
-
   // Marketplace source metadata for the active market (pills, rail, sidebar).
   // Refetched on navigation or when adapters are toggled in settings.
   useEffect(() => {
@@ -380,8 +370,6 @@ export default function App() {
     );
   }
 
-  const visibleMarkets = markets.filter((m) => m.sources.enabled > 0 || m.code === market);
-
   return (
     <div className={styles.shell}>
       <Sidebar
@@ -424,10 +412,6 @@ export default function App() {
                 onInputChange={setInput}
                 onSubmit={submit}
                 onClear={() => { setInput(''); setQuery(null); setResult(null); setStatus('idle'); }}
-                market={market}
-                markets={visibleMarkets}
-                marketLabel={marketLabel}
-                onMarketChange={changeMarket}
                 sort={sort}
                 onSortChange={setSort}
                 category={category}
