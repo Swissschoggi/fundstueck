@@ -225,6 +225,8 @@ export async function runSearch(
         typeof (adapter as unknown as { timeoutMs?: unknown }).timeoutMs === 'number'
           ? Math.min((adapter as unknown as { timeoutMs: number }).timeoutMs, 45000)
           : ADAPTER_TIMEOUT_MS;
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const listings = await Promise.race([
           adapter.search({
@@ -237,14 +239,16 @@ export async function runSearch(
             minPrice: query.minPrice,
             maxPrice: query.maxPrice,
           }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Adapter timeout')), timeoutMs),
-          ),
+          new Promise<never>((_, reject) => {
+            controller.signal.addEventListener('abort', () => reject(new Error('Adapter timeout')), { once: true });
+          }),
         ]);
         return { adapter, listings, latencyMs: Date.now() - t0, timedOut: false };
       } catch (err) {
-        const timedOut = err instanceof Error && err.message === 'Adapter timeout';
+        const timedOut = controller.signal.aborted;
         throw { adapter, err, latencyMs: Date.now() - t0, timedOut };
+      } finally {
+        clearTimeout(timer);
       }
     }),
   );
