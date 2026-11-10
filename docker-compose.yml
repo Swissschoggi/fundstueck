@@ -22,14 +22,14 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 3001
+      PORT: 3002
       DATA_DIR: /app/data
       DATABASE_URL: postgres://fundstueck:fundstueck@postgres:5432/fundstueck
       # Optional first-run region; leave empty to use onboarding.
       # REGION: CH
       ENABLE_PLUGINS: 'false'
     ports:
-      - '3002:3001'
+      - '3002:3002'
     volumes:
       - fundstueck_data:/app/data
       - fundstueck_plugins:/app/plugins
