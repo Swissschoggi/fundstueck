@@ -29,6 +29,17 @@ export const SearchControls = forwardRef<
     view: ViewMode;
     onViewChange: (v: ViewMode) => void;
     isSearching: boolean;
+    sourceFilter?: string;
+    onSourceFilterChange?: (s: string) => void;
+    sources?: { source: string; label: string; enabled: boolean }[];
+    minPrice?: string;
+    maxPrice?: string;
+    onPriceChange?: (min: string, max: string) => void;
+    currency?: string;
+    gender?: string;
+    onGenderChange?: (g: string) => void;
+    size?: string;
+    onSizeChange?: (s: string) => void;
   }
 >(function SearchControls(
   {
@@ -48,6 +59,17 @@ export const SearchControls = forwardRef<
     view,
     onViewChange,
     isSearching,
+    sourceFilter,
+    onSourceFilterChange,
+    sources,
+    minPrice,
+    maxPrice,
+    onPriceChange,
+    currency,
+    gender,
+    onGenderChange,
+    size,
+    onSizeChange,
   },
   inputRef,
 ) {
@@ -138,7 +160,7 @@ export const SearchControls = forwardRef<
         </div>
       </div>
 
-      <div className={styles.filterPanel}>
+      <div className={`${styles.filterPanel} ${filtersOpen ? styles.filterPanelOpen : ''}`}>
           {categories.length > 0 && (
             <div className={styles.selectWrap}>
               <select
@@ -173,7 +195,89 @@ export const SearchControls = forwardRef<
             </select>
             <Icon name="expand_more" size={18} style={{ color: 'var(--outline)' }} />
           </div>
-        </div>
+
+          <form
+            className={styles.mobileFilterGroup}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              onPriceChange?.(String(fd.get('min') ?? ''), String(fd.get('max') ?? ''));
+            }}
+          >
+            <label className={styles.mobileFilterLabel}>Price ({currency || 'CHF'})</label>
+            <div className={styles.mobilePriceRow}>
+              <input
+                name="min"
+                type="number"
+                min="0"
+                placeholder="Min"
+                defaultValue={minPrice || ''}
+                className={styles.mobileInput}
+                aria-label="Minimum price"
+              />
+              <span className={styles.mobilePriceSep}>–</span>
+              <input
+                name="max"
+                type="number"
+                min="0"
+                placeholder="Max"
+                defaultValue={maxPrice || ''}
+                className={styles.mobileInput}
+                aria-label="Maximum price"
+              />
+              <button type="submit" className={styles.mobileApply}>Apply</button>
+            </div>
+          </form>
+
+          <div className={styles.mobileFilterGroup}>
+            <label className={styles.mobileFilterLabel}>Gender (inferred)</label>
+            <div className={styles.mobileSeg}>
+              {['all', 'male', 'female', 'unisex'].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  className={`${styles.mobileSegBtn} ${(gender || 'all') === g ? styles.mobileSegActive : ''}`}
+                  onClick={() => onGenderChange?.(g === 'all' ? '' : g)}
+                >
+                  {g === 'all' ? 'All' : g.charAt(0).toUpperCase() + g.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.mobileFilterGroup}>
+            <label className={styles.mobileFilterLabel}>Size (inferred)</label>
+            <input
+              type="text"
+              className={styles.mobileInput}
+              placeholder="e.g. 42, M, XL"
+              value={size || ''}
+              onChange={(e) => onSizeChange?.(e.target.value)}
+              aria-label="Size filter"
+            />
+          </div>
+
+          {sources && sources.length > 0 && (
+            <div className={styles.sourceFilterRow}>
+              <button
+                type="button"
+                className={`${styles.sourceFilterBtn} ${!sourceFilter || sourceFilter === 'all' ? styles.sourceFilterActive : ''}`}
+                onClick={() => onSourceFilterChange?.('all')}
+              >
+                All
+              </button>
+              {sources.filter((s) => s.enabled).map((s) => (
+                <button
+                  key={s.source}
+                  type="button"
+                  className={`${styles.sourceFilterBtn} ${sourceFilter === s.source ? styles.sourceFilterActive : ''}`}
+                  onClick={() => onSourceFilterChange?.(s.source)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}        </div>
     </div>
   );
 });

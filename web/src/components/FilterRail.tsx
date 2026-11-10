@@ -3,8 +3,6 @@ import type { SourceInfo } from '../lib/types';
 import { Icon } from './Icon';
 import styles from './FilterRail.module.css';
 
-const CANTONS = ['ZH', 'BE', 'VD', 'GE', 'BS', 'LU', 'SG', '+19'];
-const CONDITIONS = ['All', 'New', 'Like new', 'Used'];
 
 export function FilterRail({
   minPrice,
@@ -12,7 +10,7 @@ export function FilterRail({
   onPriceChange,
   onReset,
   sources,
-  market,
+  market: _market,
   currency,
   gender,
   onGenderChange,
@@ -96,66 +94,21 @@ export function FilterRail({
           </button>
         </form>
 
-        {market === 'CH' && (
-          <div className={styles.section} aria-disabled="true">
-            <div className={styles.sectionHeader}>
-              <label className={styles.label}>
-                Canton
-                <span className={styles.soon}>soon</span>
-              </label>
-            </div>
-            <div className={styles.chips}>
-              {CANTONS.map((c, i) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`${styles.chip} ${i === 0 ? styles.chipDisabled : ''}`}
-                  disabled
-                  title="Canton filters require a local listing store — planned"
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className={styles.section} aria-disabled="true">
-          <div className={styles.sectionHeader}>
-            <label className={styles.label}>
-              Condition
-              <span className={styles.soon}>soon</span>
-            </label>
-          </div>
-          <div className={styles.segmented}>
-            {CONDITIONS.map((c, i) => (
-              <button
-                key={c}
-                type="button"
-                className={`${styles.segment} ${i === 0 ? styles.segmentActive : ''}`}
-                disabled
-                title="Condition filters require a local listing store — planned"
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <label className={styles.label}>
+            <label className={styles.label} id="gender-label">
               Gender
-              <span className={styles.soon}>inferred</span>
+              <span className={styles.inferred}>inferred</span>
             </label>
           </div>
-          <div className={styles.segmented}>
+          <div className={styles.segmented} role="group" aria-labelledby="gender-label">
             {['all', 'male', 'female', 'unisex'].map((g) => (
               <button
                 key={g}
                 type="button"
                 className={`${styles.segment} ${(gender || 'all') === g ? styles.segmentActive : ''}`}
                 onClick={() => onGenderChange?.(g === 'all' ? '' : g)}
+                aria-pressed={(gender || 'all') === g}
               >
                 {g === 'all' ? 'All' : g.charAt(0).toUpperCase() + g.slice(1)}
               </button>
@@ -168,9 +121,9 @@ export function FilterRail({
 
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <label className={styles.label}>
+            <label className={styles.label} id="size-label">
               Size
-              <span className={styles.soon}>inferred</span>
+              <span className={styles.inferred}>inferred</span>
             </label>
           </div>
           <input
@@ -179,6 +132,7 @@ export function FilterRail({
             placeholder="e.g. 42, M, XL"
             value={size || ''}
             onChange={(e) => onSizeChange?.(e.target.value)}
+            aria-labelledby="size-label"
           />
           <p className={styles.hint}>Best-effort: derived from listing titles.</p>
         </div>

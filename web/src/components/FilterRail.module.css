@@ -264,3 +264,11 @@
   border-color: var(--primary);
   color: var(--primary);
 }
+
+.inferred {
+  font-size: var(--font-size-xs);
+  color: var(--on-surface-variant);
+  font-style: italic;
+  font-weight: 400;
+  margin-left: var(--space-xs);
+}

@@ -429,6 +429,21 @@ export default function App() {
                 view={view}
                 onViewChange={setView}
                 isSearching={status === 'loading'}
+                sourceFilter={sourceFilter}
+                onSourceFilterChange={setSourceFilter}
+                sources={sources}
+                minPrice={pendingMin}
+                maxPrice={pendingMax}
+                onPriceChange={(min, max) => {
+                  setPendingMin(min);
+                  setPendingMax(max);
+                  applyPrice(min, max);
+                }}
+                currency={currentMarket?.currency ?? 'CHF'}
+                gender={gender}
+                onGenderChange={setGender}
+                size={size}
+                onSizeChange={setSize}
               />
               {priceError && <div className={styles.priceError}>{priceError}</div>}
             </div>
