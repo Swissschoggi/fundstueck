@@ -207,6 +207,46 @@ export async function saveRegistryEnabled(code: string, enabled: string[]): Prom
   return body.enabled;
 }
 
+export interface StoredFavorite {
+  id: string;
+  source: string;
+  title: string;
+  price: number | null;
+  currency: string;
+  listingUrl: string;
+  imageUrl: string | null;
+  savedAt: string;
+}
+
+export async function fetchFavorites(device: string): Promise<StoredFavorite[]> {
+  const res = await fetch(`/api/favorites?device=${encodeURIComponent(device)}`, { credentials: 'include' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { favorites: StoredFavorite[] };
+  return body.favorites ?? [];
+}
+
+export async function saveFavorite(device: string, listing: {
+  id: string; source: string; title: string; price: number | null; currency: string; listingUrl: string; imageUrl: string | null;
+}): Promise<void> {
+  const res = await fetch('/api/favorites', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device, listing }),
+  });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+}
+
+export async function deleteFavorite(device: string, listingId: string): Promise<void> {
+  const res = await fetch('/api/favorites', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device, listingId }),
+  });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+}
+
 export async function fetchEvents(limit = 80): Promise<ServerEvent[]> {
   const res = await fetch(`/api/events?limit=${limit}`);
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);

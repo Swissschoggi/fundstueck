@@ -229,9 +229,11 @@ is included.
 
 ## Auth, Favorites, Saved, and Deal Radar
 
-These features require Supabase. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
-`SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY`,
-then apply `supabase/schema.sql` to your Supabase project.
+These features use the app's own storage (Postgres when `DATABASE_URL` is set,
+otherwise JSON files in `DATA_DIR`). No Supabase is required.
+- **Auth**: email/password accounts stored in the app database.
+- **Favorites/Saved**: per-user saved listings.
+- **Deal Radar**: price history and detected drops stored in the app database.
 
 - **Auth**: email/password sign-in via Supabase Auth.
 - **Favorites/Saved**: heart a listing to store it in `fundstueck_favorites`;

@@ -29,6 +29,9 @@ import {
 import { SOURCE_CATALOG } from '../core/source-catalog.js';
 import { REGION_PACKS } from '../core/regions.js';
 import { recentEvents } from '../core/events.js';
+import { listFavorites, addFavorite, removeFavorite } from '../core/favorites.js';
+import { register, login, logout, getUserByToken, parseCookies } from '../core/accounts.js';
+import type { StoredFavorite } from '../core/favorites.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
@@ -513,6 +516,114 @@ export function apiRouter(cfg: ServerConfig): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  router.post('/auth/register', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const email = str(body.email);
+    const password = str(body.password);
+    if (!email || !password) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'email and password are required.' } });
+      return;
+    }
+    const result = register(email, password);
+    if ('error' in result) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: result.error } });
+      return;
+    }
+    const loginResult = login(email, password);
+    if ('error' in loginResult) {
+      res.status(500).json({ error: { code: 'INTERNAL', message: loginResult.error } });
+      return;
+    }
+    res.setHeader('Set-Cookie', `fundstueck_session=${loginResult.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+    res.json({ user: loginResult.user });
+  });
+
+  router.post('/auth/login', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const email = str(body.email);
+    const password = str(body.password);
+    if (!email || !password) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'email and password are required.' } });
+      return;
+    }
+    const result = login(email, password);
+    if ('error' in result) {
+      res.status(401).json({ error: { code: 'AUTH', message: result.error } });
+      return;
+    }
+    res.setHeader('Set-Cookie', `fundstueck_session=${result.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+    res.json({ user: result.user });
+  });
+
+  router.post('/auth/logout', (req, res) => {
+    const cookies = parseCookies(req.headers.cookie);
+    logout(cookies.fundstueck_session);
+    res.setHeader('Set-Cookie', 'fundstueck_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+    res.json({ ok: true });
+  });
+
+  router.get('/auth/me', (req, res) => {
+    const cookies = parseCookies(req.headers.cookie);
+    const user = getUserByToken(cookies.fundstueck_session);
+    res.json({ user });
+  });
+
+  router.get('/favorites', (req, res) => {
+    const cookies = parseCookies(req.headers.cookie);
+    const user = getUserByToken(cookies.fundstueck_session);
+    const device = typeof req.query.device === 'string' ? req.query.device.trim() : '';
+    const key = user ? `user:${user.id}` : device;
+    if (!key) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: '"device" query param is required.' } });
+      return;
+    }
+    res.json({ favorites: listFavorites(key) });
+  });
+
+  router.post('/favorites', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const cookies = parseCookies(req.headers.cookie);
+    const user = getUserByToken(cookies.fundstueck_session);
+    const device = str(body.device);
+    const key = user ? `user:${user.id}` : device;
+    const listing = asRecord(body.listing);
+    if (!key || !listing) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must include device and listing.' } });
+      return;
+    }
+    const fav: StoredFavorite = {
+      id: str(listing.id) ?? '',
+      source: str(listing.source) ?? '',
+      title: str(listing.title) ?? '',
+      price: typeof listing.price === 'number' ? listing.price : null,
+      currency: str(listing.currency) ?? 'CHF',
+      listingUrl: str(listing.listingUrl) ?? '',
+      imageUrl: str(listing.imageUrl) ?? null,
+      savedAt: new Date().toISOString(),
+    };
+    if (!fav.id || !fav.listingUrl) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Listing is missing id or listingUrl.' } });
+      return;
+    }
+    await addFavorite(key!, fav);
+    res.json({ ok: true });
+  });
+
+  router.delete('/favorites', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const cookies = parseCookies(req.headers.cookie);
+    const user = getUserByToken(cookies.fundstueck_session);
+    const device = str(body.device) ?? (typeof req.query.device === 'string' ? req.query.device : '');
+    const key = user ? `user:${user.id}` : device;
+    const listingId = str(body.listingId) ?? (typeof req.query.listingId === 'string' ? req.query.listingId : '');
+    if (!key || !listingId) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'device and listingId are required.' } });
+      return;
+    }
+    await removeFavorite(key!, listingId);
+    res.json({ ok: true });
   });
 
   router.get('/events', (req, res) => {
