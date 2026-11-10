@@ -52,6 +52,7 @@ export interface SmgAdapterOptions {
   listingUrl: (node: Json, id: string) => string;
   userAgent: string;
   minIntervalMs: number;
+  timeoutMs?: number;
 }
 
 /**
@@ -87,6 +88,7 @@ export class SmgAdapter implements MarketplaceAdapter {
       source: opts.label,
       userAgent: opts.userAgent,
       minIntervalMs: opts.minIntervalMs,
+      timeoutMs: opts.timeoutMs ?? 6500,
       acceptLanguage:
         opts.locale === 'fr'
           ? 'fr-CH,fr;q=0.9,de;q=0.6,en;q=0.5'

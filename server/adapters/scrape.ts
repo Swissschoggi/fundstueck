@@ -45,7 +45,7 @@ export class PoliteClient {
 
   constructor(private readonly opts: PoliteClientOptions) {
     this.jitterMs = opts.jitterMs ?? 750;
-    this.timeoutMs = opts.timeoutMs ?? 10_000;
+    this.timeoutMs = opts.timeoutMs ?? 6500;
     this.cacheTtlMs = opts.cacheTtlMs ?? 60_000;
     this.acceptLanguage = opts.acceptLanguage ?? 'de-CH,de;q=0.9,fr;q=0.8,en;q=0.7';
   }

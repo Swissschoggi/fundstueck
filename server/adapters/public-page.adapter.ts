@@ -26,6 +26,7 @@ export interface PublicPageAdapterOptions {
   acceptLanguage: string;
   userAgent: string;
   minIntervalMs: number;
+  timeoutMs?: number;
   searchUrl: (query: string) => string;
   parse: (html: string, fetchedAt: string) => NormalizedListing[];
 }
@@ -59,6 +60,7 @@ export class PublicPageAdapter implements MarketplaceAdapter {
       source: opts.label,
       userAgent: opts.userAgent,
       minIntervalMs: opts.minIntervalMs,
+      timeoutMs: opts.timeoutMs ?? 6500,
       acceptLanguage: opts.acceptLanguage,
     });
   }

@@ -17,6 +17,7 @@ export interface JsonLdAdapterOptions {
   acceptLanguage: string;
   userAgent: string;
   minIntervalMs: number;
+  timeoutMs?: number;
   searchUrl: (q: string) => string;
   /** Optional: build a URL for a given page number (1-based). */
   searchPageUrl?: (q: string, page: number) => string;
@@ -51,6 +52,7 @@ export class JsonLdAdapter implements MarketplaceAdapter {
       source: opts.label,
       userAgent: opts.userAgent,
       minIntervalMs: opts.minIntervalMs,
+      timeoutMs: opts.timeoutMs ?? 6500,
       acceptLanguage: opts.acceptLanguage,
     });
   }
