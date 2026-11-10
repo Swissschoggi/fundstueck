@@ -203,6 +203,20 @@ server creates the `fundstueck_state` table on boot; otherwise it falls back to
 JSON files in `DATA_DIR`. A ready-to-use `docker-compose.yml` (app + Postgres)
 is included.
 
+## Auth, Favorites, Saved, and Deal Radar
+
+These features require Supabase. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY`,
+then apply `supabase/schema.sql` to your Supabase project.
+
+- **Auth**: email/password sign-in via Supabase Auth.
+- **Favorites/Saved**: heart a listing to store it in `fundstueck_favorites`;
+  the Saved page lists them.
+- **Deal Radar**: `recordPrices` stores price history in
+  `fundstueck_price_history` and inserts drops into `fundstueck_deals`.
+
+If the Supabase env vars are unset, these features are disabled gracefully.
+
 ## Production
 
 ```bash
