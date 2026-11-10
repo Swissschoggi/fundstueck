@@ -21,7 +21,7 @@ ENV NODE_ENV=production
 ENV PORT=3001
 ENV DATA_DIR=/app/data
 ENV ENABLE_PLUGINS=false
-ENV FUNDSTUECK_RICARDO_VENV=/app/.venvs/ricardo
+ENV FUNDSTUECK_RICARDO_VENV=/app/data/.venvs/ricardo
 # Camoufox (the patched Firefox build the Ricardo community CLI drives) runs
 # its own content-process sandbox, which self-tests by creating a Linux user
 # namespace (clone(CLONE_NEWUSER)). Docker's default seccomp profile blocks
@@ -75,7 +75,7 @@ COPY --from=build /app/scripts ./scripts
 # Run as the unprivileged node user; only /app/data and /app/plugins are
 # writable at runtime. (The Ricardo venv path is created on demand by the
 # operator install script — keep it under /app/data if you enable it.)
-RUN mkdir -p /app/data /app/plugins && chown -R node:node /app/data /app/plugins
+RUN mkdir -p /app/data /app/plugins /app/.venvs && chown -R node:node /app/data /app/plugins /app/.venvs && ln -sfn /app/data/.venvs/ricardo /app/.venvs/ricardo
 USER node
 
 EXPOSE 3001

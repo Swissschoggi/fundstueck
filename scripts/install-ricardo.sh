@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-VENV_PATH="${FUNDSTUECK_RICARDO_VENV:-/app/.venvs/ricardo}"
+VENV_PATH="${FUNDSTUECK_RICARDO_VENV:-/app/data/.venvs/ricardo}"
 PYTHON_BIN="${VENV_PATH}/bin/python"
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 

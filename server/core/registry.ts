@@ -156,7 +156,7 @@ function buildCandidatePool(cfg: ServerConfig): MarketplaceAdapter[] {
     createTuttiAdapter(cfg.scrapers),
     createAnibisAdapter(cfg.scrapers),
     createMarkoAdapter(cfg.scrapers),
-    createDepopAdapter(cfg.scrapers),
+    createDepopAdapter({ ...cfg.scrapers, depop: true }),
     createDevintaAdapter('marktplaats', cfg.scrapers),
     createDevintaAdapter('2dehands', cfg.scrapers),
     createSubitoAdapter(cfg.scrapers),
@@ -165,7 +165,7 @@ function buildCandidatePool(cfg: ServerConfig): MarketplaceAdapter[] {
     createKleinanzeigenAdapter(cfg.scrapers),
     createMercariAdapter(cfg.scrapers),
     createBlocketAdapter(cfg.scrapers),
-    createVintedAdapter(cfg.scrapers),
+    createVintedAdapter({ ...cfg.scrapers, vinted: true }),
     new JsonLdAdapter({
       id: 'tori',
       label: 'Tori.fi',

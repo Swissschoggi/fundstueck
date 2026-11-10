@@ -174,7 +174,16 @@ export async function saveCustomSource(
 
 export async function deleteCustomSource(id: string): Promise<void> {
   const res = await fetch(`/api/custom-sources/${encodeURIComponent(id)}`, { method: 'DELETE' });
-  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  if (!res.ok) {
+    let message = `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.error?.message) message = body.error.message;
+    } catch {
+      /* keep default */
+    }
+    throw new ApiError(message, res.status);
+  }
 }
 
 export async function testSource(id: string): Promise<SourceTestResult> {

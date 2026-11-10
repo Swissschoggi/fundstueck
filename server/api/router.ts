@@ -374,7 +374,7 @@ export function apiRouter(cfg: ServerConfig): Router {
         cwd: process.cwd(),
         env: {
           ...process.env,
-          FUNDSTUECK_RICARDO_VENV: process.env.FUNDSTUECK_RICARDO_VENV ?? '/app/.venvs/ricardo',
+          FUNDSTUECK_RICARDO_VENV: process.env.FUNDSTUECK_RICARDO_VENV ?? '/app/data/.venvs/ricardo',
         },
         timeout: 300_000,
         maxBuffer: 10 * 1024 * 1024,

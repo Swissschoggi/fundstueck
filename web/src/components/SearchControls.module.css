@@ -157,6 +157,12 @@
   .controls {
     flex: none;
   }
+
+  /* On desktop the FilterRail (sidebar) owns these filters; hide the inline
+     mobile duplicates so they don't crowd the search bar. */
+  .mobileFilterGroup {
+    display: none;
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {

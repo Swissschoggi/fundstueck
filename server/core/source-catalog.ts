@@ -48,7 +48,7 @@ export const SOURCE_CATALOG: CatalogEntry[] = [
       icon: 'terminal',
       type: 'command',
       command: {
-        command: '/app/.venvs/ricardo/bin/ricardo-scraper',
+        command: '/app/data/.venvs/ricardo/bin/ricardo-scraper',
         args: [
           '{query}',
           '--no-detail',
