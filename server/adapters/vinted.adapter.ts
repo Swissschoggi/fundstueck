@@ -75,6 +75,11 @@ export class VintedAdapter implements MarketplaceAdapter {
       const currency = (it.currency as string) || 'EUR';
       const url = (it.url as string) || `https://www.vinted.com/items/${id}`;
       const image = (it.photoUrl as string) || null;
+      const size = typeof it.size === 'string' ? it.size : null;
+      const gender =
+        typeof it.gender === 'string'
+          ? it.gender.toLowerCase()
+          : null;
       return {
         id: `${this.id}:${id}`,
         source: this.id,
@@ -88,7 +93,8 @@ export class VintedAdapter implements MarketplaceAdapter {
         listingUrl: url,
         publishedAt: null,
         fetchedAt,
-        gender: null,
+        gender: gender === 'male' || gender === 'female' || gender === 'unisex' ? gender : null,
+        size,
       };
     });
   }
