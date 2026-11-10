@@ -553,7 +553,7 @@ class CustomCommandAdapter implements MarketplaceAdapter {
       try {
         const result = await runCommand(command.command, args, {
           cwd: command.cwd,
-          timeoutMs: Math.min(command.timeoutMs, 10000),
+          timeoutMs: Math.min(command.timeoutMs, 30000),
           env: { ...process.env },
         });
         preflight = result.stdout.trim().split('\n')[0]?.trim() ?? '';
