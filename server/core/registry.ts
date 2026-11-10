@@ -94,7 +94,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
 
   // First run: disable restricted-by-default adapters.
   if (!settingsExisted && setup.complete) {
-    runtimeDisabled = new Set(['vinted']);
+    runtimeDisabled = new Set(['vinted', 'depop']);
     await persistSettings();
   }
 
@@ -108,6 +108,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
       if (!isDefault) toDisable.push(a.id);
     }
     for (const id of toDisable) runtimeDisabled.add(id);
+    runtimeDisabled.add('depop');
     await persistSettings();
   }
 
@@ -439,7 +440,7 @@ async function loadSettings(): Promise<void> {
   try {
     const parsed = await readState<Partial<PersistedSettings>>('adapter-settings');
     if (!parsed) {
-      runtimeDisabled = new Set(['vinted']);
+      runtimeDisabled = new Set(['vinted', 'depop']);
       await persistSettings();
       return;
     }

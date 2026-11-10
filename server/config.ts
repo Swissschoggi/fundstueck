@@ -90,7 +90,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       // Depop public search-page adapter (GB/US/AU). On by default but marked
       // opt-in in the UI: Depop's robots.txt disallows /search/* for crawlers
       // and its terms prohibit scraping — review before enabling.
-      depop: env.ENABLE_DEPOP_ADAPTER === 'true',
+      depop: env.ENABLE_DEPOP_ADAPTER !== 'false',
       blocket: env.ENABLE_BLOCKET_ADAPTER !== 'false',
       // Vinted (unofficial API). Restricted terms — disabled by default.
       vinted: env.ENABLE_VINTED_ADAPTER !== 'false',
