@@ -29,6 +29,8 @@ import {
 import { SOURCE_CATALOG } from '../core/source-catalog.js';
 import { REGION_PACKS } from '../core/regions.js';
 import { recentEvents } from '../core/events.js';
+import { listFavorites, addFavorite, removeFavorite } from '../core/favorites.js';
+import type { StoredFavorite } from '../core/favorites.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
@@ -513,6 +515,53 @@ export function apiRouter(cfg: ServerConfig): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  router.get('/favorites', (req, res) => {
+    const device = typeof req.query.device === 'string' ? req.query.device.trim() : '';
+    if (!device) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: '"device" query param is required.' } });
+      return;
+    }
+    res.json({ favorites: listFavorites(device) });
+  });
+
+  router.post('/favorites', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const device = str(body.device);
+    const listing = asRecord(body.listing);
+    if (!device || !listing) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must include device and listing.' } });
+      return;
+    }
+    const fav: StoredFavorite = {
+      id: str(listing.id) ?? '',
+      source: str(listing.source) ?? '',
+      title: str(listing.title) ?? '',
+      price: typeof listing.price === 'number' ? listing.price : null,
+      currency: str(listing.currency) ?? 'CHF',
+      listingUrl: str(listing.listingUrl) ?? '',
+      imageUrl: str(listing.imageUrl) ?? null,
+      savedAt: new Date().toISOString(),
+    };
+    if (!fav.id || !fav.listingUrl) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Listing is missing id or listingUrl.' } });
+      return;
+    }
+    await addFavorite(device, fav);
+    res.json({ ok: true });
+  });
+
+  router.delete('/favorites', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const device = str(body.device) ?? (typeof req.query.device === 'string' ? req.query.device : '');
+    const listingId = str(body.listingId) ?? (typeof req.query.listingId === 'string' ? req.query.listingId : '');
+    if (!device || !listingId) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'device and listingId are required.' } });
+      return;
+    }
+    await removeFavorite(device, listingId);
+    res.json({ ok: true });
   });
 
   router.get('/events', (req, res) => {
