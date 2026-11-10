@@ -29,7 +29,7 @@ services:
       # REGION: CH
       ENABLE_PLUGINS: 'false'
     ports:
-      - '3001:3001'
+      - '3002:3001'
     volumes:
       - fundstueck_data:/app/data
       - fundstueck_plugins:/app/plugins
