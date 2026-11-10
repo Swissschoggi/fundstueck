@@ -236,36 +236,38 @@ export default function App() {
   // The single search path: fires whenever query, sort or price filters change.
   useEffect(() => {
     if (query == null) return;
-    let cancelled = false;
+    const controller = new AbortController();
 
     setStatus('loading');
     setErrorMessage(null);
     setErrorCode(null);
 
-    fetchSearch({
-      q: query,
-      market,
-      sort,
-      minPrice: minPrice !== '' && Number.isFinite(Number(minPrice)) ? Number(minPrice) : null,
-      maxPrice: maxPrice !== '' && Number.isFinite(Number(maxPrice)) ? Number(maxPrice) : null,
-      category: category || null,
-      gender: gender || null,
-      size: size.trim() || null,
-    })
+    fetchSearch(
+      {
+        q: query,
+        market,
+        sort,
+        minPrice: minPrice !== '' && Number.isFinite(Number(minPrice)) ? Number(minPrice) : null,
+        maxPrice: maxPrice !== '' && Number.isFinite(Number(maxPrice)) ? Number(maxPrice) : null,
+        category: category || null,
+        gender: gender || null,
+        size: size.trim() || null,
+      },
+      controller.signal,
+    )
       .then((r) => {
-        if (cancelled) return;
         setResult(r);
         setStatus('success');
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
+        if (controller.signal.aborted) return;
         setErrorMessage(err instanceof Error ? err.message : 'Search failed unexpectedly.');
         setErrorCode(err instanceof ApiError ? (err.code ?? null) : null);
         setStatus('error');
       });
 
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce, path]);
 

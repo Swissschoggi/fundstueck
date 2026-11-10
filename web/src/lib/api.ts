@@ -38,7 +38,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchSearch(params: SearchParams): Promise<SearchResponse> {
+export async function fetchSearch(params: SearchParams, signal?: AbortSignal): Promise<SearchResponse> {
   const url = new URL('/api/search', window.location.origin);
   url.searchParams.set('q', params.q);
   url.searchParams.set('market', params.market);
@@ -49,7 +49,7 @@ export async function fetchSearch(params: SearchParams): Promise<SearchResponse>
   if (params.gender) url.searchParams.set('gender', params.gender);
   if (params.size) url.searchParams.set('size', params.size);
 
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  const res = await fetch(url, { headers: { Accept: 'application/json' }, signal });
   if (!res.ok) {
     let message = `Search failed (HTTP ${res.status})`;
     let code: string | undefined;
