@@ -219,7 +219,7 @@ export interface StoredFavorite {
 }
 
 export async function fetchFavorites(device: string): Promise<StoredFavorite[]> {
-  const res = await fetch(`/api/favorites?device=${encodeURIComponent(device)}`);
+  const res = await fetch(`/api/favorites?device=${encodeURIComponent(device)}`, { credentials: 'include' });
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   const body = (await res.json()) as { favorites: StoredFavorite[] };
   return body.favorites ?? [];
@@ -231,6 +231,7 @@ export async function saveFavorite(device: string, listing: {
   const res = await fetch('/api/favorites', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ device, listing }),
   });
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
@@ -240,6 +241,7 @@ export async function deleteFavorite(device: string, listingId: string): Promise
   const res = await fetch('/api/favorites', {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ device, listingId }),
   });
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);

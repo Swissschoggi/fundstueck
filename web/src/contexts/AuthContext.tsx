@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+
+interface User { id: string; email: string; createdAt: string }
 
 interface AuthContextValue {
   user: User | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -15,43 +14,57 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!supabase) { setLoading(false); return; }
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+  const refresh = async () => {
+    try {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      const body = await res.json();
+      setUser(body?.user ?? null);
+    } catch {
+      setUser(null);
+    } finally {
       setLoading(false);
-    });
-    if (!supabase) return;
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
+    }
+  };
+
+  useEffect(() => {
+    refresh();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (!supabase) return { error: 'Supabase is not configured.' };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
+    });
+    const body = await res.json();
+    if (!res.ok) return { error: body?.error?.message ?? 'Login failed' };
+    setUser(body.user);
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
-    if (!supabase) return { error: 'Supabase is not configured.' };
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error: error?.message ?? null };
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password }),
+    });
+    const body = await res.json();
+    if (!res.ok) return { error: body?.error?.message ?? 'Registration failed' };
+    setUser(body.user);
+    return { error: null };
   };
 
   const signOut = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
