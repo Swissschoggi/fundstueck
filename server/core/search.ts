@@ -204,7 +204,7 @@ function dedupKey(l: NormalizedListing): string {
 
 // ---------- Main pipeline ----------
 
-const ADAPTER_TIMEOUT_MS = 8000;
+const ADAPTER_TIMEOUT_MS = 15000;
 
 export async function runSearch(
   adapters: MarketplaceAdapter[],
@@ -279,11 +279,12 @@ export async function runSearch(
     } else {
       const reason = result.reason as { adapter: MarketplaceAdapter; err: unknown; latencyMs: number; timedOut: boolean };
       const err = reason?.err ?? result.reason;
-      const message =
-        err instanceof SourceError
+      const timedOut = Boolean(reason?.timedOut);
+      const message = timedOut
+        ? `Timed out after ${reason?.latencyMs ?? 0}ms — the site may be slow or blocking requests.`
+        : err instanceof SourceError
           ? err.message
           : `Unexpected adapter failure: ${String(err)}`;
-      const timedOut = Boolean(reason?.timedOut);
       sources.push({
         source: adapter.id,
         label: adapter.label,

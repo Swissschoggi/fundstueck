@@ -25,6 +25,7 @@ services:
       NODE_ENV: production
       PORT: 3002
       DATA_DIR: /app/data
+      XDG_CACHE_HOME: /app/data/.cache
       DATABASE_URL: postgres://fundstueck:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/fundstueck
       # Operator/admin API access (REQUIRED before exposing a BETA):
       # routes like custom sources, catalog installs and setup mutations

@@ -20,6 +20,7 @@ FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV DATA_DIR=/app/data
+ENV XDG_CACHE_HOME=/app/data/.cache
 ENV ENABLE_PLUGINS=false
 ENV FUNDSTUECK_RICARDO_VENV=/app/data/.venvs/ricardo
 # Camoufox (the patched Firefox build the Ricardo community CLI drives) runs
@@ -75,7 +76,7 @@ COPY --from=build /app/scripts ./scripts
 # Run as the unprivileged node user; only /app/data and /app/plugins are
 # writable at runtime. (The Ricardo venv path is created on demand by the
 # operator install script — keep it under /app/data if you enable it.)
-RUN mkdir -p /app/data /app/plugins /app/.venvs && chown -R node:node /app/data /app/plugins /app/.venvs && ln -sfn /app/data/.venvs/ricardo /app/.venvs/ricardo
+RUN mkdir -p /app/data /app/plugins /app/.venvs /app/data/.cache && chown -R node:node /app/data /app/plugins /app/.venvs /app/data/.cache && ln -sfn /app/data/.venvs/ricardo /app/.venvs/ricardo
 USER node
 
 EXPOSE 3001
