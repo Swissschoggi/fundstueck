@@ -221,6 +221,10 @@ export async function runSearch(
   const settled = await Promise.allSettled(
     adapters.map(async (adapter) => {
       const t0 = Date.now();
+      const timeoutMs =
+        typeof (adapter as unknown as { timeoutMs?: unknown }).timeoutMs === 'number'
+          ? Math.min((adapter as unknown as { timeoutMs: number }).timeoutMs, 45000)
+          : ADAPTER_TIMEOUT_MS;
       try {
         const listings = await Promise.race([
           adapter.search({
@@ -232,7 +236,7 @@ export async function runSearch(
             size: query.size ?? undefined,
           }),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Adapter timeout')), ADAPTER_TIMEOUT_MS),
+            setTimeout(() => reject(new Error('Adapter timeout')), timeoutMs),
           ),
         ]);
         return { adapter, listings, latencyMs: Date.now() - t0, timedOut: false };

@@ -415,6 +415,7 @@ class CustomCommandAdapter implements MarketplaceAdapter {
   readonly icon: string;
   readonly markets: string[];
   readonly docsUrl?: string;
+  readonly timeoutMs: number;
   private lastRunAt = 0;
 
   constructor(private readonly cfg: CustomSourceConfig) {
@@ -425,6 +426,7 @@ class CustomCommandAdapter implements MarketplaceAdapter {
     this.description = cfg.description;
     this.icon = cfg.icon;
     this.markets = cfg.markets;
+    this.timeoutMs = cfg.command?.timeoutMs ?? 60000;
     this.capabilities = ['User-configured', 'External CLI'];
   }
 
