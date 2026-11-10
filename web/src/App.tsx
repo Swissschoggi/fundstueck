@@ -15,13 +15,13 @@ import type {
   ViewMode,
 } from './lib/types';
 import { Sidebar } from './components/Sidebar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { SearchControls } from './components/SearchControls';
 import { FilterRail } from './components/FilterRail';
 import { Icon } from './components/Icon';
 import { useAuth } from './contexts/AuthContext';
 import { useFavorites } from './contexts/FavoritesContext';
 import { AuthModal } from './components/AuthModal';
-import { MobileBottomNav } from './components/MobileBottomNav';
 import { Results } from './components/Results';
 import { SettingsPage } from './components/SettingsPage';
 import { SavedPage } from './components/SavedPage';

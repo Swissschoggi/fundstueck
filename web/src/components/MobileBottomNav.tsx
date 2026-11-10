@@ -12,15 +12,21 @@ export function MobileBottomNav({
 }) {
   const tabs = [
     { id: 'search', label: 'Search', icon: 'search', path: '/' },
-    { id: 'saved', label: 'Saved', icon: 'bookmark', path: '/saved', badge: savedCount },
-    { id: 'deals', label: 'Deals', icon: 'trending_down', path: '/deals' },
+    { id: 'sources', label: 'Sources', icon: 'extension', path: '/settings/sources' },
     { id: 'settings', label: 'Settings', icon: 'tune', path: '/settings/adapters' },
+    { id: 'saved', label: 'Saved', icon: 'bookmark', path: '/saved', badge: savedCount },
   ];
 
   return (
     <nav className={styles.bar} aria-label="Primary">
       {tabs.map((t) => {
-        const isActive = active === t.id || active === t.path;
+        const isActive =
+          active === t.id ||
+          active === t.path ||
+          (t.id === 'sources' && active.startsWith('/settings/sources')) ||
+          (t.id === 'settings' &&
+            active.startsWith('/settings') &&
+            !active.startsWith('/settings/sources'));
         return (
           <button
             key={t.id}
