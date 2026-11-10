@@ -174,6 +174,16 @@ export class EbayAdapter implements MarketplaceAdapter {
     url.searchParams.set('q', params.q);
     url.searchParams.set('limit', String(params.limit));
 
+    const marketCurrency = market.currency;
+    const filters: string[] = [];
+    if (params.minPrice != null || params.maxPrice != null) {
+      const min = params.minPrice != null ? params.minPrice : '';
+      const max = params.maxPrice != null ? params.maxPrice : '';
+      filters.push(`price:[${min}..${max}]`);
+      filters.push(`priceCurrency:${marketCurrency}`);
+    }
+    if (filters.length) url.searchParams.set('filter', filters.join(','));
+
     let res: Response;
     try {
       res = await fetch(url, {

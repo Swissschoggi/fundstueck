@@ -234,6 +234,8 @@ export async function runSearch(
             category: query.category ?? undefined,
             gender: query.gender ?? undefined,
             size: query.size ?? undefined,
+            minPrice: query.minPrice,
+            maxPrice: query.maxPrice,
           }),
           new Promise<never>((_, reject) =>
             setTimeout(() => reject(new Error('Adapter timeout')), timeoutMs),

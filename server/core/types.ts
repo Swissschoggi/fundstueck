@@ -41,7 +41,7 @@ export interface NormalizedListing {
 }
 
 export type AdapterMode = 'live' | 'sample';
-export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string }
+export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string; minPrice?: number | null; maxPrice?: number | null }
 
 export class SourceError extends Error {
   constructor(message: string, readonly code: 'AUTH' | 'UPSTREAM' | 'NETWORK' | 'RESPONSE', readonly statusCode?: number) {
