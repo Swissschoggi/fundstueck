@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Icon } from './Icon';
 import styles from './AuthModal.module.css';
@@ -11,8 +11,46 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   if (!open) return null;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    emailRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = card.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      prevFocus?.focus?.();
+    };
+  }, [open, onClose]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +65,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.card} onClick={(e) => e.stopPropagation()}>
+      <div ref={cardRef} role="dialog" aria-modal="true" className={styles.card} onClick={(e) => e.stopPropagation()}>
         <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
           <Icon name="close" size={20} />
         </button>
@@ -37,6 +75,7 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
         ) : (
           <form onSubmit={submit} className={styles.form}>
             <input
+              ref={emailRef}
               type="email"
               required
               placeholder="Email"
