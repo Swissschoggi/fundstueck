@@ -25,7 +25,15 @@ function findListingNodes(nextData: unknown): Json[] {
   const query = queries
     .map(asRecord)
     .find((q) => asArray(q?.['queryKey'])[0] === 'SearchListingsByConstraints');
-  if (!query) return [];
+  if (!query) {
+    if (queries.length > 0) {
+      throw new SourceError(
+        'SMG page structure changed: SearchListingsByConstraints query not found.',
+        'RESPONSE',
+      );
+    }
+    return [];
+  }
 
   const listings = asRecord(asRecord(asRecord(query['state'])?.['data'])?.['listings']);
   return asArray(listings?.['edges'])
