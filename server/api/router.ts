@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { ServerConfig } from '../config.js';
+import type { AdapterInfo } from '../core/types.js';
 import {
   describeAdapter,
   enabledAdapters,
@@ -376,7 +377,26 @@ export function apiRouter(cfg: ServerConfig): Router {
         timeout: 300_000,
         maxBuffer: 10 * 1024 * 1024,
       });
-      res.json({ ok: true, stdout: stdout.slice(-2000), stderr: stderr.slice(-2000) });
+      let createdSource: AdapterInfo | null = null;
+      if (entry.template) {
+        const validation = validateCustomSource(entry.template, {
+          reservedIds: getReservedSourceIds(),
+        });
+        if (validation.ok) {
+          upsertCustomSource(cfg, validation.value);
+          await refreshDynamicAdapters();
+          createdSource =
+            getAdapters().find((a) => a.id === validation.value.id)
+              ? describeAdapter(getAdapters().find((a) => a.id === validation.value.id)!)
+              : null;
+        }
+      }
+      res.json({
+        ok: true,
+        stdout: stdout.slice(-2000),
+        stderr: stderr.slice(-2000),
+        source: createdSource,
+      });
     } catch (err) {
       res.status(500).json({
         error: { code: 'INSTALL_FAILED', message: (err as Error).message.slice(0, 500) },

@@ -280,7 +280,12 @@ export function SourcesPage({ onNavigate }: { onNavigate: (to: string) => void }
       const res = await fetch(`/api/catalog/${encodeURIComponent(entry.id)}/install`, { method: 'POST' });
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
-      setInstallMsg(`Installed ${entry.id}: ${body.stdout?.slice(-200) ?? 'ok'}`);
+      await refresh();
+      setInstallMsg(
+        body.source
+          ? `Installed ${entry.id} and created source "${body.source.label}".`
+          : `Installed ${entry.id}: ${body.stdout?.slice(-200) ?? 'ok'}`,
+      );
     } catch (err) {
       setInstallMsg(err instanceof Error ? err.message : 'Install failed');
     } finally {
