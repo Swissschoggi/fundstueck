@@ -290,6 +290,11 @@ export default function App() {
     const q = input.trim();
     if (!q) return;
     setSourceFilter('all');
+    try {
+      const prev = JSON.parse(localStorage.getItem('fundstueck:recent') || '[]');
+      const next = [q, ...prev.filter((x: string) => x !== q)].slice(0, 8);
+      localStorage.setItem('fundstueck:recent', JSON.stringify(next));
+    } catch { /* ignore */ }
     setQuery(q);
     setNonce((n) => n + 1);
   }, [input]);

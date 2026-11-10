@@ -19,7 +19,7 @@ function SkeletonCard() {
 }
 
 export function Results({
-  status, result, errorMessage, errorCode, marketLabel, view, filteredListings, onRetry,
+  status, result, errorMessage, errorCode, marketLabel: _marketLabel, view, filteredListings, onRetry,
 }: {
   status: 'idle' | 'loading' | 'success' | 'error';
   result: SearchResponse | null;
@@ -46,22 +46,61 @@ export function Results({
   }
 
   if (status === 'idle') {
-    const suggestions = [
-      { label: '📱 iPhone 15', q: 'iPhone 15' },
-      { label: '🪑 Vitra Chair', q: 'Vitra Chair' },
-      { label: '🚴 Gravel Bike', q: 'Gravel Bike' },
-      { label: '⌚ Rolex', q: 'Rolex' },
-      { label: '💻 MacBook Pro', q: 'MacBook Pro' },
-      { label: '🧱 Lego', q: 'Lego' },
+    const categories = [
+      { icon: '📱', label: 'Electronics', q: 'electronics' },
+      { icon: '🚲', label: 'Bikes & Sports', q: 'bike' },
+      { icon: '🪑', label: 'Design & Furniture', q: 'vitra chair' },
+      { icon: '⌚', label: 'Watches', q: 'rolex' },
+      { icon: '🚗', label: 'Vehicles', q: 'car' },
+      { icon: '👕', label: 'Fashion', q: 'fashion' },
     ];
-    return <div className={styles.statePanel}>
-      <div className={styles.stateIcon}><Icon name="manage_search" size={26} style={{ color: 'var(--outline)' }} /></div>
-      <h2 className={`t-headline-md ${styles.stateTitle}`}>Search {marketLabel} marketplaces</h2>
-      <p className={`t-body-md ${styles.stateText}`}>One query fans out to every connected marketplace. Results are normalised into a single feed — no listings are hosted here.</p>
-      <div className={styles.suggestionChips}>
-        {suggestions.map((sug) => <button key={sug.q} type="button" className={styles.suggestionChip} onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: sug.q }))}>{sug.label}</button>)}
+    const trending = [
+      { label: '🔥 Rolex Submariner', q: 'Rolex Submariner' },
+      { label: '🛋️ Vitra Lounge Chair', q: 'Vitra Lounge Chair' },
+      { label: '📱 iPhone 15 Pro', q: 'iPhone 15 Pro' },
+      { label: '🚴 Gravel Bike', q: 'Gravel Bike' },
+      { label: '👜 Freitag Bag', q: 'Freitag Bag' },
+    ];
+    let recent: string[] = [];
+    try { recent = JSON.parse(localStorage.getItem('fundstueck:recent') || '[]'); } catch { recent = []; }
+    return (
+      <div className={styles.discovery}>
+        <div className={styles.discoveryScroll}>
+          {categories.map((c) => (
+            <button key={c.label} type="button" className={styles.catPill}
+              onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: c.q }))}>
+              <span className={styles.catIcon}>{c.icon}</span>
+              <span>{c.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Trending</h3>
+          <div className={styles.chipRow}>
+            {trending.map((t) => (
+              <button key={t.q} type="button" className={styles.trendChip}
+                onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: t.q }))}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {recent.length > 0 && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Recent searches</h3>
+            <div className={styles.chipRow}>
+              {recent.map((r) => (
+                <button key={r} type="button" className={styles.recentChip}
+                  onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: r }))}>
+                  {r}
+                  <span className={styles.recentRemove} onClick={(e) => { e.stopPropagation(); const n = recent.filter((x) => x !== r); localStorage.setItem('fundstueck:recent', JSON.stringify(n)); window.location.reload(); }}>×</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </div>;
+    );
   }
 
   if (!result) return null;
