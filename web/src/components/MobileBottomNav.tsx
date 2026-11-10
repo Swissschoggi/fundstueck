@@ -1,4 +1,5 @@
 import { Icon } from './Icon';
+import { PRIMARY_NAV, SETTINGS_NAV } from '../lib/navigation';
 import styles from './MobileBottomNav.module.css';
 
 export function MobileBottomNav({
@@ -11,11 +12,8 @@ export function MobileBottomNav({
   savedCount?: number;
 }) {
   const tabs = [
-    { id: 'search', label: 'Search', icon: 'search', path: '/' },
-    { id: 'sources', label: 'Sources', icon: 'extension', path: '/settings/sources' },
-    { id: 'deals', label: 'Deals', icon: 'trending_down', path: '/deals' },
-    { id: 'settings', label: 'Settings', icon: 'tune', path: '/settings/adapters' },
-    { id: 'saved', label: 'Saved', icon: 'bookmark', path: '/saved', badge: savedCount },
+    ...PRIMARY_NAV.filter((item) => !item.soon).map((item) => ({ ...item, badge: item.id === 'saved' ? savedCount : undefined })),
+    ...SETTINGS_NAV.map((item) => ({ ...item, badge: undefined })),
   ];
 
   return (
