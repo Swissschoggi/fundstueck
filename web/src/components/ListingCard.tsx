@@ -58,15 +58,7 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
         <div className={styles.titles}>
           <h2 className={`t-headline-sm ${styles.title}`}>{listing.title}</h2>
           {listing.description && <p className={`t-body-md ${styles.description}`}>{listing.description}</p>}
-          {listing.duplicateListings && listing.duplicateListings.length > 0 && (
-            <div className={styles.duplicateLinks}>
-              Also listed on {listing.duplicateListings.map((duplicate, index) => (
-                <span key={duplicate.source}>{index > 0 ? ', ' : ''}
-                  <a href={duplicate.listingUrl} target="_blank" rel="noopener noreferrer">{duplicate.source}</a>
-                </span>
-              ))}
-            </div>
-          )}
+
         </div>
       </div>
       <div className={styles.footer}>
