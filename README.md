@@ -106,6 +106,15 @@ French / Spanish / Australian sites currently either serve anti-bot challenges o
 an inaccessible API, so they are not bundled; those regions start with eBay
 (official API) and can add permitted custom sources.
 
+### Mercari (JP) and Blocket (SE)
+
+Both are enabled by default and require no credentials:
+
+- `mercari` — Mercari Japan via the unofficial `mercapi` client (JPY).
+- `blocket` — Blocket Sweden via the `blocket-api` Python library (SEK).
+
+Set `ENABLE_MERCARI_ADAPTER=false` or `ENABLE_BLOCKET_ADAPTER=false` to disable.
+
 ### Ricardo.ch — community CLI recipe only
 
 There is **no built-in Ricardo adapter**. Ricardo answers non-browser clients
@@ -249,6 +258,8 @@ demo sample data in production builds (results remain clearly labelled).
 | `ENABLE_MARKO_ADAPTER` | `true` | Marko.ch public search-page adapter |
 | `ENABLE_DEPOP_ADAPTER` | `false` | Depop public search-page adapter (opt-in; robots.txt disallows /search/*) |
 | `ENABLE_REGIONAL_ADAPTERS` | `true` | Marktplaats, 2dehands, Kleinanzeigen, Willhaben, Subito, Kijiji |
+| `ENABLE_MERCARI_ADAPTER` | `true` | Mercari Japan |
+| `ENABLE_BLOCKET_ADAPTER` | `true` | Blocket Sweden |
 | `SCRAPER_MIN_INTERVAL_MS` | `3000` | Min spacing between requests per adapter |
 | `SCRAPER_USER_AGENT` | `FundstueckBot/0.1 (…)` | Identifying UA for public-page requests |
 | `DATA_DIR` | `./data` | Persisted runtime toggles, `setup.json` + `custom-sources.json` (file mode) |
