@@ -16,7 +16,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   const refresh = async () => {
-    if (!user) { setSavedIds(new Set()); return; }
+    if (!user || !supabase) { setSavedIds(new Set()); return; }
     const { data } = await supabase.from('fundstueck_favorites').select('listing_id').eq('user_id', user.id);
     setSavedIds(new Set((data ?? []).map((r: { listing_id: string }) => r.listing_id)));
   };
@@ -38,6 +38,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent('fundstueck:favorite', { detail: savedIds.has(listing.id) ? -1 : 1 }));
       return;
     }
+    if (!supabase) return;
     if (savedIds.has(listing.id)) {
       await supabase.from('fundstueck_favorites').delete().eq('user_id', user.id).eq('listing_id', listing.id);
       setSavedIds((prev) => { const n = new Set(prev); n.delete(listing.id); return n; });

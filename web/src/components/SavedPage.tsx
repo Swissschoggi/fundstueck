@@ -12,7 +12,7 @@ export function SavedPage() {
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    if (!user) { setLoading(false); return; }
+    if (!user || !supabase) { setLoading(false); return; }
     supabase
       .from('fundstueck_favorites')
       .select('*')

@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js';
+import { supabase, hasSupabase } from './supabase.js';
 import type { NormalizedListing } from './types.js';
 
 /**
@@ -6,11 +6,11 @@ import type { NormalizedListing } from './types.js';
  * Best-effort: never throws.
  */
 export async function recordPrices(listings: NormalizedListing[]): Promise<void> {
-  if (!listings.length) return;
+  if (!listings.length || !hasSupabase || !supabase) return;
   try {
     // Fetch previous prices for these listings
     const ids = [...new Set(listings.map((l) => l.id))];
-    const { data: prev } = await supabase
+    const { data: prev } = await supabase!
       .from('fundstueck_price_history')
       .select('listing_id, price, recorded_at')
       .in('listing_id', ids)
@@ -32,7 +32,7 @@ export async function recordPrices(listings: NormalizedListing[]): Promise<void>
         currency: l.currency,
       }));
     if (rows.length) {
-      await supabase.from('fundstueck_price_history').insert(rows);
+      await supabase!.from('fundstueck_price_history').insert(rows);
     }
 
     // Detect drops
@@ -54,7 +54,7 @@ export async function recordPrices(listings: NormalizedListing[]): Promise<void>
       }
     }
     if (deals.length) {
-      await supabase.from('fundstueck_deals').insert(deals);
+      await supabase!.from('fundstueck_deals').insert(deals);
     }
   } catch (err) {
     // Best-effort: log but don't fail the search
@@ -63,8 +63,9 @@ export async function recordPrices(listings: NormalizedListing[]): Promise<void>
 }
 
 export async function fetchDeals(limit = 50): Promise<Array<Record<string, unknown>>> {
+  if (!hasSupabase || !supabase) return [];
   try {
-    const { data } = await supabase
+    const { data } = await supabase!
       .from('fundstueck_deals')
       .select('*')
       .order('detected_at', { ascending: false })
