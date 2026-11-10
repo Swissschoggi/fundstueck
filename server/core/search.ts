@@ -70,7 +70,7 @@ export function parseSearchParams(
     throw new ValidationError('"minPrice" must not exceed "maxPrice".');
   }
 
-  let limit = 48;
+  let limit = 100;
   if (raw['limit'] != null) {
     limit = Number(raw['limit']);
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
