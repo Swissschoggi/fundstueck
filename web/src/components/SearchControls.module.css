@@ -157,12 +157,6 @@
   .controls {
     flex: none;
   }
-
-  /* On desktop the FilterRail (sidebar) owns these filters; hide the inline
-     mobile duplicates so they don't crowd the search bar. */
-  .mobileFilterGroup {
-    display: none;
-  }
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -183,7 +177,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: var(--r-full);
   background: var(--surface-lowest);
@@ -240,7 +234,7 @@
   align-items: center;
   justify-content: center;
   min-width: 32px;
-  min-height: 32px;
+  min-height: 44px;
   border: none;
   background: transparent;
   color: var(--on-surface-variant);
@@ -260,12 +254,12 @@
 
 .sourceFilterBtn {
   padding: 6px 12px;
-  min-height: 32px;
+  min-height: 44px;
   border-radius: var(--r-full);
   background: var(--surface-lowest);
   border: 1px solid var(--border-default);
   color: var(--on-surface);
-  font-size: var(--font-size-xs);
+  font-size: var(--fs-label-sm);
   cursor: pointer;
 }
 
@@ -283,7 +277,7 @@
 }
 
 .mobileFilterLabel {
-  font-size: var(--font-size-xs);
+  font-size: var(--fs-label-sm);
   color: var(--on-surface-variant);
   font-weight: 500;
 }
@@ -302,8 +296,8 @@
   border: 1px solid var(--border-default);
   background: var(--surface-lowest);
   color: var(--on-surface);
-  font-size: var(--font-size-sm);
-  min-height: 40px;
+  font-size: var(--fs-label-md);
+  min-height: 44px;
 }
 
 .mobilePriceSep {
@@ -312,12 +306,12 @@
 
 .mobileApply {
   padding: 6px 12px;
-  min-height: 40px;
+  min-height: 44px;
   border-radius: var(--r-md);
   background: var(--primary);
   color: var(--on-primary, white);
   border: none;
-  font-size: var(--font-size-sm);
+  font-size: var(--fs-label-md);
   cursor: pointer;
 }
 
@@ -329,12 +323,12 @@
 
 .mobileSegBtn {
   padding: 6px 10px;
-  min-height: 32px;
+  min-height: 44px;
   border-radius: var(--r-full);
   background: var(--surface-lowest);
   border: 1px solid var(--border-default);
   color: var(--on-surface);
-  font-size: var(--font-size-xs);
+  font-size: var(--fs-label-sm);
   cursor: pointer;
 }
 
@@ -342,4 +336,14 @@
   background: var(--surface-high);
   border-color: var(--primary);
   color: var(--primary);
+}
+
+/* On desktop the FilterRail (sidebar) owns these filters; hide the inline
+   mobile duplicates so they don't crowd the search bar. Declared last so it
+   beats the base `.mobileFilterGroup` / `.sourceFilterRow` rules. */
+@media (min-width: 1024px) {
+  .mobileFilterGroup,
+  .sourceFilterRow {
+    display: none;
+  }
 }

@@ -68,32 +68,49 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div ref={cardRef} role="dialog" aria-modal="true" className={styles.card} onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={cardRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-title"
+        className={styles.card}
+        onClick={(e) => e.stopPropagation()}
+      >
         <button type="button" className={styles.close} onClick={onClose} aria-label="Close">
           <Icon name="close" size={20} />
         </button>
-        <h2 className={styles.title}>{mode === 'signin' ? 'Sign in' : 'Create account'}</h2>
+        <h2 id="auth-title" className={styles.title}>{mode === 'signin' ? 'Sign in' : 'Create account'}</h2>
         {done ? (
-          <p className={styles.done}>Welcome!</p>
+          <p className={styles.done} role="status">Welcome!</p>
         ) : (
           <form onSubmit={submit} className={styles.form}>
+            <label htmlFor="auth-email" className={styles.label}>Email</label>
             <input
+              id="auth-email"
+              name="email"
               ref={emailRef}
               type="email"
               required
-              placeholder="Email"
+              autoComplete="email"
+              placeholder="you@example.ch"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={busy}
               className={styles.input}
             />
+            <label htmlFor="auth-password" className={styles.label}>Password</label>
             <input
+              id="auth-password"
+              name="password"
               type="password"
               required
               minLength={8}
               maxLength={72}
-              placeholder="Password (min. 8 characters)"
+              autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+              placeholder="Min. 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={busy}
               className={styles.input}
             />
             {error && <p className={styles.error}>{error}</p>}

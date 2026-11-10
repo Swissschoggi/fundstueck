@@ -74,7 +74,13 @@ export const SearchControls = forwardRef<
     "Search 'Vitra Chair'…",
     "Search 'iPhone 15'…",
   ];
-  const activeFilters = (category ? 1 : 0) + (sort !== 'best' ? 1 : 0);
+  const activeFilters =
+    (category ? 1 : 0) +
+    (sort !== 'best' ? 1 : 0) +
+    (minPrice || maxPrice ? 1 : 0) +
+    (gender ? 1 : 0) +
+    (size ? 1 : 0) +
+    (sourceFilter && sourceFilter !== 'all' ? 1 : 0);
   useEffect(() => {
     const id = window.setInterval(() => {
       setPlaceholderIdx((i) => (i + 1) % suggestions.length);
@@ -128,6 +134,8 @@ export const SearchControls = forwardRef<
           type="button"
           className={`${styles.filtersBtn} ${activeFilters > 0 ? styles.filtersActive : ''}`}
           onClick={() => setFiltersOpen(!filtersOpen)}
+          aria-expanded={filtersOpen}
+          aria-controls="search-filter-panel"
         >
           <Icon name="tune" size={16} />
           Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
@@ -137,6 +145,8 @@ export const SearchControls = forwardRef<
             type="button"
             className={`${styles.viewBtn} ${view === 'grid' ? styles.viewActive : ''}`}
             title="Grid view"
+            aria-label="Grid view"
+            aria-pressed={view === 'grid'}
             onClick={() => onViewChange('grid')}
           >
             <Icon name="grid_view" size={18} />
@@ -145,6 +155,8 @@ export const SearchControls = forwardRef<
             type="button"
             className={`${styles.viewBtn} ${view === 'list' ? styles.viewActive : ''}`}
             title="List view"
+            aria-label="List view"
+            aria-pressed={view === 'list'}
             onClick={() => onViewChange('list')}
           >
             <Icon name="view_agenda" size={18} />
@@ -152,7 +164,7 @@ export const SearchControls = forwardRef<
         </div>
       </div>
 
-      <div className={`${styles.filterPanel} ${filtersOpen ? styles.filterPanelOpen : ''}`}>
+      <div id="search-filter-panel" className={`${styles.filterPanel} ${filtersOpen ? styles.filterPanelOpen : ''}`}>
           {categories.length > 0 && (
             <div className={styles.selectWrap}>
               <select
@@ -196,9 +208,10 @@ export const SearchControls = forwardRef<
               onPriceChange?.(String(fd.get('min') ?? ''), String(fd.get('max') ?? ''));
             }}
           >
-            <label className={styles.mobileFilterLabel}>Price ({currency || 'CHF'})</label>
+            <label htmlFor="mobile-price-min" className={styles.mobileFilterLabel}>Price ({currency || 'CHF'})</label>
             <div className={styles.mobilePriceRow}>
               <input
+                id="mobile-price-min"
                 name="min"
                 type="number"
                 min="0"
@@ -209,6 +222,7 @@ export const SearchControls = forwardRef<
               />
               <span className={styles.mobilePriceSep}>–</span>
               <input
+                id="mobile-price-max"
                 name="max"
                 type="number"
                 min="0"
@@ -238,8 +252,9 @@ export const SearchControls = forwardRef<
           </div>
 
           <div className={styles.mobileFilterGroup}>
-            <label className={styles.mobileFilterLabel}>Size (inferred)</label>
+            <label htmlFor="mobile-size" className={styles.mobileFilterLabel}>Size (inferred)</label>
             <input
+              id="mobile-size"
               type="text"
               className={styles.mobileInput}
               placeholder="e.g. 42, M, XL"

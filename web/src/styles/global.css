@@ -115,7 +115,6 @@ a {
 *:focus-visible {
   outline: 2px solid var(--border-focus);
   outline-offset: 1px;
-  border-radius: var(--r-sm);
 }
 
 /* Hide scrollbars like the reference mockup (still fully scrollable) */

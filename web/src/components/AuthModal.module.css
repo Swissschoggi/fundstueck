@@ -27,8 +27,8 @@
   position: absolute;
   top: var(--space-sm);
   right: var(--space-sm);
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -51,19 +51,24 @@
   gap: var(--space-sm);
 }
 
+.label {
+  font: var(--fs-label-md);
+  color: var(--on-surface-variant);
+}
+
 .input {
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--r-md);
   border: 1px solid var(--border-default);
   background: var(--surface);
   color: var(--on-surface);
-  font-size: var(--font-size-base);
+  font: var(--fs-body-md);
   min-height: 44px;
 }
 
 .error {
   color: var(--error, #ef4444);
-  font-size: var(--font-size-sm);
+  font: var(--fs-label-md);
   margin: 0;
 }
 
@@ -75,16 +80,22 @@
   border: none;
   font: var(--fs-label-md);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-sm) var(--space-md);
+  width: 100%;
 }
 
 .switch {
   background: transparent;
   border: none;
   color: var(--on-surface-variant);
-  font-size: var(--font-size-sm);
+  font: var(--fs-label-md);
   cursor: pointer;
   text-decoration: underline;
-  padding: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  min-height: 44px;
 }
 
 .done {
