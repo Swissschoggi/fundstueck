@@ -5,7 +5,8 @@ services:
     environment:
       POSTGRES_DB: fundstueck
       POSTGRES_USER: fundstueck
-      POSTGRES_PASSWORD: fundstueck
+      # Required: set POSTGRES_PASSWORD in .env (never hardcode credentials).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
     volumes:
       - fundstueck_pg:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +25,12 @@ services:
       NODE_ENV: production
       PORT: 3002
       DATA_DIR: /app/data
-      DATABASE_URL: postgres://fundstueck:fundstueck@postgres:5432/fundstueck
+      DATABASE_URL: postgres://fundstueck:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/fundstueck
+      # Operator/admin API access (REQUIRED before exposing a BETA):
+      # routes like custom sources, catalog installs and setup mutations
+      # require a bearer OPERATOR_TOKEN or a session of an ADMIN_EMAILS user.
+      OPERATOR_TOKEN: ${OPERATOR_TOKEN:?set OPERATOR_TOKEN in .env}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
       # Optional first-run region; leave empty to use onboarding.
       # REGION: CH
       ENABLE_PLUGINS: 'false'
@@ -33,6 +39,10 @@ services:
     volumes:
       - fundstueck_data:/app/data
       - fundstueck_plugins:/app/plugins
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
 volumes:
   fundstueck_pg:

@@ -70,13 +70,9 @@ export default function App() {
   const [size, setSize] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { savedIds } = useFavorites();
   const [authOpen, setAuthOpen] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) setAuthOpen(true);
-  }, [authLoading, user]);
 
   const [pendingMin, setPendingMin] = useState('');
   const [pendingMax, setPendingMax] = useState('');

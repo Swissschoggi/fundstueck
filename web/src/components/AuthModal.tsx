@@ -14,10 +14,11 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
   const cardRef = useRef<HTMLDivElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
-  if (!open) return null;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // All hooks must run on every render — the previous version returned null
+  // before this effect and crashed React with "Rendered more hooks than
+  // during the previous render" the first time the modal opened.
   useEffect(() => {
+    if (!open) return;
     const card = cardRef.current;
     if (!card) return;
     const prevFocus = document.activeElement as HTMLElement | null;
@@ -51,6 +52,8 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
       prevFocus?.focus?.();
     };
   }, [open, onClose]);
+
+  if (!open) return null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +89,9 @@ export function AuthModal({ open, onClose }: { open: boolean; onClose: () => voi
             <input
               type="password"
               required
-              minLength={6}
-              placeholder="Password"
+              minLength={8}
+              maxLength={72}
+              placeholder="Password (min. 8 characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}

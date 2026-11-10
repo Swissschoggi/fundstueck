@@ -5,6 +5,7 @@ import type { ServerConfig } from '../config.js';
 import { findMarket, MARKETS } from './markets.js';
 import { logEvent } from './events.js';
 import type { MarketplaceAdapter } from './types.js';
+import { getAdapterConfig } from './adapter-config.js';
 
 /**
  * Optional source plugins. Nothing ships in `plugins/` by default: an
@@ -138,11 +139,7 @@ export async function loadPlugins(
         userAgent: cfg.scrapers.userAgent,
         minIntervalMs: cfg.scrapers.minIntervalMs,
         dataDir: cfg.dataDir,
-        getAdapterConfig: (id: string) => {
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { getAdapterConfig } = require('./adapter-config.js');
-          return getAdapterConfig(id);
-        },
+        getAdapterConfig,
       });
       const candidates = Array.isArray(produced) ? produced : [produced];
 

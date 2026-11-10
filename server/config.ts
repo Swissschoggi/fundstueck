@@ -37,6 +37,17 @@ export interface ServerConfig {
   region: string | null;
   /** Default buyer market when the request does not specify one. */
   defaultMarket: string;
+  /**
+   * Bearer token that grants access to operator/admin API routes in
+   * production (adapter install, custom sources, catalog installs, setup,
+   * config writes). Complements ADMIN_EMAILS.
+   */
+  operatorToken: string | undefined;
+  /**
+   * Email addresses (lowercased) whose signed-in sessions may use
+   * operator/admin API routes in production.
+   */
+  adminEmails: string[];
   ebay: {
     clientId: string | undefined;
     clientSecret: string | undefined;
@@ -49,7 +60,7 @@ export interface ServerConfig {
 }
 
 const DEFAULT_SCRAPER_UA =
-  'FundstueckBot/0.1 (+https://github.com/anomalyco/fundstuek; polite meta-search)';
+  'FundstueckBot/0.1 (+https://github.com/Swissschoggi/fundstueck; polite meta-search)';
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const nodeEnv = env.NODE_ENV ?? 'development';
@@ -65,6 +76,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     pluginsEnabled: env.ENABLE_PLUGINS !== 'false',
     region: findMarket(env.REGION ?? '')?.code ?? null,
     defaultMarket: findMarket(env.DEFAULT_MARKET ?? '')?.code ?? DEFAULT_MARKET,
+    operatorToken: env.OPERATOR_TOKEN || undefined,
+    adminEmails: (env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean),
     ebay: {
       clientId: env.EBAY_CLIENT_ID || undefined,
       clientSecret: env.EBAY_CLIENT_SECRET || undefined,
@@ -87,10 +103,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       marko: env.ENABLE_MARKO_ADAPTER !== 'false',
       // Mercari Japan (unofficial API).
       mercari: env.ENABLE_MERCARI_ADAPTER !== 'false',
-      // Depop public search-page adapter (GB/US/AU). On by default but marked
-      // opt-in in the UI: Depop's robots.txt disallows /search/* for crawlers
-      // and its terms prohibit scraping — review before enabling.
-      depop: env.ENABLE_DEPOP_ADAPTER !== 'false',
+      // Depop public search-page adapter (GB/US/AU). Disabled by default:
+      // Depop's robots.txt disallows /search/* for crawlers and its terms
+      // prohibit scraping — enable only after reviewing their terms
+      // (ENABLE_DEPOP_ADAPTER=true).
+      depop: env.ENABLE_DEPOP_ADAPTER === 'true',
       blocket: env.ENABLE_BLOCKET_ADAPTER !== 'false',
       // Vinted (unofficial API). Restricted terms — disabled by default.
       vinted: env.ENABLE_VINTED_ADAPTER === 'true',

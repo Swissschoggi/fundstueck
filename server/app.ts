@@ -4,13 +4,38 @@ import express from 'express';
 import type { ServerConfig } from './config.js';
 import { apiRouter, validationErrorHandler } from './api/router.js';
 import { initRegistry } from './core/registry.js';
+import { rateLimitMiddleware } from './core/rate-limit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function createApp(cfg: ServerConfig): Promise<express.Express> {
   const app = express();
   app.disable('x-powered-by');
+  // Behind a reverse proxy (Docker, Caddy, nginx, …) so req.ip and
+  // req.secure reflect the real client — required for correct rate limiting.
+  app.set('trust proxy', 1);
   app.use(express.json({ limit: '64kb' }));
+
+  // Baseline security headers for the API and the static frontend.
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (cfg.nodeEnv === 'production') {
+      res.setHeader(
+        'Strict-Transport-Security',
+        'max-age=31536000; includeSubDomains',
+      );
+    }
+    next();
+  });
+
+  // Request-rate guardrails. /api/search fans out to external marketplaces,
+  // so an unauthenticated caller could otherwise turn this server into a
+  // scraping amplifier and get its IP banned upstream.
+  app.use('/api/search', rateLimitMiddleware({ scope: 'search', limit: 30, windowMs: 60_000 }));
+  app.use('/api', rateLimitMiddleware({ scope: 'api', limit: 300, windowMs: 60_000 }));
 
   await initRegistry(cfg);
 

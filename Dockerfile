@@ -9,6 +9,12 @@ COPY . .
 RUN npm run build
 RUN npm run typecheck
 
+# Production-only dependencies for the runtime image.
+FROM node:22-bookworm-slim AS prod-deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 FROM node:22-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
@@ -61,13 +67,20 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/server ./server
 COPY --from=build /app/web/dist ./web/dist
 COPY --from=build /app/scripts ./scripts
 
-RUN mkdir -p /app/data
+# Run as the unprivileged node user; only /app/data and /app/plugins are
+# writable at runtime. (The Ricardo venv path is created on demand by the
+# operator install script — keep it under /app/data if you enable it.)
+RUN mkdir -p /app/data /app/plugins && chown -R node:node /app/data /app/plugins
+USER node
 
 EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||3001)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["npm", "start"]

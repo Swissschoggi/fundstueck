@@ -29,9 +29,7 @@ import {
 import { SOURCE_CATALOG } from '../core/source-catalog.js';
 import { REGION_PACKS } from '../core/regions.js';
 import { recentEvents } from '../core/events.js';
-import { listFavorites, addFavorite, removeFavorite } from '../core/favorites.js';
-import { register, login, logout, getUserByToken, parseCookies } from '../core/accounts.js';
-import type { StoredFavorite } from '../core/favorites.js';
+import { mountAuthRoutes, operatorGuard } from './auth-routes.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
@@ -68,6 +66,7 @@ function marketParam(value: unknown): string | undefined {
 
 export function apiRouter(cfg: ServerConfig): Router {
   const router = Router();
+  const admin = operatorGuard(cfg);
 
   router.get('/search', async (req, res, next) => {
     try {
@@ -129,7 +128,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     });
   });
 
-  router.post('/sources/:id/enabled', async (req, res) => {
+  router.post('/sources/:id/enabled', admin, async (req, res) => {
     const enabled = (req.body as { enabled?: unknown } | undefined)?.enabled;
     if (typeof enabled !== 'boolean') {
       res.status(400).json({
@@ -169,7 +168,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ adapters });
   });
 
-  router.post('/adapters/:id/install', (req, res) => {
+  router.post('/adapters/:id/install', admin, (req, res) => {
     const adapter = installAdapter(req.params.id);
     if (!adapter) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown or already installed adapter.' } });
@@ -178,7 +177,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ adapter: describeAdapter(adapter) });
   });
 
-  router.post('/adapters/:id/uninstall', (req, res) => {
+  router.post('/adapters/:id/uninstall', admin, (req, res) => {
     const ok = uninstallAdapter(req.params.id);
     if (!ok) {
       res.status(400).json({ error: { code: 'CANNOT_UNINSTALL', message: 'Cannot uninstall this adapter (global or unknown).' } });
@@ -197,7 +196,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     });
   });
 
-  router.post('/setup', async (req, res, next) => {
+  router.post('/setup', admin, async (req, res, next) => {
     try {
       const body = asRecord(req.body) ?? {};
       const region = body['region'];
@@ -282,7 +281,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ country: code, enabled: enabledForCountry(cfg.dataDir, code) });
   });
 
-  router.post('/registry/enabled/:code', (req, res) => {
+  router.post('/registry/enabled/:code', admin, (req, res) => {
     const code = req.params.code.toUpperCase();
     const body = req.body as { enabled?: unknown } | undefined;
     if (!getCountry(code)) {
@@ -317,7 +316,7 @@ export function apiRouter(cfg: ServerConfig): Router {
 
   // ---- Optional sources: plugins + operator-defined custom sources ----
 
-  router.get('/sources/:id/config', (req, res) => {
+  router.get('/sources/:id/config', admin, (req, res) => {
     const adapter = getAdapters().find((a) => a.id === req.params.id);
     if (!adapter) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
@@ -336,7 +335,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ fields, values, hasSecret: Object.fromEntries(fields.map((f) => [f.key, Boolean(stored[f.key])])) });
   });
 
-  router.post('/sources/:id/config', async (req, res) => {
+  router.post('/sources/:id/config', admin, async (req, res) => {
     const adapter = getAdapters().find((a) => a.id === req.params.id);
     if (!adapter) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown source.' } });
@@ -360,7 +359,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ ok: true });
   });
 
-  router.post('/catalog/:id/install', async (req, res) => {
+  router.post('/catalog/:id/install', admin, async (req, res) => {
     const entry = SOURCE_CATALOG.find((e) => e.id === req.params.id);
     if (!entry) {
       res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Unknown catalog entry.' } });
@@ -418,7 +417,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     });
   });
 
-  router.post('/plugins/reload', async (_req, res, next) => {
+  router.post('/plugins/reload', admin, async (_req, res, next) => {
     try {
       await refreshDynamicAdapters();
       res.json({ plugins: getPluginStatuses(), sources: getAdapters().map(describeAdapter) });
@@ -427,7 +426,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
-  router.post('/custom-sources', async (req, res, next) => {
+  router.post('/custom-sources', admin, async (req, res, next) => {
     try {
       const body = asRecord(req.body);
       const rawId = str(body?.id)?.toLowerCase().replace(/[^a-z0-9-]/g, '-');
@@ -465,7 +464,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
-  router.delete('/custom-sources/:id', async (req, res, next) => {
+  router.delete('/custom-sources/:id', admin, async (req, res, next) => {
     try {
       const removed = await removeCustomSource(cfg, req.params.id);
       if (!removed) {
@@ -518,113 +517,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
-  router.post('/auth/register', async (req, res) => {
-    const body = asRecord(req.body) ?? {};
-    const email = str(body.email);
-    const password = str(body.password);
-    if (!email || !password) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'email and password are required.' } });
-      return;
-    }
-    const result = register(email, password);
-    if ('error' in result) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: result.error } });
-      return;
-    }
-    const loginResult = login(email, password);
-    if ('error' in loginResult) {
-      res.status(500).json({ error: { code: 'INTERNAL', message: loginResult.error } });
-      return;
-    }
-    res.setHeader('Set-Cookie', `fundstueck_session=${loginResult.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
-    res.json({ user: loginResult.user });
-  });
-
-  router.post('/auth/login', async (req, res) => {
-    const body = asRecord(req.body) ?? {};
-    const email = str(body.email);
-    const password = str(body.password);
-    if (!email || !password) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'email and password are required.' } });
-      return;
-    }
-    const result = login(email, password);
-    if ('error' in result) {
-      res.status(401).json({ error: { code: 'AUTH', message: result.error } });
-      return;
-    }
-    res.setHeader('Set-Cookie', `fundstueck_session=${result.token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
-    res.json({ user: result.user });
-  });
-
-  router.post('/auth/logout', (req, res) => {
-    const cookies = parseCookies(req.headers.cookie);
-    logout(cookies.fundstueck_session);
-    res.setHeader('Set-Cookie', 'fundstueck_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
-    res.json({ ok: true });
-  });
-
-  router.get('/auth/me', (req, res) => {
-    const cookies = parseCookies(req.headers.cookie);
-    const user = getUserByToken(cookies.fundstueck_session);
-    res.json({ user });
-  });
-
-  router.get('/favorites', (req, res) => {
-    const cookies = parseCookies(req.headers.cookie);
-    const user = getUserByToken(cookies.fundstueck_session);
-    const device = typeof req.query.device === 'string' ? req.query.device.trim() : '';
-    const key = user ? `user:${user.id}` : device;
-    if (!key) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: '"device" query param is required.' } });
-      return;
-    }
-    res.json({ favorites: listFavorites(key) });
-  });
-
-  router.post('/favorites', async (req, res) => {
-    const body = asRecord(req.body) ?? {};
-    const cookies = parseCookies(req.headers.cookie);
-    const user = getUserByToken(cookies.fundstueck_session);
-    const device = str(body.device);
-    const key = user ? `user:${user.id}` : device;
-    const listing = asRecord(body.listing);
-    if (!key || !listing) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must include device and listing.' } });
-      return;
-    }
-    const fav: StoredFavorite = {
-      id: str(listing.id) ?? '',
-      source: str(listing.source) ?? '',
-      title: str(listing.title) ?? '',
-      price: typeof listing.price === 'number' ? listing.price : null,
-      currency: str(listing.currency) ?? 'CHF',
-      listingUrl: str(listing.listingUrl) ?? '',
-      imageUrl: str(listing.imageUrl) ?? null,
-      savedAt: new Date().toISOString(),
-    };
-    if (!fav.id || !fav.listingUrl) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Listing is missing id or listingUrl.' } });
-      return;
-    }
-    await addFavorite(key!, fav);
-    res.json({ ok: true });
-  });
-
-  router.delete('/favorites', async (req, res) => {
-    const body = asRecord(req.body) ?? {};
-    const cookies = parseCookies(req.headers.cookie);
-    const user = getUserByToken(cookies.fundstueck_session);
-    const device = str(body.device) ?? (typeof req.query.device === 'string' ? req.query.device : '');
-    const key = user ? `user:${user.id}` : device;
-    const listingId = str(body.listingId) ?? (typeof req.query.listingId === 'string' ? req.query.listingId : '');
-    if (!key || !listingId) {
-      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'device and listingId are required.' } });
-      return;
-    }
-    await removeFavorite(key!, listingId);
-    res.json({ ok: true });
-  });
+  mountAuthRoutes(router, cfg);
 
   router.get('/events', (req, res) => {
     const raw = Number(req.query.limit ?? 60);
