@@ -60,7 +60,7 @@ export class SearxngAdapter implements MarketplaceAdapter {
     } catch (err) {
       throw new SourceError(`SearXNG request failed: ${(err as Error).message}`, 'NETWORK');
     }
-    if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status}`, 'UPSTREAM');
+    if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status} (enable "json" in search.formats)`, 'UPSTREAM');
     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
     const out: NormalizedListing[] = [];
     for (const r of body.results ?? []) {
@@ -91,7 +91,7 @@ export class SearxngAdapter implements MarketplaceAdapter {
       const base = this.effectiveBaseUrl();
       const url = `${base.replace(/\/$/, '')}/search?q=test&format=json`;
       const res = await fetch(url, { headers: { 'User-Agent': this.cfg.userAgent } });
-      return { ok: res.ok, latencyMs: Date.now() - started, message: res.ok ? 'OK' : `HTTP ${res.status}` };
+      return { ok: res.ok, latencyMs: Date.now() - started, message: res.ok ? 'OK' : `HTTP ${res.status} (enable "json" in search.formats)` };
     } catch (err) {
       return { ok: false, latencyMs: Date.now() - started, message: err instanceof Error ? err.message : 'Failed' };
     }
