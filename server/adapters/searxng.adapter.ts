@@ -66,10 +66,14 @@ export class SearxngAdapter implements MarketplaceAdapter {
     const out: NormalizedListing[] = [];
     for (const r of body.results ?? []) {
       if (!r.title || !r.url) continue;
-      try {
-        const host = new URL(r.url).hostname;
-        if (denied.test(host) || denied.test(r.url)) continue;
-      } catch { continue; }
+      let host = '';
+      try { host = new URL(r.url).hostname.toLowerCase(); } catch { continue; }
+      // Only keep results that look like actual marketplace listings.
+      const marketHost = /tutti\.|anibis\.|marko\.|ricardo\.|ebay\.|depop\.|vinted\.|kleinanzeigen\.|willhaben\.|subito\.|kijiji\.|blocket\.|tori\.|mercari\.|leboncoin\.|gumtree\.|olx\.|allegro\.|avito\.|youla\.|jofogas\.|hasznaltauto\.|sahibinden/i;
+      let listingPath = false;
+      try { listingPath = /\/(item|listing|product|annonce|inserat|angebot|artikel|objekt|p)\b/i.test(new URL(r.url).pathname); } catch { /* ignore */ }
+      if (!marketHost.test(host) && !listingPath) continue;
+      if (denied.test(host) || denied.test(r.url)) continue;
       if (/\\b(best|top\\s*\\d|guide|review|how to|roundup|comparison|ideas|inspiration|outfit|trend|style guide|lookbook|haul)\\b/i.test(r.title)) continue;
       if (/\\b202\\d\\b/.test(r.title)) continue;
       out.push({
