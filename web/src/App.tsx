@@ -71,6 +71,7 @@ export default function App() {
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [hidePriceless, setHidePriceless] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(48);
   const { user, signOut } = useAuth();
   const { savedIds } = useFavorites();
   const [authOpen, setAuthOpen] = useState(false);
@@ -248,6 +249,7 @@ export default function App() {
     )
       .then((r) => {
         setResult(r);
+        setVisibleCount(48);
         setStatus('success');
       })
       .catch((err: unknown) => {
@@ -327,6 +329,7 @@ export default function App() {
     if (hidePriceless) out = out.filter((l) => l.price != null);
     return out;
   }, [result, sourceFilter, hidePriceless]);
+  const visibleListings = useMemo(() => filteredListings.slice(0, visibleCount), [filteredListings, visibleCount]);
 
   // Once a search has run, show the adapters that actually participated in it.
   // The installed-source metadata can lag behind dynamically loaded adapters.
@@ -473,7 +476,9 @@ export default function App() {
                 errorCode={errorCode}
                 marketLabel={marketLabel}
                 view={view}
-                filteredListings={filteredListings}
+                filteredListings={visibleListings}
+                hasMore={visibleCount < filteredListings.length}
+                onLoadMore={() => setVisibleCount((n) => n + 48)}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>

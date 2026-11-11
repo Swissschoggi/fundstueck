@@ -358,3 +358,20 @@
   font-weight: 700;
   padding: 0 2px;
 }
+
+.loadMoreRow {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-md) 0;
+}
+
+.loadMoreBtn {
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--r-md);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  cursor: pointer;
+}

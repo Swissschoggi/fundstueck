@@ -416,7 +416,7 @@ export async function runSearch(
     }
   };
 
-  listings = sortListings(listings, query.sort).slice(0, query.limit);
+  listings = sortListings(listings, query.sort);
 
   const isSampleData =
     listings.length > 0 && new Set(listings.map((l) => l.source)).size === 1 &&
