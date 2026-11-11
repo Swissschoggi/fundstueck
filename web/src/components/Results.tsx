@@ -59,13 +59,6 @@ export function Results({
       { icon: '🚗', label: 'Vehicles', q: 'car' },
       { icon: '👕', label: 'Fashion', q: 'fashion' },
     ];
-    const trending = [
-      { label: '🔥 Rolex Submariner', q: 'Rolex Submariner' },
-      { label: '🛋️ Vitra Lounge Chair', q: 'Vitra Lounge Chair' },
-      { label: '📱 iPhone 15 Pro', q: 'iPhone 15 Pro' },
-      { label: '🚴 Gravel Bike', q: 'Gravel Bike' },
-      { label: '👜 Freitag Bag', q: 'Freitag Bag' },
-    ];
     let recent: string[] = [];
     try { recent = JSON.parse(localStorage.getItem('fundstueck:recent') || '[]'); } catch { recent = []; }
     return (
@@ -78,17 +71,6 @@ export function Results({
               <span>{c.label}</span>
             </button>
           ))}
-        </div>
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Trending</h3>
-          <div className={styles.chipRow}>
-            {trending.map((t) => (
-              <button key={t.q} type="button" className={styles.trendChip}
-                onClick={() => window.dispatchEvent(new CustomEvent('fundstueck:suggest', { detail: t.q }))}>
-                {t.label}
-              </button>
-            ))}
-          </div>
         </div>
         {recent.length > 0 && (
           <div className={styles.section}>
