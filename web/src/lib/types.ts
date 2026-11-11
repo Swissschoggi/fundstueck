@@ -23,7 +23,7 @@ export interface SourceStatus {
 export interface SearchResponse {
   query: string; market: string; sort: SortKey; total: number; tookMs: number; isSampleData: boolean;
   listings: NormalizedListing[]; sources: SourceStatus[];
-  normalizedQuery?: string; marketCurrency?: string; rawTotal?: number; duplicatesRemoved?: number;
+  normalizedQuery?: string; marketCurrency?: string; rawTotal?: number; dedupedTotal?: number; duplicatesRemoved?: number;
 }
 export interface SourceInfo { source: string; label: string; mode: 'live' | 'sample'; enabled: boolean; disabledReason: string | null }
 export interface AdapterConfigField { key: string; label: string; secret?: boolean; placeholder?: string; default?: string; help?: string }
