@@ -566,11 +566,15 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 30;
-    const temperature = typeof body.temperature === 'number' ? body.temperature : 0;
+    const temperature = typeof body.temperature === 'number' ? body.temperature : 0.1;
+    const topP = typeof body.top_p === 'number' ? body.top_p : 0.8;
+    const repeatPenalty = typeof body.repeat_penalty === 'number' ? body.repeat_penalty : 1.15;
     const apiKey = str(body.apiKey);
 
-    // Some backends (Ollama) cannot fetch remote image URLs and require
-    // base64-encoded data URLs. Convert any http(s) image_url to a data URL.
+    let base = endpoint.replace(/\/$/, '');
+    const nativeOllama = !/\/v1$/i.test(base);
+
+    // Convert any http(s) image_url to a base64 data URL (Ollama needs this).
     const transformedMessages = await Promise.all(messages.map(async (m: unknown) => {
       const msg = (m && typeof m === 'object') ? (m as Record<string, unknown>) : null;
       if (!msg || !Array.isArray(msg.content)) return msg;
@@ -593,17 +597,56 @@ export function apiRouter(cfg: ServerConfig): Router {
       return { ...msg, content };
     }));
 
-    let base = endpoint.replace(/\/$/, '');
-    if (!/\/v1$/i.test(base)) base = `${base}/v1`;
-    const url = `${base}/chat/completions`;
     try {
+      if (nativeOllama) {
+        const systemMsg = messages.find((m: unknown) => (m as any)?.role === 'system');
+        const userMsg = [...messages].reverse().find((m: unknown) => (m as any)?.role === 'user') as any;
+        const prompt = typeof userMsg?.content === 'string'
+          ? userMsg.content
+          : Array.isArray(userMsg?.content)
+            ? (userMsg.content as any[]).filter((c) => c?.type === 'text').map((c) => c.text).join(' ')
+            : '';
+        const imgPart = Array.isArray(userMsg?.content)
+          ? (userMsg.content as any[]).find((c) => c?.type === 'image_url')
+          : null;
+        const imgUrl = imgPart?.image_url?.url ?? '';
+        const base64 = imgUrl.startsWith('data:') ? imgUrl.split(',')[1] : imgUrl;
+        const ollamaRes = await fetch(`${base}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            system: typeof systemMsg?.content === 'string' ? systemMsg.content : undefined,
+            prompt,
+            images: base64 ? [base64] : undefined,
+            stream: false,
+            options: {
+              temperature,
+              top_p: topP,
+              repeat_penalty: repeatPenalty,
+              num_predict: maxTokens * 4,
+            },
+          }),
+          signal: AbortSignal.timeout(120000),
+        });
+        const data = await ollamaRes.json().catch(() => ({} as any));
+        if (!ollamaRes.ok) {
+          res.status(ollamaRes.status).json({ error: { code: 'UPSTREAM', message: (data as any)?.error ?? `HTTP ${ollamaRes.status}` } });
+          return;
+        }
+        const text = (data as any)?.response ?? '';
+        res.json({ choices: [{ message: { content: text } }] });
+        return;
+      }
+
+      const url = `${base}/v1/chat/completions`;
       const r = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
-        body: JSON.stringify({ model, messages: transformedMessages, max_tokens: maxTokens, temperature }),
+        body: JSON.stringify({ model, messages: transformedMessages, max_tokens: maxTokens, temperature, top_p: topP }),
         signal: AbortSignal.timeout(120000),
       });
       const data = await r.json().catch(() => ({} as any));
