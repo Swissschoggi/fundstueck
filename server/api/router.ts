@@ -38,6 +38,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
 import { fetchDeals } from '../core/deal-radar.js';
+import { toBase64Image } from '../core/image-utils.js';
 import {
   listCountries,
   getCountry,
@@ -600,7 +601,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     try {
       if (nativeOllama) {
         const systemMsg = messages.find((m: unknown) => (m as any)?.role === 'system');
-        const userMsg = [...messages].reverse().find((m: unknown) => (m as any)?.role === 'user') as any;
+        const userMsg = [...transformedMessages].reverse().find((m: unknown) => (m as any)?.role === 'user') as any;
         const prompt = typeof userMsg?.content === 'string'
           ? userMsg.content
           : Array.isArray(userMsg?.content)
@@ -610,7 +611,25 @@ export function apiRouter(cfg: ServerConfig): Router {
           ? (userMsg.content as any[]).find((c) => c?.type === 'image_url')
           : null;
         const imgUrl = imgPart?.image_url?.url ?? '';
-        const base64 = imgUrl.startsWith('data:') ? imgUrl.split(',')[1] : imgUrl;
+        if (!imgUrl) {
+          res.status(400).json({ error: { code: 'INVALID_IMAGE', message: 'No image data available for this request.' } });
+          return;
+        }
+        let base64 = '';
+        try {
+          base64 = await toBase64Image(imgUrl);
+        } catch (err) {
+          res.status(400).json({ error: { code: 'INVALID_IMAGE', message: err instanceof Error ? err.message : 'image conversion failed' } });
+          return;
+        }
+        if (!base64) {
+          res.status(400).json({ error: { code: 'INVALID_IMAGE', message: 'No image data available for this request.' } });
+          return;
+        }
+        if (!/^[A-Za-z0-9+\\/]+=*$/.test(base64)) {
+          res.status(400).json({ error: { code: 'INVALID_IMAGE', message: 'Image data is not valid base64.' } });
+          return;
+        }
         const ollamaRes = await fetch(`${base}/api/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -618,7 +637,7 @@ export function apiRouter(cfg: ServerConfig): Router {
             model,
             system: typeof systemMsg?.content === 'string' ? systemMsg.content : undefined,
             prompt,
-            images: base64 ? [base64] : undefined,
+            images: [base64],
             stream: false,
             options: {
               temperature,
