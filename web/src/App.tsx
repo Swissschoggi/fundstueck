@@ -334,7 +334,7 @@ export default function App() {
           messages: [{
             role: 'user',
             content: [
-              { type: 'text', text: 'Extract 3 to 5 concise search keywords for this product (brand, type, color). Return ONLY the keywords separated by spaces, no sentence, no punctuation.' },
+              { type: 'text', text: 'You are a shopping search assistant. Look at the product image and output 3 to 5 concise keywords a buyer would type into a marketplace search (item type, color, brand, material, style). Output ONLY the keywords separated by single spaces. No sentences, no descriptions, no punctuation, no articles.' },
               { type: 'image_url', image_url: { url: listing.imageUrl } },
             ],
           }],

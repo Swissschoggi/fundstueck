@@ -62,9 +62,14 @@ export class SearxngAdapter implements MarketplaceAdapter {
     }
     if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status} (enable "json" in search.formats)`, 'UPSTREAM');
     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
+    const denied = /pinterest|facebook|instagram|reddit|wikipedia|youtube|tiktok|twitter|x\.com|blog|news|medium\.com/i;
     const out: NormalizedListing[] = [];
     for (const r of body.results ?? []) {
       if (!r.title || !r.url) continue;
+      try {
+        const host = new URL(r.url).hostname;
+        if (denied.test(host) || denied.test(r.url)) continue;
+      } catch { continue; }
       out.push({
         id: `searxng-${Buffer.from(r.url).toString('base64').slice(0, 12)}`,
         source: this.id,
