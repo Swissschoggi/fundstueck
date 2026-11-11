@@ -72,7 +72,14 @@ export default function App() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [hidePriceless, setHidePriceless] = useState(false);
   const [visibleCount, setVisibleCount] = useState(48);
+  const [imageSearchTemplate, setImageSearchTemplate] = useState<string | null>(null);
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    fetch('/api/image-search').then((r) => r.ok ? r.json() : null).then((b) => {
+      if (b?.template) setImageSearchTemplate(b.template);
+    }).catch(() => {});
+  }, []);
   const { savedIds } = useFavorites();
   const [authOpen, setAuthOpen] = useState(false);
 
@@ -480,6 +487,7 @@ export default function App() {
                 filteredListings={visibleListings}
                 hasMore={visibleCount < filteredListings.length}
                 onLoadMore={() => setVisibleCount((n) => n + 48)}
+                imageSearchTemplate={imageSearchTemplate}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>

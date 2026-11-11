@@ -5,8 +5,9 @@ import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
+  imageSearchTemplate?: string | null;
 }) {
   const [imgError, setImgError] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
@@ -92,6 +93,9 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
             </button>
             {similarOpen && (
               <div className={styles.similarMenu} role="menu">
+                {imageSearchTemplate && (
+                  <a href={imageSearchTemplate.replace('{image}', encodeURIComponent(listing.imageUrl))} target="_blank" rel="noopener noreferrer" role="menuitem">Fundstück engine</a>
+                )}
                 <a href={`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Google Lens</a>
                 <a href={`https://www.google.com/searchbyimage?image_url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Google Images</a>
                 <a href={`https://yandex.com/images/search?rpt=imageview&url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Yandex</a>

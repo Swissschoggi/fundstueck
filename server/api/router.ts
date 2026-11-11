@@ -519,6 +519,20 @@ export function apiRouter(cfg: ServerConfig): Router {
 
   mountAuthRoutes(router, cfg);
 
+  router.get('/image-search', (req, res) => {
+    const imageUrl = typeof req.query.url === 'string' ? req.query.url : '';
+    if (!cfg.imageSearchUrl) {
+      res.status(404).json({ error: { code: 'NOT_CONFIGURED', message: 'No image search engine configured.' } });
+      return;
+    }
+    if (!imageUrl) {
+      res.json({ template: cfg.imageSearchUrl });
+      return;
+    }
+    const url = cfg.imageSearchUrl.replace('{image}', encodeURIComponent(imageUrl));
+    res.json({ url });
+  });
+
   router.get('/events', (req, res) => {
     const raw = Number(req.query.limit ?? 60);
     const limit = Number.isFinite(raw) ? raw : 60;
