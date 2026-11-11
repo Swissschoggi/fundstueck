@@ -471,6 +471,11 @@ export default function App() {
         onNavigate={navigate}
       />
 
+      {aiBusyId && (
+        <div className={styles.aiToast} role="status" aria-live="polite">
+          <span className={styles.aiSpinner} /> Finding similar image…
+        </div>
+      )}
       <div className={styles.content}>
         {isSources ? (
           <SourcesPage onNavigate={navigate} />

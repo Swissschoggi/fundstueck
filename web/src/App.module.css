@@ -64,6 +64,38 @@
   }
 }
 
+.aiToast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--r-full);
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.aiSpinner {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-full);
+  border: 2px solid var(--surface-highest);
+  border-top-color: var(--primary);
+  animation: spin 700ms linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .boot {
   min-height: 100dvh;
   display: flex;
