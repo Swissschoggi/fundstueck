@@ -43,6 +43,8 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [imageSearchTemplate, setImageSearchTemplate] = useState<string>(() => {
     try { return localStorage.getItem('fundstueck:imageSearchTemplate') ?? ''; } catch { return ''; }
   });
+  const [savedImage, setSavedImage] = useState(false);
+  const [savedAi, setSavedAi] = useState(false);
   const [aiEndpoint, setAiEndpoint] = useState<string>(() => {
     try { return JSON.parse(localStorage.getItem('fundstueck:aiConfig') ?? '{}').endpoint ?? ''; } catch { return ''; }
   });
@@ -408,10 +410,12 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                       localStorage.removeItem('fundstueck:imageSearchTemplate');
                     }
                     window.dispatchEvent(new Event('fundstueck:imageSearchTemplate'));
+                    setSavedImage(true);
+                    setTimeout(() => setSavedImage(false), 2000);
                   } catch { /* ignore */ }
                 }}
               >
-                Save image search
+                {savedImage ? 'Saved ✓' : 'Save image search'}
               </button>
 
             <div className={styles.aiBlock}>
@@ -429,10 +433,12 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                     } else {
                       localStorage.removeItem('fundstueck:aiConfig');
                     }
+                    setSavedAi(true);
+                    setTimeout(() => setSavedAi(false), 2000);
                   } catch { /* ignore */ }
                 }}
               >
-                Save AI
+                {savedAi ? 'Saved ✓' : 'Save AI'}
               </button>
               <button
                 type="button"

@@ -341,9 +341,17 @@ export default function App() {
         }),
       });
       const body = await res.json();
+      if (!res.ok) {
+        const msg = body?.error?.message ?? body?.error ?? `AI request failed (${res.status})`;
+        window.alert(`AI failed: ${msg}`);
+        return;
+      }
       const text = body?.choices?.[0]?.message?.content?.trim();
       if (text) submit(text);
-    } catch { /* ignore */ }
+      else window.alert('AI returned no description.');
+    } catch (err) {
+      window.alert(`AI failed: ${err instanceof Error ? err.message : 'network error'}`);
+    }
     finally { setAiBusyId(null); }
   }, [submit]);
 
