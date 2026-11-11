@@ -461,7 +461,7 @@ export default function App() {
         ) : isSettings ? (
           <SettingsPage onNavigate={navigate} />
         ) : isSaved ? (
-          <SavedPage />
+          <SavedPage imageSearchTemplate={imageSearchTemplate} onAiSimilar={runAiSimilar} />
         ) : isDeals ? (
           <DealRadarPage />
         ) : (

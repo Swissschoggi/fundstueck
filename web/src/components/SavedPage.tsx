@@ -4,7 +4,7 @@ import { ListingCard } from './ListingCard';
 import { Icon } from './Icon';
 import styles from './SavedPage.module.css';
 
-export function SavedPage() {
+export function SavedPage({ imageSearchTemplate, onAiSimilar }: { imageSearchTemplate?: string | null; onAiSimilar?: (listing: NormalizedListing) => void }) {
   const { favorites } = useFavorites();
 
   const items: NormalizedListing[] = favorites.map((r) => ({
@@ -33,7 +33,7 @@ export function SavedPage() {
   return (
     <div className={styles.grid}>
       {items.map((l) => (
-        <ListingCard key={l.id} listing={l} view="grid" sourceLabel={l.source} sourceMode="live" />
+        <ListingCard key={l.id} listing={l} view="grid" sourceLabel={l.source} sourceMode="live" imageSearchTemplate={imageSearchTemplate} onAiSimilar={onAiSimilar} />
       ))}
     </div>
   );
