@@ -348,14 +348,18 @@ export default function App() {
         return;
       }
       const raw = body?.choices?.[0]?.message?.content?.trim() ?? '';
-      const text = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 6).join(' ');
-      if (text) submit(text);
+      const filler = new Set(['the','image','shows','a','an','of','with','and','is','this','pair','in']);
+      const text = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase())).slice(0, 6).join(' ');
+      if (text) {
+        navigate('/');
+        setTimeout(() => submit(text), 0);
+      }
       else window.alert('AI returned no description.');
     } catch (err) {
       window.alert(`AI failed: ${err instanceof Error ? err.message : 'network error'}`);
     }
     finally { setAiBusyId(null); }
-  }, [submit]);
+  }, [submit, navigate]);
 
   const applyPrice = useCallback((min: string, max: string) => {
     const mn = min.trim();
