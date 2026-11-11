@@ -27,6 +27,8 @@ export const SearchControls = forwardRef<
     isSearching: boolean;
     sourceFilter?: string;
     onSourceFilterChange?: (s: string) => void;
+    hidePriceless?: boolean;
+    onHidePricelessChange?: (v: boolean) => void;
     sources?: { source: string; label: string; enabled: boolean }[];
     minPrice?: string;
     maxPrice?: string;
@@ -53,6 +55,8 @@ export const SearchControls = forwardRef<
     isSearching,
     sourceFilter,
     onSourceFilterChange,
+    hidePriceless,
+    onHidePricelessChange,
     sources,
     minPrice,
     maxPrice,
@@ -262,6 +266,17 @@ export const SearchControls = forwardRef<
               onChange={(e) => onSizeChange?.(e.target.value)}
               aria-label="Size filter"
             />
+          </div>
+
+          <div className={styles.mobileFilterGroup}>
+            <label className={styles.mobileFilterLabel}>
+              <input
+                type="checkbox"
+                checked={!!hidePriceless}
+                onChange={(e) => onHidePricelessChange?.(e.target.checked)}
+              />{' '}
+              Hide listings without a price
+            </label>
           </div>
 
           {sources && sources.length > 0 && (

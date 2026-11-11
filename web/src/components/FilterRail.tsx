@@ -18,6 +18,8 @@ export function FilterRail({
   onSizeChange,
   sourceFilter,
   onSourceFilterChange,
+  hidePriceless,
+  onHidePricelessChange,
 }: {
   minPrice: string;
   maxPrice: string;
@@ -32,6 +34,8 @@ export function FilterRail({
   onSizeChange?: (s: string) => void;
   sourceFilter?: string;
   onSourceFilterChange?: (s: string) => void;
+  hidePriceless?: boolean;
+  onHidePricelessChange?: (v: boolean) => void;
 }) {
   return (
     <aside className={styles.rail}>
@@ -135,6 +139,20 @@ export function FilterRail({
             aria-labelledby="size-label"
           />
           <p className={styles.hint}>Best-effort: derived from listing titles.</p>
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <label className={styles.label}>Priceless listings</label>
+          </div>
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={!!hidePriceless}
+              onChange={(e) => onHidePricelessChange?.(e.target.checked)}
+            />
+            Hide listings without a price
+          </label>
         </div>
 
         <div className={styles.section}>

@@ -70,6 +70,7 @@ export default function App() {
   const [size, setSize] = useState('');
   const [view, setView] = useState<ViewMode>('grid');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [hidePriceless, setHidePriceless] = useState(false);
   const { user, signOut } = useAuth();
   const { savedIds } = useFavorites();
   const [authOpen, setAuthOpen] = useState(false);
@@ -321,9 +322,11 @@ export default function App() {
 
   const filteredListings = useMemo(() => {
     if (!result) return [];
-    if (sourceFilter === 'all') return result.listings;
-    return result.listings.filter((l) => l.source === sourceFilter);
-  }, [result, sourceFilter]);
+    let out = result.listings;
+    if (sourceFilter !== 'all') out = out.filter((l) => l.source === sourceFilter);
+    if (hidePriceless) out = out.filter((l) => l.price != null);
+    return out;
+  }, [result, sourceFilter, hidePriceless]);
 
   // Once a search has run, show the adapters that actually participated in it.
   // The installed-source metadata can lag behind dynamically loaded adapters.
@@ -422,6 +425,8 @@ export default function App() {
                 isSearching={status === 'loading'}
                 sourceFilter={sourceFilter}
                 onSourceFilterChange={setSourceFilter}
+                hidePriceless={hidePriceless}
+                onHidePricelessChange={setHidePriceless}
                 sources={sources}
                 minPrice={pendingMin}
                 maxPrice={pendingMax}
@@ -458,6 +463,8 @@ export default function App() {
                 onSizeChange={setSize}
                 sourceFilter={sourceFilter}
                 onSourceFilterChange={setSourceFilter}
+                hidePriceless={hidePriceless}
+                onHidePricelessChange={setHidePriceless}
               />
               <Results
                 status={status}

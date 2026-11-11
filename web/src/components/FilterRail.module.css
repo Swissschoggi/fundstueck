@@ -241,6 +241,15 @@
   font-size: var(--font-size-sm);
 }
 
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font: var(--fs-label-md);
+  color: var(--on-surface);
+  cursor: pointer;
+}
+
 .sourceFilterList {
   display: flex;
   flex-wrap: wrap;
