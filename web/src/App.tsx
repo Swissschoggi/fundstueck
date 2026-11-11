@@ -350,10 +350,10 @@ export default function App() {
       }
       const raw = body?.choices?.[0]?.message?.content?.trim() ?? '';
       const filler = new Set(['the','image','shows','a','an','of','with','and','is','this','pair','in']);
-      const sceneWords = new Set(['placed','sitting','on','beige','background','floor','table','surface','photo','picture','white','studio','shown','displayed','top','view']);
-      const words = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase()));
-      const hasScene = words.some((w: string) => sceneWords.has(w.toLowerCase()));
-      const text = (hasScene ? listing.title : words.join(' ')).split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase())).slice(0, 6).join(' ');
+      const sceneWords = new Set(['placed','sitting','on','beige','background','floor','table','surface','photo','picture','white','studio','shown','displayed','top','view','placed','beside','next']);
+      const cleaned = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase()) && !sceneWords.has(w.toLowerCase()));
+      const fallbackWords = (listing.title || '').replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase())).slice(0, 6);
+      const text = (cleaned.length >= 2 ? cleaned : fallbackWords).slice(0, 6).join(' ');
       if (text) {
         navigate('/');
         setTimeout(() => submit(text), 0);
