@@ -62,7 +62,7 @@ export class SearxngAdapter implements MarketplaceAdapter {
     }
     if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status} (enable "json" in search.formats)`, 'UPSTREAM');
     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
-    const denied = /pinterest|facebook|instagram|reddit|wikipedia|youtube|tiktok|twitter|x\.com|blog|news|medium\.com|shutterstock|istockphoto|gettyimages|stockphoto|dreamstime|depositphotos|alamy|freepik|unsplash|pexels|pixabay/i;
+    const denied = /pinterest|facebook|instagram|reddit|wikipedia|youtube|tiktok|twitter|x\.com|blog|news|medium\.com|shutterstock|istockphoto|gettyimages|stockphoto|dreamstime|depositphotos|alamy|freepik|unsplash|pexels|pixabay|quora|stackoverflow|tumblr|linkedin|vimeo|dailymotion|flickr|imgur|buzzfeed|huffpost|forbes|vogue|elle|cosmopolitan|gq\.com|esquire|highsnobiety|hypebeast|complex\.com|bestproducts|wirecutter|thestrategist|nymag|goodhousekeeping|seventeen|teenvogue|refinery29|byrdie|whowhatwear|popsugar|instyle|harper'?s bazaar/i;
     const out: NormalizedListing[] = [];
     for (const r of body.results ?? []) {
       if (!r.title || !r.url) continue;
@@ -70,7 +70,7 @@ export class SearxngAdapter implements MarketplaceAdapter {
         const host = new URL(r.url).hostname;
         if (denied.test(host) || denied.test(r.url)) continue;
       } catch { continue; }
-      if (/\\b(best|top\\s*\\d|guide|review|how to|roundup|comparison)\\b/i.test(r.title)) continue;
+      if (/\\b(best|top\\s*\\d|guide|review|how to|roundup|comparison|ideas|inspiration|outfit|trend|style guide|lookbook|haul)\\b/i.test(r.title)) continue;
       if (/\\b202\\d\\b/.test(r.title)) continue;
       out.push({
         id: `searxng-${Buffer.from(r.url).toString('base64').slice(0, 12)}`,
