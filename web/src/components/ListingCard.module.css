@@ -154,6 +154,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
+  flex-wrap: wrap;
   padding: 0 var(--space-md) var(--space-md);
 }
 
