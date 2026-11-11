@@ -62,7 +62,7 @@ export class SearxngAdapter implements MarketplaceAdapter {
     }
     if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status} (enable "json" in search.formats)`, 'UPSTREAM');
     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
-    const denied = /pinterest|facebook|instagram|reddit|wikipedia|youtube|tiktok|twitter|x\.com|blog|news|medium\.com/i;
+    const denied = /pinterest|facebook|instagram|reddit|wikipedia|youtube|tiktok|twitter|x\.com|blog|news|medium\.com|shutterstock|istockphoto|gettyimages|stockphoto|dreamstime|depositphotos|alamy|freepik|unsplash|pexels|pixabay/i;
     const out: NormalizedListing[] = [];
     for (const r of body.results ?? []) {
       if (!r.title || !r.url) continue;
