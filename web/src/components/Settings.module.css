@@ -729,6 +729,46 @@
   margin-top: 1px;
 }
 
+.engineField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.engineLabel {
+  font: var(--fs-label-md);
+  color: var(--on-surface-variant);
+}
+
+.engineInput {
+  min-height: 44px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--on-surface);
+  font: var(--fs-body-md);
+}
+
+.engineHint {
+  margin: 0;
+  font: var(--fs-label-sm);
+  color: var(--outline);
+  line-height: 1.4;
+}
+
+.engineSave {
+  align-self: flex-start;
+  min-height: 40px;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--r-md);
+  background: var(--primary);
+  color: var(--on-primary, white);
+  border: none;
+  font: var(--fs-label-md);
+  cursor: pointer;
+}
+
 /* ---------- Event terminal ---------- */
 .terminal {
   border-radius: var(--r-xl);

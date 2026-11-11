@@ -76,9 +76,19 @@ export default function App() {
   const { user, signOut } = useAuth();
 
   useEffect(() => {
-    fetch('/api/image-search').then((r) => r.ok ? r.json() : null).then((b) => {
-      if (b?.template) setImageSearchTemplate(b.template);
-    }).catch(() => {});
+    const apply = () => {
+      try {
+        const stored = localStorage.getItem('fundstueck:imageSearchTemplate');
+        if (stored) { setImageSearchTemplate(stored); return; }
+      } catch { /* ignore */ }
+      fetch('/api/image-search').then((r) => r.ok ? r.json() : null).then((b) => {
+        if (b?.template) setImageSearchTemplate(b.template);
+      }).catch(() => {});
+    };
+    apply();
+    const handler = () => apply();
+    window.addEventListener('fundstueck:imageSearchTemplate', handler);
+    return () => window.removeEventListener('fundstueck:imageSearchTemplate', handler);
   }, []);
   const { savedIds } = useFavorites();
   const [authOpen, setAuthOpen] = useState(false);

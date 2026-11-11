@@ -39,6 +39,9 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [searchQuery, setSearchQuery] = useState('');
   const [runningAll, setRunningAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageSearchTemplate, setImageSearchTemplate] = useState<string>(() => {
+    try { return localStorage.getItem('fundstueck:imageSearchTemplate') ?? ''; } catch { return ''; }
+  });
 
   const refreshEvents = useCallback(() => {
     fetchEvents(120)
@@ -346,6 +349,39 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                 <span className={styles.mono}>100 per search</span>
               </div>
             </div>
+            <div className={styles.engineField}>
+              <label className={styles.engineLabel} htmlFor="image-search-template">
+                Image search URL template
+              </label>
+              <input
+                id="image-search-template"
+                className={styles.engineInput}
+                placeholder="https://my-ai.example.com/similar?img={image}"
+                value={imageSearchTemplate}
+                onChange={(e) => setImageSearchTemplate(e.target.value)}
+              />
+              <p className={styles.engineHint}>
+                Use <code>{'{image}'}</code> as the placeholder for the listing image URL.
+                Leave empty to use the built-in engines (Google, Yandex, Bing, TinEye).
+              </p>
+              <button
+                type="button"
+                className={styles.engineSave}
+                onClick={() => {
+                  try {
+                    if (imageSearchTemplate.trim()) {
+                      localStorage.setItem('fundstueck:imageSearchTemplate', imageSearchTemplate.trim());
+                    } else {
+                      localStorage.removeItem('fundstueck:imageSearchTemplate');
+                    }
+                    window.dispatchEvent(new Event('fundstueck:imageSearchTemplate'));
+                  } catch { /* ignore */ }
+                }}
+              >
+                Save
+              </button>
+            </div>
+
             <p className={styles.engineNote}>
               <Icon name="info" size={14} style={{ color: 'var(--outline)' }} />
               Not built yet: local SQLite listing store, cross-source deduplication and
