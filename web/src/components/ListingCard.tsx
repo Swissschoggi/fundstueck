@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { NormalizedListing } from '../lib/types';
 import { formatChf, sourceAccent, timeAgo } from '../lib/format';
 import { Icon } from './Icon';
@@ -9,7 +9,18 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
 }) {
   const [imgError, setImgError] = useState(false);
+  const [similarOpen, setSimilarOpen] = useState(false);
+  const similarRef = useRef<HTMLDivElement>(null);
   const { isSaved, toggle } = useFavorites();
+
+  useEffect(() => {
+    if (!similarOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (similarRef.current && !similarRef.current.contains(e.target as Node)) setSimilarOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [similarOpen]);
   const favorited = isSaved(listing.id);
   const accent = sourceAccent(listing.source);
   const showImage = listing.imageUrl && !imgError;
@@ -68,15 +79,27 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
       </div>
       <div className={styles.footer}>
         {listing.imageUrl && (
-          <a
-            className={styles.similarBtn}
-            href={`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(listing.imageUrl)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Find similar images via Google Lens"
-          >
-            <Icon name="travel_explore" size={16} /> Find similar
-          </a>
+          <div className={styles.similarWrap} ref={similarRef}>
+            <button
+              type="button"
+              className={styles.similarBtn}
+              onClick={() => setSimilarOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={similarOpen}
+              aria-label="Find similar images"
+            >
+              <Icon name="travel_explore" size={16} /> Find similar
+            </button>
+            {similarOpen && (
+              <div className={styles.similarMenu} role="menu">
+                <a href={`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Google Lens</a>
+                <a href={`https://www.google.com/searchbyimage?image_url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Google Images</a>
+                <a href={`https://yandex.com/images/search?rpt=imageview&url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Yandex</a>
+                <a href={`https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">Bing</a>
+                <a href={`https://tineye.com/search?url=${encodeURIComponent(listing.imageUrl)}`} target="_blank" rel="noopener noreferrer" role="menuitem">TinEye</a>
+              </div>
+            )}
+          </div>
         )}
         <div className={styles.priceCol}>
           <span className={styles.priceLabel}>{converted ? 'Price · ' + listing.marketCurrency : 'Price'}</span>

@@ -279,6 +279,11 @@
   font: var(--fs-label-sm);
 }
 
+.similarWrap {
+  position: relative;
+  display: inline-block;
+}
+
 .similarBtn {
   display: inline-flex;
   align-items: center;
@@ -291,6 +296,35 @@
   color: var(--on-surface-variant);
   font: var(--fs-label-sm);
   cursor: pointer;
+}
+
+.similarMenu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 4px;
+  min-width: 160px;
+  background: var(--surface-lowest);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  padding: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 20;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.similarMenu a {
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  color: var(--on-surface);
+  text-decoration: none;
+  font: var(--fs-label-sm);
+}
+
+.similarMenu a:hover {
+  background: var(--surface-high);
 }
 
 .favBtn {
