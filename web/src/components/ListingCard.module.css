@@ -279,6 +279,20 @@
   font: var(--fs-label-sm);
 }
 
+.similarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: var(--r-md);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--on-surface-variant);
+  font: var(--fs-label-sm);
+  cursor: pointer;
+}
+
 .favBtn {
   min-width: 40px;
   min-height: 40px;

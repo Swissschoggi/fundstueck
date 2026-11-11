@@ -5,8 +5,9 @@ import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode, onFindSimilar }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
+  onFindSimilar?: (listing: NormalizedListing) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const { isSaved, toggle } = useFavorites();
@@ -67,6 +68,11 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
         </div>
       </div>
       <div className={styles.footer}>
+        {onFindSimilar && (
+          <button type="button" className={styles.similarBtn} onClick={() => onFindSimilar(listing)} aria-label="Find similar listings">
+            <Icon name="travel_explore" size={16} /> Find similar
+          </button>
+        )}
         <div className={styles.priceCol}>
           <span className={styles.priceLabel}>{converted ? 'Price · ' + listing.marketCurrency : 'Price'}</span>
           <span className={`t-price-card ${styles.price}`}>{displayPrice}</span>

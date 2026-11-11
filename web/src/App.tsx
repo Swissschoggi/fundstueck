@@ -281,9 +281,10 @@ export default function App() {
     window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
   }, [query, market, sort, view, minPrice, maxPrice, gender, size, path]);
 
-  const submit = useCallback(() => {
-    const q = input.trim();
+  const submit = useCallback((qOverride?: string) => {
+    const q = (qOverride ?? input).trim();
     if (!q) return;
+    if (qOverride) setInput(q);
     setSourceFilter('all');
     try {
       const prev = JSON.parse(localStorage.getItem('fundstueck:recent') || '[]');
@@ -479,6 +480,7 @@ export default function App() {
                 filteredListings={visibleListings}
                 hasMore={visibleCount < filteredListings.length}
                 onLoadMore={() => setVisibleCount((n) => n + 48)}
+                onFindSimilar={(l) => submit(l.title)}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>
