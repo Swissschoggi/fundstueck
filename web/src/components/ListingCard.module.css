@@ -330,7 +330,8 @@
   width: 100%;
 }
 
-.similarMenu a:hover {
+.similarMenu a:hover,
+.similarMenu button:hover {
   background: var(--surface-high);
 }
 

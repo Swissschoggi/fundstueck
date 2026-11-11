@@ -333,7 +333,7 @@ export default function App() {
           messages: [{
             role: 'user',
             content: [
-              { type: 'text', text: 'Describe this product in a short search query (max 6 words). Return only the query.' },
+              { type: 'text', text: 'Extract 3 to 5 concise search keywords for this product (brand, type, color). Return ONLY the keywords separated by spaces, no sentence, no punctuation.' },
               { type: 'image_url', image_url: { url: listing.imageUrl } },
             ],
           }],
@@ -346,7 +346,8 @@ export default function App() {
         window.alert(`AI failed: ${msg}`);
         return;
       }
-      const text = body?.choices?.[0]?.message?.content?.trim();
+      const raw = body?.choices?.[0]?.message?.content?.trim() ?? '';
+      const text = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 6).join(' ');
       if (text) submit(text);
       else window.alert('AI returned no description.');
     } catch (err) {
