@@ -180,6 +180,29 @@ export function FilterRail({
           </div>
         </div>
       </div>
+
+      <details className={styles.advanced}>
+        <summary className={styles.advancedSummary}>Advanced (sizing guide, tips)</summary>
+        <div className={styles.advancedBody}>
+          <p className={styles.advancedTitle}>Shoe size conversion</p>
+          <table className={styles.sizeTable}>
+            <thead><tr><th>EU</th><th>UK</th><th>US (M)</th><th>US (W)</th></tr></thead>
+            <tbody>
+              <tr><td>38</td><td>5</td><td>6</td><td>7.5</td></tr>
+              <tr><td>39</td><td>6</td><td>7</td><td>8.5</td></tr>
+              <tr><td>40</td><td>6.5</td><td>7.5</td><td>9</td></tr>
+              <tr><td>41</td><td>7</td><td>8</td><td>9.5</td></tr>
+              <tr><td>42</td><td>8</td><td>9</td><td>10.5</td></tr>
+              <tr><td>43</td><td>9</td><td>10</td><td>11.5</td></tr>
+              <tr><td>44</td><td>9.5</td><td>10.5</td><td>12</td></tr>
+              <tr><td>45</td><td>10.5</td><td>11.5</td><td>13</td></tr>
+            </tbody>
+          </table>
+          <p className={styles.advancedHint}>
+            Tip: use the size filter above (e.g. "42", "M", "XL") — matching is best-effort from listing titles.
+          </p>
+        </div>
+      </details>
     </aside>
   );
 }

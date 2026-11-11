@@ -42,6 +42,15 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [imageSearchTemplate, setImageSearchTemplate] = useState<string>(() => {
     try { return localStorage.getItem('fundstueck:imageSearchTemplate') ?? ''; } catch { return ''; }
   });
+  const [aiEndpoint, setAiEndpoint] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('fundstueck:aiConfig') ?? '{}').endpoint ?? ''; } catch { return ''; }
+  });
+  const [aiModel, setAiModel] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('fundstueck:aiConfig') ?? '{}').model ?? ''; } catch { return ''; }
+  });
+  const [aiApiKey, setAiApiKey] = useState<string>(() => {
+    try { return JSON.parse(localStorage.getItem('fundstueck:aiConfig') ?? '{}').apiKey ?? ''; } catch { return ''; }
+  });
 
   const refreshEvents = useCallback(() => {
     fetchEvents(120)
@@ -378,8 +387,30 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                   } catch { /* ignore */ }
                 }}
               >
-                Save
+                Save image search
               </button>
+
+            <div className={styles.aiBlock}>
+              <span className={styles.engineLabel}>AI vision (OpenAI-compatible)</span>
+              <input className={styles.engineInput} placeholder="Endpoint, e.g. http://localhost:11434/v1" value={aiEndpoint} onChange={(e) => setAiEndpoint(e.target.value)} />
+              <input className={styles.engineInput} placeholder="Model, e.g. llava or gpt-4o" value={aiModel} onChange={(e) => setAiModel(e.target.value)} />
+              <input className={styles.engineInput} type="password" placeholder="API key (optional for Ollama)" value={aiApiKey} onChange={(e) => setAiApiKey(e.target.value)} />
+              <button
+                type="button"
+                className={styles.engineSave}
+                onClick={() => {
+                  try {
+                    if (aiEndpoint.trim() && aiModel.trim()) {
+                      localStorage.setItem('fundstueck:aiConfig', JSON.stringify({ endpoint: aiEndpoint.trim(), model: aiModel.trim(), apiKey: aiApiKey.trim() }));
+                    } else {
+                      localStorage.removeItem('fundstueck:aiConfig');
+                    }
+                  } catch { /* ignore */ }
+                }}
+              >
+                Save AI
+              </button>
+            </div>
             </div>
 
             <p className={styles.engineNote}>

@@ -5,13 +5,22 @@ import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate, onAiSimilar }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
   imageSearchTemplate?: string | null;
+  onAiSimilar?: (listing: NormalizedListing) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
   const similarRef = useRef<HTMLDivElement>(null);
+  const hasAi = (() => {
+    try {
+      const raw = localStorage.getItem('fundstueck:aiConfig');
+      if (!raw) return false;
+      const cfg = JSON.parse(raw);
+      return Boolean(cfg?.endpoint && cfg?.model);
+    } catch { return false; }
+  })();
   const { isSaved, toggle } = useFavorites();
 
   useEffect(() => {
@@ -93,6 +102,11 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
             </button>
             {similarOpen && (
               <div className={styles.similarMenu} role="menu">
+                {hasAi && onAiSimilar && (
+                  <button type="button" role="menuitem" className={styles.menuItem} onClick={() => { onAiSimilar(listing); setSimilarOpen(false); }}>
+                    AI similar (vision)
+                  </button>
+                )}
                 {imageSearchTemplate && (
                   <a href={imageSearchTemplate.replace('{image}', encodeURIComponent(listing.imageUrl))} target="_blank" rel="noopener noreferrer" role="menuitem">Fundstück engine</a>
                 )}

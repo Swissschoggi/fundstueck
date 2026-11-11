@@ -315,12 +315,18 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
-.similarMenu a {
+.similarMenu a,
+.similarMenu button {
   padding: 6px 10px;
   border-radius: var(--r-sm);
   color: var(--on-surface);
   text-decoration: none;
   font: var(--fs-label-sm);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
 }
 
 .similarMenu a:hover {

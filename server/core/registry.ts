@@ -6,6 +6,7 @@ import { createAnibisAdapter } from '../adapters/anibis.adapter.js';
 import { createDevintaAdapter } from '../adapters/devinta.adapter.js';
 import { EbayAdapter } from '../adapters/ebay.adapter.js';
 import { createDepopAdapter } from '../adapters/depop.adapter.js';
+import { SearxngAdapter } from '../adapters/searxng.adapter.js';
 import { createKijijiAdapter } from '../adapters/kijiji.adapter.js';
 import { createKleinanzeigenAdapter } from '../adapters/kleinanzeigen.adapter.js';
 import { createMercariAdapter } from '../adapters/mercari.adapter.js';
@@ -147,6 +148,7 @@ function isGlobalAdapter(adapter: MarketplaceAdapter): boolean {
   // Adapters that are useful in every country (official APIs, etc.).
   if (adapter.id === 'ebay') return true;
   if (adapter.id === 'sample') return true;
+  if (adapter.id === 'searxng') return true;
   return adapter.markets.length >= 50;
 }
 
@@ -157,6 +159,9 @@ function buildCandidatePool(cfg: ServerConfig): MarketplaceAdapter[] {
     createAnibisAdapter(cfg.scrapers),
     createMarkoAdapter(cfg.scrapers),
     createDepopAdapter({ ...cfg.scrapers, depop: true }),
+    ...(cfg.searxngUrl
+      ? [new SearxngAdapter({ baseUrl: cfg.searxngUrl, userAgent: cfg.scrapers.userAgent, minIntervalMs: cfg.scrapers.minIntervalMs, enabled: true })]
+      : []),
     createDevintaAdapter('marktplaats', cfg.scrapers),
     createDevintaAdapter('2dehands', cfg.scrapers),
     createSubitoAdapter(cfg.scrapers),

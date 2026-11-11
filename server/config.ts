@@ -54,6 +54,7 @@ export interface ServerConfig {
    * e.g. "https://my-ai.example.com/similar?img={image}".
    */
   imageSearchUrl: string | undefined;
+  searxngUrl: string | undefined;
   ebay: {
     clientId: string | undefined;
     clientSecret: string | undefined;
@@ -88,6 +89,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean),
     imageSearchUrl: env.IMAGE_SEARCH_URL || undefined,
+    searxngUrl: env.SEARXNG_URL || undefined,
     ebay: {
       clientId: env.EBAY_CLIENT_ID || undefined,
       clientSecret: env.EBAY_CLIENT_SECRET || undefined,

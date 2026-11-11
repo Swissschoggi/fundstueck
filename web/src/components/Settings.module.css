@@ -769,6 +769,13 @@
   cursor: pointer;
 }
 
+.aiBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
 /* ---------- Event terminal ---------- */
 .terminal {
   border-radius: var(--r-xl);
