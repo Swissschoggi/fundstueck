@@ -67,6 +67,14 @@
   text-overflow: ellipsis;
 }
 
+.duplicates {
+  font: var(--fs-label-sm);
+  color: var(--on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .imageWrap {
   position: relative;
   width: 100%;

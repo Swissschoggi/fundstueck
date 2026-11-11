@@ -197,7 +197,13 @@ function dedupKey(l: NormalizedListing): string {
   const url = canonicalUrl(l.listingUrl);
   if (url) return `url:${url}`;
   const normTitle = normalizeText(l.title);
-  const price = l.price != null ? Math.round(l.price) : 'na';
+  // Only merge by title+price+location when the title is specific enough and
+  // a price is present — otherwise unrelated "no-price" listings would
+  // collapse into one group and inflate the duplicate count.
+  if (normTitle.length < 12 || l.price == null) {
+    return `listing:${l.source}:${l.id}`;
+  }
+  const price = Math.round(l.price);
   const loc = normalizeText(l.location || '');
   return `title:${normTitle}|${price}|${loc}`;
 }

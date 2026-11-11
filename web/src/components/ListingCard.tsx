@@ -37,6 +37,11 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
               <span className={styles.sourceDot} style={{ background: accent }} />{sourceLabel}
             </span>
             {listing.location && <span className={styles.location}>{listing.location}</span>}
+            {listing.duplicateCount && listing.duplicateCount > 0 && (
+              <span className={styles.duplicates} title={(listing.duplicateListings ?? []).map((d) => d.source).join(', ')}>
+                +{listing.duplicateCount} duplicate{listing.duplicateCount === 1 ? '' : 's'} on {(listing.duplicateListings ?? []).map((d) => d.source).join(', ')}
+              </span>
+            )}
             {freshnessLabel && <span className={styles.freshnessBadge} title={listing.ageDays == null ? 'Publication date is old' : 'Published ' + listing.ageDays + ' days ago'}>{freshnessLabel}</span>}
           </div>
           <button
