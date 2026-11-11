@@ -84,6 +84,6 @@ export interface SourceStatus {
 
 export interface SearchResponse {
   query: string; normalizedQuery?: string; market: string; marketCurrency?: string; sort: SortKey;
-  total: number; rawTotal?: number; duplicatesRemoved?: number; tookMs: number; isSampleData: boolean;
+  total: number; rawTotal?: number; dedupedTotal?: number; duplicatesRemoved?: number; tookMs: number; isSampleData: boolean;
   listings: NormalizedListing[]; sources: SourceStatus[];
 }

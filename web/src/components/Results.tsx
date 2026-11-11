@@ -133,6 +133,7 @@ export function Results({
           {failedCount > 0 && <span>{failedCount} failed</span>}
           {timeoutCount > 0 && <span>{timeoutCount} timed out</span>}
           <span>{result.rawTotal ?? result.total} raw results</span>
+          <span>{result.dedupedTotal ?? result.total} unique after dedup</span>
           <span>{result.duplicatesRemoved ?? 0} duplicates merged</span>
         </div>
         <div className={styles.diagnosticRows}>

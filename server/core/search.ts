@@ -368,6 +368,7 @@ export async function runSearch(
       deduped.push(primary);
     }
   }
+  const dedupedCount = deduped.length;
   listings = deduped;
 
   // Sorting
@@ -449,7 +450,8 @@ export async function runSearch(
     sort: query.sort,
     total: listings.length,
     rawTotal,
-    duplicatesRemoved: rawTotal - listings.length,
+    dedupedTotal: dedupedCount,
+    duplicatesRemoved: rawTotal - dedupedCount,
     tookMs: Date.now() - started,
     isSampleData,
     listings,
