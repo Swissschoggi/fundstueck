@@ -334,7 +334,7 @@ export default function App() {
           messages: [
             { role: 'system', content: 'You are a search-query generator for a second-hand marketplace. You receive a product image (and optionally its title). Reply with ONLY 3 to 5 short search keywords (item type, color, brand, material). No sentences, no descriptions, no articles, no punctuation. Example output: "black leather cowboy boots".' },
             { role: 'user', content: [
-              { type: 'text', text: `Generate search keywords for this second-hand item. Listing title: "${listing.title}".` },
+              { type: 'text', text: `Generate search keywords for this second-hand item. Listing title: "${listing.title}". Describe ONLY the item itself, ignore the background, setting, or how it is placed.` },
               { type: 'image_url', image_url: { url: listing.imageUrl } },
             ]},
           ],
@@ -350,7 +350,10 @@ export default function App() {
       }
       const raw = body?.choices?.[0]?.message?.content?.trim() ?? '';
       const filler = new Set(['the','image','shows','a','an','of','with','and','is','this','pair','in']);
-      const text = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase())).slice(0, 6).join(' ');
+      const sceneWords = new Set(['placed','sitting','on','beige','background','floor','table','surface','photo','picture','white','studio','shown','displayed','top','view']);
+      const words = raw.replace(/[^a-zA-Z0-9äöüÄÖÜéèàç ]/g, ' ').split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase()));
+      const hasScene = words.some((w: string) => sceneWords.has(w.toLowerCase()));
+      const text = (hasScene ? listing.title : words.join(' ')).split(/\s+/).filter((w: string) => w && !filler.has(w.toLowerCase())).slice(0, 6).join(' ');
       if (text) {
         navigate('/');
         setTimeout(() => submit(text), 0);
