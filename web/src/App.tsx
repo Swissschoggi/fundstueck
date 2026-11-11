@@ -480,7 +480,6 @@ export default function App() {
                 filteredListings={visibleListings}
                 hasMore={visibleCount < filteredListings.length}
                 onLoadMore={() => setVisibleCount((n) => n + 48)}
-                onFindSimilar={(l) => submit(l.title)}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>

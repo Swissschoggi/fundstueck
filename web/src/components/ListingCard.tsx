@@ -5,9 +5,8 @@ import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode, onFindSimilar }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
-  onFindSimilar?: (listing: NormalizedListing) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const { isSaved, toggle } = useFavorites();
@@ -68,10 +67,16 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, onFindSimi
         </div>
       </div>
       <div className={styles.footer}>
-        {onFindSimilar && (
-          <button type="button" className={styles.similarBtn} onClick={() => onFindSimilar(listing)} aria-label="Find similar listings">
+        {listing.imageUrl && (
+          <a
+            className={styles.similarBtn}
+            href={`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(listing.imageUrl)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Find similar images via Google Lens"
+          >
             <Icon name="travel_explore" size={16} /> Find similar
-          </button>
+          </a>
         )}
         <div className={styles.priceCol}>
           <span className={styles.priceLabel}>{converted ? 'Price · ' + listing.marketCurrency : 'Price'}</span>

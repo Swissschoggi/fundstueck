@@ -19,7 +19,7 @@ function SkeletonCard() {
 }
 
 export function Results({
-  status, result, errorMessage, errorCode, marketLabel: _marketLabel, view, filteredListings, onRetry, hasMore, onLoadMore, onFindSimilar,
+  status, result, errorMessage, errorCode, marketLabel: _marketLabel, view, filteredListings, onRetry, hasMore, onLoadMore,
 }: {
   status: 'idle' | 'loading' | 'success' | 'error';
   result: SearchResponse | null;
@@ -31,7 +31,6 @@ export function Results({
   onRetry: () => void;
   hasMore?: boolean;
   onLoadMore?: () => void;
-  onFindSimilar?: (listing: SearchResponse['listings'][number]) => void;
 }) {
   if (status === 'loading') {
     return <div className={styles.grid} aria-busy="true" aria-label="Loading results">
@@ -164,7 +163,7 @@ export function Results({
     </div> : <div className={view === 'grid' ? styles.grid : styles.listColumn}>
       {filteredListings.map((l) => {
         const src = result.sources.find((s) => s.source === l.source);
-        return <ListingCard key={l.id} listing={l} view={view} sourceLabel={src?.label ?? l.source} sourceMode={src?.mode ?? 'live'} onFindSimilar={onFindSimilar} />;
+        return <ListingCard key={l.id} listing={l} view={view} sourceLabel={src?.label ?? l.source} sourceMode={src?.mode ?? 'live'} />;
       })}
     </div>}
   {hasMore && (
