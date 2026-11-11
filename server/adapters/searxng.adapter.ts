@@ -1,6 +1,7 @@
 import type { MarketplaceAdapter, AdapterSearchParams, NormalizedListing, AdapterHealth } from '../core/types.js';
 import { SourceError } from '../core/types.js';
 import { combineSignals } from './scrape.js';
+import { getAdapterConfig } from '../core/adapter-config.js';
 
 export interface SearxngConfig {
   baseUrl: string;
@@ -19,23 +20,37 @@ export class SearxngAdapter implements MarketplaceAdapter {
   readonly envVars = ['SEARXNG_URL', 'SCRAPER_MIN_INTERVAL_MS', 'SCRAPER_USER_AGENT'];
   readonly capabilities = ['Web meta-search', 'JSON API'];
   readonly docsUrl = 'https://docs.searxng.org';
-  readonly configFields = undefined;
+  readonly configFields = [
+    {
+      key: 'base_url',
+      label: 'SearXNG base URL',
+      placeholder: 'http://localhost:8080',
+      help: 'Self-hosted SearXNG instance with JSON output enabled.',
+    },
+  ];
 
   private readonly cfg: SearxngConfig;
   private enabled: boolean;
 
-  constructor(cfg: SearxngConfig & { enabled: boolean }) {
+  constructor(cfg: SearxngConfig & { enabled?: boolean }) {
     this.cfg = { baseUrl: cfg.baseUrl, userAgent: cfg.userAgent, minIntervalMs: cfg.minIntervalMs };
-    this.enabled = cfg.enabled;
+    this.enabled = cfg.enabled ?? true;
   }
 
-  isEnabled(): boolean { return this.enabled; }
-  disabledReason(): string | null { return this.enabled ? null : 'Disabled via SEARXNG_URL (unset)'; }
+  private effectiveBaseUrl(): string {
+    const fromConfig = (getAdapterConfig(this.id).base_url ?? '').trim();
+    if (fromConfig) return fromConfig;
+    return (this.cfg.baseUrl ?? '').trim();
+  }
+
+  isEnabled(): boolean { return Boolean(this.effectiveBaseUrl()); }
+  disabledReason(): string | null { return this.isEnabled() ? null : 'Set a SearXNG base URL in the adapter config or SEARXNG_URL.'; }
 
   async search(params: AdapterSearchParams): Promise<NormalizedListing[]> {
-    if (!this.enabled) throw new SourceError('SearXNG disabled', 'AUTH');
+    if (!this.isEnabled()) throw new SourceError('SearXNG disabled', 'AUTH');
     const fetchedAt = new Date().toISOString();
-    const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/search?q=${encodeURIComponent(params.q)}&format=json&categories=general`;
+    const base = this.effectiveBaseUrl();
+    const url = `${base.replace(/\/$/, '')}/search?q=${encodeURIComponent(params.q)}&format=json&categories=general`;
     let res: Response;
     try {
       res = await fetch(url, {
@@ -71,9 +86,10 @@ export class SearxngAdapter implements MarketplaceAdapter {
 
   async healthCheck(): Promise<AdapterHealth> {
     const started = Date.now();
-    if (!this.enabled) return { ok: false, latencyMs: 0, message: this.disabledReason() ?? 'Disabled.' };
+    if (!this.isEnabled()) return { ok: false, latencyMs: 0, message: this.disabledReason() ?? 'Disabled.' };
     try {
-      const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/search?q=test&format=json`;
+      const base = this.effectiveBaseUrl();
+      const url = `${base.replace(/\/$/, '')}/search?q=test&format=json`;
       const res = await fetch(url, { headers: { 'User-Agent': this.cfg.userAgent } });
       return { ok: res.ok, latencyMs: Date.now() - started, message: res.ok ? 'OK' : `HTTP ${res.status}` };
     } catch (err) {

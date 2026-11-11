@@ -161,9 +161,7 @@ function buildCandidatePool(cfg: ServerConfig): MarketplaceAdapter[] {
     createAnibisAdapter(cfg.scrapers),
     createMarkoAdapter(cfg.scrapers),
     createDepopAdapter({ ...cfg.scrapers, depop: true }),
-    ...(cfg.searxngUrl
-      ? [new SearxngAdapter({ baseUrl: cfg.searxngUrl, userAgent: cfg.scrapers.userAgent, minIntervalMs: cfg.scrapers.minIntervalMs, enabled: true })]
-      : []),
+    new SearxngAdapter({ baseUrl: cfg.searxngUrl ?? '', userAgent: cfg.scrapers.userAgent, minIntervalMs: cfg.scrapers.minIntervalMs, enabled: true }),
     createDevintaAdapter('marktplaats', cfg.scrapers),
     createDevintaAdapter('2dehands', cfg.scrapers),
     createSubitoAdapter(cfg.scrapers),
