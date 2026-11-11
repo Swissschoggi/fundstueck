@@ -113,11 +113,11 @@ export class SmgAdapter implements MarketplaceAdapter {
     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
   }
 
-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
+  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.opts.enabled) {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
-    const html = await this.client.getHtml(this.searchUrl(q));
+    const html = await this.client.getHtml(this.searchUrl(q), { signal });
     return this.parse(html).slice(0, limit);
   }
 

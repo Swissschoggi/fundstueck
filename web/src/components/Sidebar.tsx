@@ -28,7 +28,7 @@ export function Sidebar({
   route: string;
   onNavigate: (to: string) => void;
 }) {
-  const anyEnabled = sources.some((s) => s.enabled);
+  const anyEnabled = sources.some((s) => s.userEnabled ?? s.enabled);
   const settingsActive = (path: string) =>
     route === path || (path === '/settings/adapters' && route === '/settings');
 
@@ -143,12 +143,12 @@ export function Sidebar({
             <span
               className={styles.sourceDot}
               style={{
-                background: s.enabled ? sourceAccent(s.source) : 'var(--outline-variant)',
+                background: (s.userEnabled ?? s.enabled) ? sourceAccent(s.source) : 'var(--outline-variant)',
               }}
             />
             <span>{s.label}</span>
             <span className={styles.sourceState}>
-              {s.enabled ? (s.mode === 'sample' ? 'sample' : 'live') : 'off'}
+              {(s.userEnabled ?? s.enabled) ? (s.mode === 'sample' ? 'sample' : 'live') : 'off'}
             </span>
           </div>
         ))}

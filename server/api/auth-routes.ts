@@ -10,7 +10,8 @@ import {
   parseCookies,
   register,
 } from '../core/accounts.js';
-import { listFavorites, addFavorite, removeFavorite } from '../core/favorites.js';
+import { listFavorites, addFavorite, removeFavorite, migrateFavorites, purgeFavorites } from '../core/favorites.js';
+import { getUserPrefs, migratePrefs, purgePrefs, setSourceEnabledForOwner } from '../core/user-prefs.js';
 import type { StoredFavorite } from '../core/favorites.js';
 import { rateLimitMiddleware } from '../core/rate-limit.js';
 
@@ -39,6 +40,26 @@ function sessionToken(req: Request): string | undefined {
 
 function currentUser(req: Request) {
   return getUserByToken(sessionToken(req));
+}
+
+/**
+ * Who owns per-person data (saved items, source preferences) for this request:
+ * the signed-in account, else the anonymous device id the client sent.
+ */
+export function ownerKeyFor(req: Request, device?: unknown): string | null {
+  const user = currentUser(req);
+  if (user) return `user:${user.id}`;
+  const d = typeof device === 'string' ? device.trim() : '';
+  return d || null;
+}
+
+/** Fold anonymous-device data into the account that just signed in. */
+async function adoptDeviceData(userId: string, device: unknown): Promise<void> {
+  const d = typeof device === 'string' ? device.trim() : '';
+  if (!d) return;
+  const toKey = `user:${userId}`;
+  await migrateFavorites(d, toKey);
+  await migratePrefs(d, toKey);
 }
 
 /**
@@ -102,6 +123,7 @@ export function mountAuthRoutes(router: Router, cfg: ServerConfig): void {
       return;
     }
     setSessionCookie(res, loginResult.token, cfg);
+    await adoptDeviceData(loginResult.user.id, body.device);
     res.json({ user: loginResult.user });
   });
 
@@ -119,6 +141,7 @@ export function mountAuthRoutes(router: Router, cfg: ServerConfig): void {
       return;
     }
     setSessionCookie(res, result.token, cfg);
+    await adoptDeviceData(result.user.id, body.device);
     res.json({ user: result.user });
   });
 
@@ -170,8 +193,32 @@ export function mountAuthRoutes(router: Router, cfg: ServerConfig): void {
       res.status(400).json({ error: { code: 'INVALID_REQUEST', message: result.error } });
       return;
     }
+    await purgeFavorites(`user:${user.id}`);
+    await purgePrefs(`user:${user.id}`);
     clearSessionCookie(res);
     res.json({ ok: true });
+  });
+
+  // ---- Per-account source preferences (device-scoped when signed out) ----
+
+  router.get('/preferences', (req, res) => {
+    const key = ownerKeyFor(req, req.query.device);
+    res.json({ preferences: getUserPrefs(key), scope: key?.startsWith('user:') ? 'account' : 'device' });
+  });
+
+  router.post('/preferences/sources/:id', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const key = ownerKeyFor(req, body.device);
+    if (!key) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: '\"device\" is required when signed out.' } });
+      return;
+    }
+    if (typeof body.enabled !== 'boolean') {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must include { \"enabled\": boolean }.' } });
+      return;
+    }
+    const preferences = await setSourceEnabledForOwner(key, req.params.id, body.enabled);
+    res.json({ preferences });
   });
 
   // ---- Favorites (per-user when signed in, per-device otherwise) ----

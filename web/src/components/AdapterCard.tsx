@@ -17,13 +17,17 @@ export function AdapterCard({
   health,
   toggling,
   onToggle,
+  onToggleGlobal,
   onHealthCheck,
   onRemove,
 }: {
   adapter: AdapterInfo;
   health: HealthState;
   toggling: boolean;
+  /** Personal switch for the signed-in account (or this device). */
   onToggle: (enabled: boolean) => void;
+  /** Operator master switch for everyone; needs operator access in production. */
+  onToggleGlobal?: (enabled: boolean) => void;
   onHealthCheck: () => void;
   onRemove?: () => void;
 }) {
@@ -48,7 +52,9 @@ export function AdapterCard({
     ? { label: adapter.runtimeDisabled ? 'Disabled' : 'Unconfigured', tone: 'muted' as const }
     : adapter.runtimeDisabled
       ? { label: 'Disabled', tone: 'muted' as const }
-      : health.state === 'done' && health.ok === false
+      : adapter.userEnabled === false
+        ? { label: 'Off for you', tone: 'muted' as const }
+        : health.state === 'done' && health.ok === false
         ? { label: 'Attention', tone: 'error' as const }
         : health.state === 'done' && health.ok
           ? { label: 'Healthy', tone: 'ok' as const }
@@ -134,21 +140,21 @@ export function AdapterCard({
           className={styles.toggle}
           title={
             adapter.configured
-              ? 'Toggle whether search uses this source'
+              ? 'Toggle whether YOUR searches use this source'
               : (adapter.disabledReason ?? 'Not configured')
           }
         >
           <input
             type="checkbox"
             className={styles.toggleInput}
-            checked={adapter.enabled}
+            checked={adapter.userEnabled ?? adapter.enabled}
             disabled={!adapter.configured || toggling}
             onChange={(e) => onToggle(e.target.checked)}
           />
           <span className={styles.track}>
             <span className={styles.knob} />
           </span>
-          <span className={styles.toggleLabel}>Adapter enabled</span>
+          <span className={styles.toggleLabel}>Use in my searches</span>
         </label>
 
         <div className={styles.cardActions}>
@@ -170,6 +176,18 @@ export function AdapterCard({
             <Icon name="bolt" size={14} />
             {health.state === 'running' ? 'Checking…' : 'Health check'}
           </button>
+          {onToggleGlobal && adapter.configured && (
+            <button
+              type="button"
+              className={styles.smallButton}
+              onClick={() => onToggleGlobal(adapter.runtimeDisabled)}
+              disabled={toggling}
+              title="Operator switch: turns this source on or off for all users"
+            >
+              <Icon name={adapter.runtimeDisabled ? 'play_arrow' : 'pause'} size={14} />
+              {adapter.runtimeDisabled ? 'Enable for all' : 'Disable for all'}
+            </button>
+          )}
           {onRemove && (
             <button
               type="button"

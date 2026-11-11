@@ -41,7 +41,9 @@ export interface NormalizedListing {
 }
 
 export type AdapterMode = 'live' | 'sample';
-export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string; minPrice?: number | null; maxPrice?: number | null }
+export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string; minPrice?: number | null; maxPrice?: number | null;
+  /** Aborted when the search deadline passes or the caller goes away. Adapters should stop work and may return partial results. */
+  signal?: AbortSignal }
 
 export class SourceError extends Error {
   constructor(message: string, readonly code: 'AUTH' | 'UPSTREAM' | 'NETWORK' | 'RESPONSE', readonly statusCode?: number) {
@@ -79,7 +81,9 @@ export type SortKey = (typeof SORTS)[number];
 
 export interface SourceStatus {
   source: string; label: string; mode: AdapterMode; enabled: boolean; disabledReason: string | null;
-  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; timedOut?: boolean; error?: string;
+  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; timedOut?: boolean; partial?: boolean; error?: string;
+  /** Set when the signed-in user (or device) switched this source off for themselves. */
+  userDisabled?: boolean;
 }
 
 export interface SearchResponse {

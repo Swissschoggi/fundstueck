@@ -73,11 +73,11 @@ export class PublicPageAdapter implements MarketplaceAdapter {
     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
   }
 
-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
+  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.opts.enabled) {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
-    const html = await this.client.getHtml(this.opts.searchUrl(q));
+    const html = await this.client.getHtml(this.opts.searchUrl(q), { signal });
     return this.opts.parse(html, new Date().toISOString()).slice(0, limit);
   }
 

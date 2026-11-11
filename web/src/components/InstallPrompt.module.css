@@ -1,0 +1,48 @@
+.banner {
+  position: fixed;
+  left: var(--space-md);
+  right: var(--space-md);
+  /* Sit above the mobile bottom nav (56px) and the home indicator. */
+  bottom: calc(56px + env(safe-area-inset-bottom) + var(--space-sm));
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-high);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 768px) {
+  .banner {
+    display: none;
+  }
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.action {
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border-radius: var(--r-md);
+  background: var(--primary);
+  color: var(--on-primary, #131315);
+  font-weight: 600;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  color: var(--on-surface-variant);
+}

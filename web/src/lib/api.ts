@@ -1,3 +1,4 @@
+import { getDeviceId } from './device';
 import type {
   AdapterHealthResult,
   AdapterInfo,
@@ -48,8 +49,9 @@ export async function fetchSearch(params: SearchParams, signal?: AbortSignal): P
   if (params.category) url.searchParams.set('category', params.category);
   if (params.gender) url.searchParams.set('gender', params.gender);
   if (params.size) url.searchParams.set('size', params.size);
+  url.searchParams.set('device', getDeviceId());
 
-  const res = await fetch(url, { headers: { Accept: 'application/json' }, signal });
+  const res = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'include', signal });
   if (!res.ok) {
     let message = `Search failed (HTTP ${res.status})`;
     let code: string | undefined;
@@ -68,7 +70,8 @@ export async function fetchSearch(params: SearchParams, signal?: AbortSignal): P
 export async function fetchSources(market?: string): Promise<AdapterInfo[]> {
   const url = new URL('/api/sources', window.location.origin);
   if (market) url.searchParams.set('market', market);
-  const res = await fetch(url);
+  url.searchParams.set('device', getDeviceId());
+  const res = await fetch(url, { credentials: 'include' });
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   const body = (await res.json()) as { sources: AdapterInfo[] };
   return body.sources;
@@ -114,6 +117,17 @@ export async function setAdapterEnabled(id: string, enabled: boolean): Promise<A
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   const body = (await res.json()) as { source: AdapterInfo };
   return body.source;
+}
+
+/** Switch a source on/off for the current account (or device when signed out). */
+export async function setSourcePreference(id: string, enabled: boolean): Promise<void> {
+  const res = await fetch(`/api/preferences/sources/${encodeURIComponent(id)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ enabled, device: getDeviceId() }),
+  });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
 }
 
 export async function checkAdapterHealth(id: string): Promise<AdapterHealthResult> {

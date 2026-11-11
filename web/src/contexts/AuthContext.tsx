@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { getDeviceId } from '../lib/device';
 
 interface User { id: string; email: string; createdAt: string }
 
@@ -37,11 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, device: getDeviceId() }),
     });
     const body = await res.json();
     if (!res.ok) return { error: body?.error?.message ?? 'Login failed' };
     setUser(body.user);
+    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
     return { error: null };
   };
 
@@ -50,17 +52,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, device: getDeviceId() }),
     });
     const body = await res.json();
     if (!res.ok) return { error: body?.error?.message ?? 'Registration failed' };
     setUser(body.user);
+    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
     return { error: null };
   };
 
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);
+    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
   };
 
   return (

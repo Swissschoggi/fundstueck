@@ -46,3 +46,56 @@ describe('runSearch dedup contract', () => {
     assert.equal(res.listings.length, 1);
   });
 });
+
+describe('runSearch timeouts', () => {
+  const baseListing: NormalizedListing = {
+    id: 'slow:1', source: 'slow', sourceListingId: '1', title: 'Test Bike', description: '',
+    price: 100, currency: 'CHF', location: null, imageUrl: null,
+    listingUrl: 'https://example.com/slow/1', publishedAt: null, fetchedAt: new Date().toISOString(),
+  };
+
+  it('passes an AbortSignal that fires at the adapter deadline and reports a timeout', async () => {
+    let sawAbort = false;
+    const adapter = {
+      ...makeAdapter('slow', baseListing),
+      timeoutMs: 40,
+      search: (params: { signal?: AbortSignal }) =>
+        new Promise<NormalizedListing[]>(() => {
+          params.signal?.addEventListener('abort', () => { sawAbort = true; });
+        }),
+    } as unknown as MarketplaceAdapter;
+    const res = await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }));
+    assert.equal(sawAbort, true);
+    assert.equal(res.sources[0].status, 'timeout');
+  });
+
+  it('keeps partial results from an adapter that returns them after the deadline', async () => {
+    const adapter = {
+      ...makeAdapter('slow', baseListing),
+      timeoutMs: 40,
+      search: (params: { signal?: AbortSignal }) =>
+        new Promise<NormalizedListing[]>((resolve) => {
+          params.signal?.addEventListener('abort', () => resolve([baseListing]));
+        }),
+    } as unknown as MarketplaceAdapter;
+    const res = await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }));
+    assert.equal(res.sources[0].status, 'ok');
+    assert.equal(res.sources[0].partial, true);
+    assert.equal(res.listings.length, 1);
+  });
+
+  it('aborts adapters when the caller goes away', async () => {
+    let aborted = false;
+    const adapter = {
+      ...makeAdapter('slow', baseListing),
+      search: (params: { signal?: AbortSignal }) =>
+        new Promise<NormalizedListing[]>((_, reject) => {
+          params.signal?.addEventListener('abort', () => { aborted = true; reject(new Error('cancelled')); });
+        }),
+    } as unknown as MarketplaceAdapter;
+    const caller = new AbortController();
+    setTimeout(() => caller.abort(), 20);
+    await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }), { signal: caller.signal });
+    assert.equal(aborted, true);
+  });
+});

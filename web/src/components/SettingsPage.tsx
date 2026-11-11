@@ -5,6 +5,7 @@ import {
   fetchSources,
   fetchSystem,
   setAdapterEnabled,
+  setSourcePreference,
   uninstallAdapter,
 } from '../lib/api';
 import type { AdapterInfo, ServerEvent, SystemInfo } from '../lib/types';
@@ -85,12 +86,31 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
     return () => window.clearInterval(id);
   }, [refreshEvents]);
 
+  // Personal switch: applies to this account (or this device when signed out).
   const handleToggle = async (adapter: AdapterInfo, enabled: boolean) => {
     setTogglingId(adapter.source);
     setError(null);
     try {
-      const updated = await setAdapterEnabled(adapter.source, enabled);
-      setAdapters((prev) => prev.map((a) => (a.source === updated.source ? updated : a)));
+      await setSourcePreference(adapter.source, enabled);
+      setAdapters((prev) =>
+        prev.map((a) => (a.source === adapter.source ? { ...a, userEnabled: enabled && a.enabled } : a)),
+      );
+      refreshEvents();
+      window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Could not update adapter.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  // Operator master switch: affects everyone (needs operator access in production).
+  const handleToggleGlobal = async (adapter: AdapterInfo, enabled: boolean) => {
+    setTogglingId(adapter.source);
+    setError(null);
+    try {
+      await setAdapterEnabled(adapter.source, enabled);
+      refresh(); // reloads sources so each person's effective state is recomputed
       refreshEvents();
       window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
     } catch (e: unknown) {
@@ -267,6 +287,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                 health={health[adapter.source] ?? { state: 'idle' }}
                 toggling={togglingId === adapter.source}
                 onToggle={(enabled) => handleToggle(adapter, enabled)}
+                onToggleGlobal={(enabled) => handleToggleGlobal(adapter, enabled)}
                 onHealthCheck={() => runHealth(adapter.source)}
                 onRemove={canRemove(adapter) ? () => handleRemove(adapter) : undefined}
               />
@@ -283,6 +304,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                   health={health[adapter.source] ?? { state: 'idle' }}
                   toggling={togglingId === adapter.source}
                   onToggle={(enabled) => handleToggle(adapter, enabled)}
+                onToggleGlobal={(enabled) => handleToggleGlobal(adapter, enabled)}
                   onHealthCheck={() => runHealth(adapter.source)}
                 />
               ))}

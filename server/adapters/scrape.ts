@@ -24,43 +24,100 @@ export interface PoliteClientOptions {
   minIntervalMs: number;
   /** Extra random spacing added on top of minIntervalMs (politeness jitter). */
   jitterMs?: number;
+  /** Per-request network timeout (the fetch itself, not time spent queued). */
   timeoutMs?: number;
   cacheTtlMs?: number;
   acceptLanguage?: string;
+  /**
+   * Longest a request may wait for its rate-limit slot. Beyond this the client
+   * fails fast with a clear "busy" error instead of silently eating the whole
+   * search deadline in a queue.
+   */
+  maxQueueMs?: number;
+}
+
+/** Abort when ANY of the given signals aborts (AbortSignal.any needs Node >= 20.3). */
+export function combineSignals(...signals: Array<AbortSignal | undefined>): AbortSignal {
+  const list = signals.filter((x): x is AbortSignal => Boolean(x));
+  if (list.length === 1) return list[0];
+  const controller = new AbortController();
+  for (const sig of list) {
+    if (sig.aborted) { controller.abort(sig.reason); break; }
+    sig.addEventListener('abort', () => controller.abort(sig.reason), { once: true });
+  }
+  return controller.signal;
+}
+
+/** Reject as soon as `signal` aborts, without cancelling the underlying work. */
+function raceAbort<T>(work: Promise<T>, signal: AbortSignal | undefined, source: string): Promise<T> {
+  if (!signal) return work;
+  if (signal.aborted) {
+    work.catch(() => {});
+    return Promise.reject(new SourceError(`${source} request cancelled`, 'NETWORK'));
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(new SourceError(`${source} request cancelled`, 'NETWORK'));
+    signal.addEventListener('abort', onAbort, { once: true });
+    work.then(
+      (v) => { signal.removeEventListener('abort', onAbort); resolve(v); },
+      (e) => { signal.removeEventListener('abort', onAbort); reject(e); },
+    );
+  });
 }
 
 /**
  * Small polite HTTP client shared by the public-page adapters:
  * - serialised, rate-limited requests with jitter (never hammer a site),
  * - short-lived response cache so repeated searches share one fetch,
+ * - in-flight de-duplication: concurrent identical requests (several users
+ *   searching the same thing) share ONE upstream fetch and one rate-limit slot,
+ * - abortable: callers can stop waiting the moment their search deadline hits,
  * - explicit timeouts and safe SourceError messages.
  */
 export class PoliteClient {
   private lastRequestAt = 0;
   private readonly cache = new Map<string, { at: number; html: string }>();
+  private readonly inflight = new Map<string, Promise<string>>();
   private readonly jitterMs: number;
   private readonly timeoutMs: number;
   private readonly cacheTtlMs: number;
   private readonly acceptLanguage: string;
+  private readonly maxQueueMs: number;
 
   constructor(private readonly opts: PoliteClientOptions) {
     this.jitterMs = opts.jitterMs ?? 750;
     this.timeoutMs = opts.timeoutMs ?? 6500;
     this.cacheTtlMs = opts.cacheTtlMs ?? 60_000;
     this.acceptLanguage = opts.acceptLanguage ?? 'de-CH,de;q=0.9,fr;q=0.8,en;q=0.7';
+    this.maxQueueMs = opts.maxQueueMs ?? 12_000;
   }
 
   /** Rate-limit only: wait for this adapter's turn without fetching. */
-  async wait(): Promise<void> {
-    await this.waitTurn();
+  async wait(signal?: AbortSignal): Promise<void> {
+    await raceAbort(this.waitTurn(), signal, this.opts.source);
   }
 
-  async getHtml(url: string, options: { fresh?: boolean } = {}): Promise<string> {
+  async getHtml(url: string, options: { fresh?: boolean; signal?: AbortSignal } = {}): Promise<string> {
     const cached = this.cache.get(url);
     if (!options.fresh && cached && Date.now() - cached.at < this.cacheTtlMs) {
       return cached.html;
     }
 
+    // Share one upstream fetch between concurrent callers. The shared fetch is
+    // deliberately NOT tied to any single caller's signal; each caller just
+    // stops waiting for it when its own signal aborts.
+    let work = options.fresh ? undefined : this.inflight.get(url);
+    if (!work) {
+      work = this.fetchHtml(url).finally(() => {
+        if (this.inflight.get(url) === work) this.inflight.delete(url);
+      });
+      work.catch(() => {});
+      if (!options.fresh) this.inflight.set(url, work);
+    }
+    return raceAbort(work, options.signal, this.opts.source);
+  }
+
+  private async fetchHtml(url: string): Promise<string> {
     await this.waitTurn();
 
     let res: Response;
@@ -94,12 +151,23 @@ export class PoliteClient {
     return html;
   }
 
+  /** How long a request made right now would wait for its rate-limit slot. */
+  pendingDelayMs(): number {
+    return Math.max(0, this.lastRequestAt + this.opts.minIntervalMs - Date.now());
+  }
+
   private async waitTurn(): Promise<void> {
     const now = Date.now();
     const wait = Math.max(
       0,
       this.lastRequestAt + this.opts.minIntervalMs + Math.random() * this.jitterMs - now,
     );
+    if (wait > this.maxQueueMs) {
+      throw new SourceError(
+        `${this.opts.source} is busy (rate-limit queue is ${Math.round(wait / 1000)}s long) — try again shortly`,
+        'UPSTREAM',
+      );
+    }
     this.lastRequestAt = now + wait;
     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
   }

@@ -1,5 +1,6 @@
 import type { MarketplaceAdapter, AdapterSearchParams, NormalizedListing, AdapterHealth } from '../core/types.js';
 import { SourceError } from '../core/types.js';
+import { combineSignals } from './scrape.js';
 
 export interface SearxngConfig {
   baseUrl: string;
@@ -35,7 +36,15 @@ export class SearxngAdapter implements MarketplaceAdapter {
     if (!this.enabled) throw new SourceError('SearXNG disabled', 'AUTH');
     const fetchedAt = new Date().toISOString();
     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/search?q=${encodeURIComponent(params.q)}&format=json&categories=general`;
-    const res = await fetch(url, { headers: { 'User-Agent': this.cfg.userAgent, Accept: 'application/json' } });
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: { 'User-Agent': this.cfg.userAgent, Accept: 'application/json' },
+        signal: combineSignals(params.signal, AbortSignal.timeout(10_000)),
+      });
+    } catch (err) {
+      throw new SourceError(`SearXNG request failed: ${(err as Error).message}`, 'NETWORK');
+    }
     if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status}`, 'UPSTREAM');
     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
     const out: NormalizedListing[] = [];

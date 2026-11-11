@@ -123,22 +123,22 @@ export class JsonLdAdapter implements MarketplaceAdapter {
     return out;
   }
 
-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
+  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.isEnabled()) {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
-    const html = await this.client.getHtml(this.opts.searchUrl(q));
+    const html = await this.client.getHtml(this.opts.searchUrl(q), { signal });
     return this.parse(html, new Date().toISOString()).slice(0, limit);
   }
 
-  async searchPage({ q, limit }: AdapterSearchParams, page: number): Promise<NormalizedListing[]> {
+  async searchPage({ q, limit, signal }: AdapterSearchParams, page: number): Promise<NormalizedListing[]> {
     if (!this.isEnabled()) {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
     const url = this.opts.searchPageUrl
       ? this.opts.searchPageUrl(q, page)
       : this.opts.searchUrl(q);
-    const html = await this.client.getHtml(url);
+    const html = await this.client.getHtml(url, { signal });
     return this.parse(html, new Date().toISOString()).slice(0, limit);
   }
 

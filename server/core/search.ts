@@ -210,11 +210,25 @@ function dedupKey(l: NormalizedListing): string {
 
 // ---------- Main pipeline ----------
 
-const ADAPTER_TIMEOUT_MS = 15000;
+/**
+ * Default per-adapter search deadline. Individual network calls inside the
+ * adapters have their own, shorter timeouts; this is the outer safety net and
+ * covers rate-limit queueing, so it must be comfortably larger than one fetch.
+ * Adapters with a heavier workload declare their own `timeoutMs`.
+ */
+const ADAPTER_TIMEOUT_MS = 30000;
+/** After the deadline, adapters get this long to hand back partial results. */
+const PARTIAL_GRACE_MS = 1500;
+
+export interface RunSearchOptions {
+  /** Aborts every adapter (e.g. the HTTP client disconnected). */
+  signal?: AbortSignal;
+}
 
 export async function runSearch(
   adapters: MarketplaceAdapter[],
   query: SearchQuery,
+  options: RunSearchOptions = {},
 ): Promise<SearchResponse> {
   const started = Date.now();
   const perAdapterLimit = query.limit;
@@ -232,7 +246,14 @@ export async function runSearch(
           ? Math.min((adapter as unknown as { timeoutMs: number }).timeoutMs, 120000)
           : ADAPTER_TIMEOUT_MS;
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      let deadlineHit = false;
+      const onCallerAbort = () => controller.abort();
+      options.signal?.addEventListener('abort', onCallerAbort, { once: true });
+      const deadline = setTimeout(() => {
+        deadlineHit = true;
+        controller.abort();
+      }, timeoutMs);
+      let hardTimer: ReturnType<typeof setTimeout> | undefined;
       try {
         const listings = await Promise.race([
           adapter.search({
@@ -244,17 +265,38 @@ export async function runSearch(
             size: query.size ?? undefined,
             minPrice: query.minPrice,
             maxPrice: query.maxPrice,
+            signal: controller.signal,
           }),
+          // Hard stop for adapters that ignore the signal. Armed only once the
+          // deadline passes, and delayed slightly so cooperative adapters can
+          // still return the partial results they gathered.
           new Promise<never>((_, reject) => {
-            controller.signal.addEventListener('abort', () => reject(new Error('Adapter timeout')), { once: true });
+            controller.signal.addEventListener(
+              'abort',
+              () => {
+                hardTimer = setTimeout(
+                  () => reject(new Error('Adapter timeout')),
+                  deadlineHit ? PARTIAL_GRACE_MS : 0,
+                );
+              },
+              { once: true },
+            );
           }),
         ]);
-        return { adapter, listings, latencyMs: Date.now() - t0, timedOut: false };
+        return {
+          adapter,
+          listings,
+          latencyMs: Date.now() - t0,
+          timedOut: false,
+          partial: deadlineHit,
+        };
       } catch (err) {
-        const timedOut = controller.signal.aborted;
+        const timedOut = controller.signal.aborted && deadlineHit;
         throw { adapter, err, latencyMs: Date.now() - t0, timedOut };
       } finally {
-        clearTimeout(timer);
+        clearTimeout(deadline);
+        if (hardTimer) clearTimeout(hardTimer);
+        options.signal?.removeEventListener('abort', onCallerAbort);
       }
     }),
   );
@@ -265,7 +307,7 @@ export async function runSearch(
   settled.forEach((result, i) => {
     const adapter = adapters[i];
     if (result.status === 'fulfilled') {
-      const val = result.value as { adapter: MarketplaceAdapter; listings: NormalizedListing[]; latencyMs: number; timedOut: boolean };
+      const val = result.value as { adapter: MarketplaceAdapter; listings: NormalizedListing[]; latencyMs: number; timedOut: boolean; partial: boolean };
       // Score relevance
       for (const l of val.listings) {
         (l as NormalizedListing & { _score?: number })._score = scoreListing(l, queryTokens, normalizedQuery);
@@ -280,6 +322,7 @@ export async function runSearch(
         status: 'ok',
         count: val.listings.length,
         latencyMs: val.latencyMs,
+        ...(val.partial ? { partial: true } : {}),
       });
       logEvent(adapter.id, 'ok', `Q "${query.q}" → ${val.listings.length} results (${val.latencyMs}ms)`);
     } else {
@@ -287,7 +330,7 @@ export async function runSearch(
       const err = reason?.err ?? result.reason;
       const timedOut = Boolean(reason?.timedOut);
       const message = timedOut
-        ? `Timed out after ${reason?.latencyMs ?? 0}ms — the site may be slow or blocking requests.`
+        ? `Timed out after ${reason?.latencyMs ?? 0}ms — the site may be slow, busy or blocking requests.`
         : err instanceof SourceError
           ? err.message
           : `Unexpected adapter failure: ${String(err)}`;

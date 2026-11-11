@@ -167,7 +167,7 @@ export function FilterRail({
             >
               All sources
             </button>
-            {sources.filter((s) => s.enabled).map((s) => (
+            {sources.filter((s) => s.userEnabled ?? s.enabled).map((s) => (
               <button
                 key={s.source}
                 type="button"

@@ -470,7 +470,7 @@ export default function App() {
               <div className={styles.headTop}>
                 <div className={styles.statusBadge}>
                   <span className={styles.statusDot} />
-                  {sources.filter((s) => s.enabled).length} sources active · live search
+                  {sources.filter((s) => s.userEnabled ?? s.enabled).length} sources active · live search
                 </div>
                 <button
                   type="button"

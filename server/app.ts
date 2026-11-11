@@ -58,7 +58,23 @@ export async function createApp(cfg: ServerConfig): Promise<express.Express> {
 
   // In production the server also serves the built frontend.
   const distDir = path.resolve(__dirname, '../web/dist');
-  app.use(express.static(distDir));
+  app.use(
+    express.static(distDir, {
+      setHeaders(res, filePath) {
+        const base = path.basename(filePath);
+        if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+          // Content-hashed build output: cache for a year.
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (base === 'sw.js' || base === 'index.html') {
+          // Must always be revalidated so app updates reach installed PWAs.
+          res.setHeader('Cache-Control', 'no-cache');
+        } else if (base === 'manifest.webmanifest') {
+          res.setHeader('Content-Type', 'application/manifest+json');
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
+      },
+    }),
+  );
   app.get('*', (_req, res, next) => {
     res.sendFile(path.join(distDir, 'index.html'), (err) => {
       if (err) next();

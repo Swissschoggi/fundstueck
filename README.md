@@ -441,3 +441,26 @@ without touching the app, use a custom HTTP/command source or a plugin on
   privileges; there is no sandbox yet.
 - Public-page results are cached for 60 s; repeated identical searches within
   that window are served from memory.
+
+
+## Per-account data, timeouts and the PWA
+
+- **Saved items and source choices are per account.** Signed in, they are stored
+  under `user:<id>`; signed out, under an anonymous device id. On sign-in or
+  registration the client sends its device id and the server merges that
+  device's saved items (and source choices, if the account has none) into the
+  account. `GET /api/sources` returns `userEnabled` for the caller; toggle with
+  `POST /api/preferences/sources/:id { enabled }`. The operator switch
+  (`POST /api/sources/:id/enabled`) remains the master switch for everyone: a
+  person can only turn off sources the operator has enabled.
+- **Adapter timeouts.** Each adapter gets an `AbortSignal` that fires at its
+  deadline (`ADAPTER_TIMEOUT_MS`, default 30 s, or the adapter's own
+  `timeoutMs`). Adapters stop work on abort and may return partial results
+  (`sources[].partial`). `PoliteClient` shares one upstream fetch between
+  concurrent identical requests and fails fast ("busy") rather than letting a
+  long rate-limit queue use up the deadline.
+- **PWA.** `web/public/manifest.webmanifest`, `web/public/sw.js` and the icons
+  in `web/public/icons/` make the app installable on iOS and Android. The
+  service worker never caches `/api/*`. Bump `VERSION` in `sw.js` to
+  invalidate caches. Note: an iOS home-screen app has its own storage and
+  cookies, so people sign in once inside the installed app.

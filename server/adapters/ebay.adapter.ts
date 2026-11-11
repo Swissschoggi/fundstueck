@@ -8,6 +8,7 @@ import type {
 } from '../core/types.js';
 import { SourceError } from '../core/types.js';
 import { getAdapterConfig } from '../core/adapter-config.js';
+import { combineSignals } from './scrape.js';
 
 /** Request time budget for every outbound eBay call. */
 const TIMEOUT_MS = 8_000;
@@ -193,7 +194,7 @@ export class EbayAdapter implements MarketplaceAdapter {
           'X-EBAY-C-ENDUSERCTX': `contextualLocation=country=${market.code}`,
           'Accept-Language': market.locale,
         },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
+        signal: combineSignals(params.signal, AbortSignal.timeout(TIMEOUT_MS)),
       });
     } catch (err) {
       throw new SourceError(`eBay request failed: ${(err as Error).message}`, 'NETWORK');

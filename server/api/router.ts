@@ -29,7 +29,8 @@ import {
 import { SOURCE_CATALOG } from '../core/source-catalog.js';
 import { REGION_PACKS } from '../core/regions.js';
 import { recentEvents } from '../core/events.js';
-import { mountAuthRoutes, operatorGuard } from './auth-routes.js';
+import { mountAuthRoutes, operatorGuard, ownerKeyFor } from './auth-routes.js';
+import { getUserPrefs } from '../core/user-prefs.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
@@ -80,7 +81,19 @@ export function apiRouter(cfg: ServerConfig): Router {
         return;
       }
       const query = parseSearchParams(req.query, getDefaultMarket());
-      const enabled = enabledAdapters(query.market);
+      const operatorEnabled = enabledAdapters(query.market);
+      // Per-account (or per-device) source choices narrow what the operator allows.
+      const userDisabled = new Set(getUserPrefs(ownerKeyFor(req, req.query.device)).disabledSources);
+      const enabled = operatorEnabled.filter((a) => !userDisabled.has(a.id));
+      if (operatorEnabled.length > 0 && enabled.length === 0) {
+        res.status(503).json({
+          error: {
+            code: 'NO_SOURCES',
+            message: 'You switched off every source for this market. Turn at least one back on in Settings.',
+          },
+        });
+        return;
+      }
       if (enabled.length === 0) {
         const market = findMarket(query.market);
         res.status(503).json({
@@ -91,7 +104,13 @@ export function apiRouter(cfg: ServerConfig): Router {
         });
         return;
       }
-      res.json(await runSearch(enabled, query));
+      // Stop all adapter work if the client navigates away or cancels.
+      const abort = new AbortController();
+      res.on('close', () => {
+        if (!res.writableEnded) abort.abort();
+      });
+      const result = await runSearch(enabled, query, { signal: abort.signal });
+      if (!res.writableEnded) res.json(result);
     } catch (err) {
       next(err);
     }
@@ -100,9 +119,13 @@ export function apiRouter(cfg: ServerConfig): Router {
   router.get('/sources', (req, res, next) => {
     try {
       const market = marketParam(req.query['market']);
+      const userDisabled = new Set(getUserPrefs(ownerKeyFor(req, req.query.device)).disabledSources);
       const sources = getAdapters()
         .map(describeAdapter)
-        .filter((a) => market == null || a.markets.includes(market));
+        .filter((a) => market == null || a.markets.includes(market))
+        // `enabled` stays the operator/global state; `userEnabled` is what THIS
+        // person's searches will actually use.
+        .map((a) => ({ ...a, userEnabled: a.enabled && !userDisabled.has(a.source) }));
       res.json({ sources });
     } catch (err) {
       next(err);

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { fetchFavorites, saveFavorite, deleteFavorite } from '../lib/api';
+import { getDeviceId } from '../lib/device';
+import { useAuth } from './AuthContext';
 import type { StoredFavorite } from '../lib/api';
 
 interface FavoritesContextValue {
@@ -13,22 +15,9 @@ interface FavoritesContextValue {
 
 const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined);
 
-function getDeviceId(): string {
-  const key = 'fundstueck.deviceId';
-  try {
-    let id = window.localStorage.getItem(key);
-    if (!id) {
-      id = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2));
-      window.localStorage.setItem(key, id);
-    }
-    return id;
-  } catch {
-    return 'anonymous';
-  }
-}
-
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [deviceId] = useState(getDeviceId);
+  const { user, loading: authLoading } = useAuth();
   const [favorites, setFavorites] = useState<StoredFavorite[]>([]);
   const savedIds = new Set(favorites.map((f) => f.id));
 
@@ -41,9 +30,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Reload whenever the signed-in account changes (login, logout, switch).
+  // On sign-in the server has already merged this device's saved items into
+  // the account, so this shows the combined list.
   useEffect(() => {
+    if (authLoading) return;
     refresh();
-  }, [deviceId]);
+  }, [deviceId, user?.id, authLoading]);
 
   const isSaved = (id: string) => savedIds.has(id);
 

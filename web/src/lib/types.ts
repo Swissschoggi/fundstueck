@@ -25,7 +25,11 @@ export interface SearchResponse {
   listings: NormalizedListing[]; sources: SourceStatus[];
   normalizedQuery?: string; marketCurrency?: string; rawTotal?: number; dedupedTotal?: number; duplicatesRemoved?: number;
 }
-export interface SourceInfo { source: string; label: string; mode: 'live' | 'sample'; enabled: boolean; disabledReason: string | null }
+export interface SourceInfo {
+  source: string; label: string; mode: 'live' | 'sample'; enabled: boolean; disabledReason: string | null;
+  /** Whether THIS person's searches use the source (operator state AND their own switch). */
+  userEnabled?: boolean;
+}
 export interface AdapterConfigField { key: string; label: string; secret?: boolean; placeholder?: string; default?: string; help?: string }
 export interface AdapterInfo extends SourceInfo {
   icon: string; description: string; auth: string; envVars: string[]; capabilities: string[]; markets: string[];

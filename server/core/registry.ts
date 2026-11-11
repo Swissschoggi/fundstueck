@@ -22,6 +22,7 @@ import { logEvent } from './events.js';
 import { initStorage, readState, writeState } from './storage.js';
 import { initAccounts } from './accounts.js';
 import { initFavorites } from './favorites.js';
+import { initUserPrefs } from './user-prefs.js';
 import { initEnabledSources } from './marketplace-registry.js';
 import { initAdapterConfig, getAdapterConfig, setAdapterConfig } from './adapter-config.js';
 import type { AdapterHealth, AdapterInfo, MarketplaceAdapter } from './types.js';
@@ -79,6 +80,7 @@ export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapte
   await initAdapterConfig(cfg);
   await initEnabledSources(cfg);
   await initFavorites(cfg);
+  await initUserPrefs(cfg);
   await initAccounts(cfg);
 
   const setup = await resolveSetup(cfg);

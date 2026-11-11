@@ -15,7 +15,7 @@ import type {
   NormalizedListing,
 } from './types.js';
 import { SourceError } from './types.js';
-import { asArray, asRecord, str } from '../adapters/scrape.js';
+import { asArray, asRecord, combineSignals, str } from '../adapters/scrape.js';
 
 /**
  * Operator-defined sources. Two flavours, both configured at runtime from
@@ -354,7 +354,7 @@ class CustomHttpAdapter implements MarketplaceAdapter {
           http.method === 'POST'
             ? JSON.stringify({ query: params.q, q: params.q, limit, market })
             : undefined,
-        signal: AbortSignal.timeout(10_000),
+        signal: combineSignals(params.signal, AbortSignal.timeout(10_000)),
       });
     } catch (err) {
       throw new SourceError(`${this.label} request failed: ${(err as Error).message}`, 'NETWORK');
@@ -475,6 +475,7 @@ class CustomCommandAdapter implements MarketplaceAdapter {
     const result = await runCommand(command.command, args, {
       cwd: command.cwd,
       timeoutMs: command.timeoutMs,
+      signal: params.signal,
       env: {
         ...process.env,
         FUNDSTUECK_QUERY: params.q,
@@ -851,7 +852,7 @@ function extractErrorDetail(stderr: string): string {
 function runCommand(
   command: string,
   args: string[],
-  opts: { cwd?: string; timeoutMs: number; env: NodeJS.ProcessEnv },
+  opts: { cwd?: string; timeoutMs: number; env: NodeJS.ProcessEnv; signal?: AbortSignal },
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     let stdout = '';
@@ -866,10 +867,18 @@ function runCommand(
       stdio: ['ignore', 'pipe', 'pipe'],
     });
 
+    const onAbort = () => {
+      // The search deadline passed (or the client left): stop the subprocess
+      // instead of letting e.g. a headless browser run on in the background.
+      child.kill('SIGKILL');
+      finish(() => reject(new SourceError('Command cancelled.', 'NETWORK')));
+    };
+
     const finish = (fn: () => void) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      opts.signal?.removeEventListener('abort', onAbort);
       fn();
     };
 
@@ -879,6 +888,9 @@ function runCommand(
         reject(new SourceError(`Command timed out after ${opts.timeoutMs}ms.`, 'NETWORK')),
       );
     }, opts.timeoutMs);
+
+    if (opts.signal?.aborted) onAbort();
+    else opts.signal?.addEventListener('abort', onAbort, { once: true });
 
     const collect = (chunk: Buffer, target: 'stdout' | 'stderr') => {
       outputBytes += chunk.length;

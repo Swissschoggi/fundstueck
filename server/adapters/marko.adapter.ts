@@ -51,6 +51,8 @@ export class MarkoAdapter implements MarketplaceAdapter {
   readonly capabilities: string[];
   readonly docsUrl: string;
   readonly description: string;
+  /** Real worst case: up to 3 rate-limited category fetches. */
+  readonly timeoutMs = 30_000;
 
   readonly configFields = [
     {
@@ -91,7 +93,7 @@ export class MarkoAdapter implements MarketplaceAdapter {
     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
   }
 
-  async search({ q, limit, market, category }: AdapterSearchParams): Promise<NormalizedListing[]> {
+  async search({ q, limit, category, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
     if (!this.opts.enabled) {
       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
     }
@@ -99,20 +101,28 @@ export class MarkoAdapter implements MarketplaceAdapter {
     const categories = category
       ? [category]
       : resolveCategories(this.opts.categories);
+
+    // Fire all category requests at once. The PoliteClient still spaces the
+    // actual network calls (rate limit), but their waits and fetches overlap
+    // instead of stacking one after another.
+    const settled = await Promise.allSettled(
+      categories.map((cat) =>
+        this.client
+          .getHtml(`${SITE}/en/c/${cat}?q=${encodeURIComponent(q)}`, { signal })
+          .then((html) => parseCards(html, this.id, fetchedAt)),
+      ),
+    );
+
     const results: NormalizedListing[] = [];
-    for (const cat of categories) {
-      const url = `${SITE}/en/c/${cat}?q=${encodeURIComponent(q)}`;
-      try {
-        const html = await this.client.getHtml(url);
-        results.push(...parseCards(html, this.id, fetchedAt));
-      } catch (err) {
-        // A single category failing shouldn't kill the whole search; surface
-        // as a SourceError only when every category failed.
-        if (results.length === 0 && cat === categories[categories.length - 1]) {
-          throw err instanceof SourceError ? err : new SourceError(String(err), 'UPSTREAM');
-        }
-      }
-      if (results.length >= limit) break;
+    let firstError: unknown = null;
+    for (const r of settled) {
+      if (r.status === 'fulfilled') results.push(...r.value);
+      else firstError ??= r.reason;
+    }
+
+    // Partial success is success: only fail when every category failed.
+    if (results.length === 0 && firstError) {
+      throw firstError instanceof SourceError ? firstError : new SourceError(String(firstError), 'UPSTREAM');
     }
     return results.slice(0, limit);
   }

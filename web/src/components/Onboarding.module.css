@@ -3,6 +3,7 @@
 .page {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -363,6 +364,7 @@
   flex-wrap: wrap;
   gap: var(--space-md);
   padding: var(--space-md) var(--margin-mobile);
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   border-top: 1px solid var(--border-default);
   backdrop-filter: blur(14px);

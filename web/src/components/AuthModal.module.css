@@ -8,6 +8,8 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-md);
+  padding-top: max(var(--space-md), env(safe-area-inset-top));
+  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
 }
 
 .card {
