@@ -5,10 +5,11 @@ import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate, onAiSimilar }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate, onAiSimilar, aiBusy }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
   imageSearchTemplate?: string | null;
   onAiSimilar?: (listing: NormalizedListing) => void;
+  aiBusy?: boolean;
 }) {
   const [imgError, setImgError] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
@@ -97,8 +98,9 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
               aria-haspopup="menu"
               aria-expanded={similarOpen}
               aria-label="Find similar images"
+              disabled={aiBusy}
             >
-              <Icon name="travel_explore" size={16} /> Find similar
+              {aiBusy ? <Icon name="progress_activity" size={16} /> : <Icon name="travel_explore" size={16} />} {aiBusy ? 'Finding similar…' : 'Find similar'}
             </button>
             {similarOpen && (
               <div className={styles.similarMenu} role="menu">

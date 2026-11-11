@@ -73,6 +73,7 @@ export default function App() {
   const [hidePriceless, setHidePriceless] = useState(false);
   const [visibleCount, setVisibleCount] = useState(48);
   const [imageSearchTemplate, setImageSearchTemplate] = useState<string | null>(null);
+  const [aiBusyId, setAiBusyId] = useState<string | null>(null);
   const { user, signOut } = useAuth();
 
 
@@ -313,7 +314,8 @@ export default function App() {
     setNonce((n) => n + 1);
   }, [input]);
 
-  const runAiSimilar = useCallback(async (listing: { title: string; imageUrl?: string | null }) => {
+  const runAiSimilar = useCallback(async (listing: { title: string; imageUrl?: string | null; id?: string }) => {
+    setAiBusyId(listing.id ?? null);
     let cfg: { endpoint: string; model: string; apiKey: string } | null = null;
     try {
       const raw = localStorage.getItem('fundstueck:aiConfig');
@@ -343,6 +345,7 @@ export default function App() {
       const text = body?.choices?.[0]?.message?.content?.trim();
       if (text) submit(text);
     } catch { /* ignore */ }
+    finally { setAiBusyId(null); }
   }, [submit]);
 
   const applyPrice = useCallback((min: string, max: string) => {
@@ -550,6 +553,7 @@ export default function App() {
                 onLoadMore={() => setVisibleCount((n) => n + 48)}
                 imageSearchTemplate={imageSearchTemplate}
                 onAiSimilar={runAiSimilar}
+                aiBusyId={aiBusyId}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>
