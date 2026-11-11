@@ -442,14 +442,13 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
                   setAiTesting(true);
                   setAiTestResult(null);
                   try {
-                    const res = await fetch(`${aiEndpoint.trim().replace(/\/$/, '')}/chat/completions`, {
+                    const res = await fetch('/api/ai/chat', {
                       method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        ...(aiApiKey.trim() ? { Authorization: `Bearer ${aiApiKey.trim()}` } : {}),
-                      },
+                      headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
+                        endpoint: aiEndpoint.trim(),
                         model: aiModel.trim(),
+                        apiKey: aiApiKey.trim(),
                         messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
                         max_tokens: 10,
                       }),

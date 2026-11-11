@@ -323,14 +323,13 @@ export default function App() {
     } catch { /* ignore */ }
     if (!cfg?.endpoint || !cfg?.model || !listing.imageUrl) return;
     try {
-      const res = await fetch(`${cfg.endpoint.replace(/\/$/, '')}/chat/completions`, {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          endpoint: cfg.endpoint,
           model: cfg.model,
+          apiKey: cfg.apiKey,
           messages: [{
             role: 'user',
             content: [

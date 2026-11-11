@@ -556,6 +556,39 @@ export function apiRouter(cfg: ServerConfig): Router {
     res.json({ url });
   });
 
+  router.post('/ai/chat', async (req, res) => {
+    const body = asRecord(req.body) ?? {};
+    const endpoint = str(body.endpoint);
+    const model = str(body.model);
+    if (!endpoint || !model) {
+      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'endpoint and model are required.' } });
+      return;
+    }
+    const messages = Array.isArray(body.messages) ? body.messages : [];
+    const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 30;
+    const apiKey = str(body.apiKey);
+    const url = `${endpoint.replace(/\/$/, '')}/chat/completions`;
+    try {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        },
+        body: JSON.stringify({ model, messages, max_tokens: maxTokens }),
+        signal: AbortSignal.timeout(120000),
+      });
+      const data = await r.json().catch(() => ({} as any));
+      if (!r.ok) {
+        res.status(r.status).json({ error: { code: 'UPSTREAM', message: (data as any)?.error?.message ?? `HTTP ${r.status}` } });
+        return;
+      }
+      res.json(data);
+    } catch (err) {
+      res.status(502).json({ error: { code: 'NETWORK', message: err instanceof Error ? err.message : 'Proxy request failed.' } });
+    }
+  });
+
   router.get('/events', (req, res) => {
     const raw = Number(req.query.limit ?? 60);
     const limit = Number.isFinite(raw) ? raw : 60;
