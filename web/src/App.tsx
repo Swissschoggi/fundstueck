@@ -312,6 +312,7 @@ export default function App() {
     } catch { /* ignore */ }
     setQuery(q);
     setNonce((n) => n + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [input]);
 
   const runAiSimilar = useCallback(async (listing: { title: string; imageUrl?: string | null; id?: string }) => {

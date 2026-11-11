@@ -105,8 +105,8 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
             {similarOpen && (
               <div className={styles.similarMenu} role="menu">
                 {hasAi && onAiSimilar && (
-                  <button type="button" role="menuitem" className={styles.menuItem} onClick={() => { onAiSimilar(listing); setSimilarOpen(false); }}>
-                    AI similar (vision)
+                  <button type="button" role="menuitem" onClick={(e) => { e.stopPropagation(); e.preventDefault(); onAiSimilar(listing); setSimilarOpen(false); }}>
+                    {aiBusy ? 'Finding similar…' : 'AI similar (vision)'}
                   </button>
                 )}
                 {imageSearchTemplate && (
