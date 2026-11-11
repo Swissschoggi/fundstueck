@@ -52,6 +52,8 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   const [aiApiKey, setAiApiKey] = useState<string>(() => {
     try { return JSON.parse(localStorage.getItem('fundstueck:aiConfig') ?? '{}').apiKey ?? ''; } catch { return ''; }
   });
+  const [aiTestResult, setAiTestResult] = useState<string | null>(null);
+  const [aiTesting, setAiTesting] = useState(false);
 
   const refreshEvents = useCallback(() => {
     fetchEvents(120)
@@ -432,6 +434,40 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
               >
                 Save AI
               </button>
+              <button
+                type="button"
+                className={styles.engineSave}
+                disabled={aiTesting || !aiEndpoint.trim() || !aiModel.trim()}
+                onClick={async () => {
+                  setAiTesting(true);
+                  setAiTestResult(null);
+                  try {
+                    const res = await fetch(`${aiEndpoint.trim().replace(/\/$/, '')}/chat/completions`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        ...(aiApiKey.trim() ? { Authorization: `Bearer ${aiApiKey.trim()}` } : {}),
+                      },
+                      body: JSON.stringify({
+                        model: aiModel.trim(),
+                        messages: [{ role: 'user', content: 'Reply with the single word OK.' }],
+                        max_tokens: 10,
+                      }),
+                    });
+                    const body = await res.json();
+                    if (!res.ok) throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
+                    const text = body?.choices?.[0]?.message?.content?.trim();
+                    setAiTestResult(text ? `OK — model replied: ${text}` : 'Request succeeded but no text returned.');
+                  } catch (err) {
+                    setAiTestResult(err instanceof Error ? `Failed: ${err.message}` : 'Failed');
+                  } finally {
+                    setAiTesting(false);
+                  }
+                }}
+              >
+                {aiTesting ? 'Testing…' : 'Test AI'}
+              </button>
+              {aiTestResult && <p className={styles.engineHint}>{aiTestResult}</p>}
             </div>
             </div>
 
