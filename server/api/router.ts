@@ -567,7 +567,9 @@ export function apiRouter(cfg: ServerConfig): Router {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 30;
     const apiKey = str(body.apiKey);
-    const url = `${endpoint.replace(/\/$/, '')}/chat/completions`;
+    let base = endpoint.replace(/\/$/, '');
+    if (!/\/v1$/i.test(base)) base = `${base}/v1`;
+    const url = `${base}/chat/completions`;
     try {
       const r = await fetch(url, {
         method: 'POST',
