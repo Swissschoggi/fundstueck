@@ -566,6 +566,7 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 30;
+    const temperature = typeof body.temperature === 'number' ? body.temperature : 0;
     const apiKey = str(body.apiKey);
 
     // Some backends (Ollama) cannot fetch remote image URLs and require
@@ -602,7 +603,7 @@ export function apiRouter(cfg: ServerConfig): Router {
           'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
-        body: JSON.stringify({ model, messages: transformedMessages, max_tokens: maxTokens }),
+        body: JSON.stringify({ model, messages: transformedMessages, max_tokens: maxTokens, temperature }),
         signal: AbortSignal.timeout(120000),
       });
       const data = await r.json().catch(() => ({} as any));

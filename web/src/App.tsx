@@ -331,14 +331,15 @@ export default function App() {
           endpoint: cfg.endpoint,
           model: cfg.model,
           apiKey: cfg.apiKey,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: 'You are a shopping search assistant. Look at the product image and output 3 to 5 concise keywords a buyer would type into a marketplace search (item type, color, brand, material, style). Output ONLY the keywords separated by single spaces. No sentences, no descriptions, no punctuation, no articles.' },
+          messages: [
+            { role: 'system', content: 'You are a search-query generator for a second-hand marketplace. You receive a product image (and optionally its title). Reply with ONLY 3 to 5 short search keywords (item type, color, brand, material). No sentences, no descriptions, no articles, no punctuation. Example output: "black leather cowboy boots".' },
+            { role: 'user', content: [
+              { type: 'text', text: `Generate search keywords for this second-hand item. Listing title: "${listing.title}".` },
               { type: 'image_url', image_url: { url: listing.imageUrl } },
-            ],
-          }],
+            ]},
+          ],
           max_tokens: 30,
+          temperature: 0,
         }),
       });
       const body = await res.json();
