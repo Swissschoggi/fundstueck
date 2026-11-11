@@ -1,0 +1,1883 @@
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/README.md fundstuek/README.md
+--- /tmp/orig/fundstuek/README.md	2026-11-10 05:43:36.000000000 +0000
++++ fundstuek/README.md	2026-11-11 04:43:06.368573015 +0000
+@@ -441,3 +441,26 @@
+   privileges; there is no sandbox yet.
+ - Public-page results are cached for 60 s; repeated identical searches within
+   that window are served from memory.
++
++
++## Per-account data, timeouts and the PWA
++
++- **Saved items and source choices are per account.** Signed in, they are stored
++  under `user:<id>`; signed out, under an anonymous device id. On sign-in or
++  registration the client sends its device id and the server merges that
++  device's saved items (and source choices, if the account has none) into the
++  account. `GET /api/sources` returns `userEnabled` for the caller; toggle with
++  `POST /api/preferences/sources/:id { enabled }`. The operator switch
++  (`POST /api/sources/:id/enabled`) remains the master switch for everyone: a
++  person can only turn off sources the operator has enabled.
++- **Adapter timeouts.** Each adapter gets an `AbortSignal` that fires at its
++  deadline (`ADAPTER_TIMEOUT_MS`, default 30 s, or the adapter's own
++  `timeoutMs`). Adapters stop work on abort and may return partial results
++  (`sources[].partial`). `PoliteClient` shares one upstream fetch between
++  concurrent identical requests and fails fast ("busy") rather than letting a
++  long rate-limit queue use up the deadline.
++- **PWA.** `web/public/manifest.webmanifest`, `web/public/sw.js` and the icons
++  in `web/public/icons/` make the app installable on iOS and Android. The
++  service worker never caches `/api/*`. Bump `VERSION` in `sw.js` to
++  invalidate caches. Note: an iOS home-screen app has its own storage and
++  cookies, so people sign in once inside the installed app.
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/package.json fundstuek/package.json
+--- /tmp/orig/fundstuek/package.json	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/package.json	2026-11-11 04:41:57.705287222 +0000
+@@ -16,7 +16,7 @@
+     "adapter:create": "node scripts/create-adapter.mjs",
+     "adapter:list": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('server/registry/marketplaces.json','utf8'));console.log(d.length+' marketplaces');for(const m of d)console.log(m.id, m.adapter_status, m.capability);\"",
+     "adapter:check": "npm run typecheck",
+-    "test": "tsx --test server/core/accounts.test.ts server/core/search.test.ts server/adapters/tutti/tests/search.test.ts server/adapters/anibis/tests/search.test.ts server/adapters/ebay/tests/search.test.ts server/adapters/marketplaces/tori/tests/search.test.ts"
++    "test": "tsx --test server/core/accounts.test.ts server/core/search.test.ts server/core/user-data.test.ts server/adapters/scrape.test.ts server/adapters/tutti/tests/search.test.ts server/adapters/anibis/tests/search.test.ts server/adapters/ebay/tests/search.test.ts server/adapters/marketplaces/tori/tests/search.test.ts"
+   },
+   "dependencies": {
+     "@googlarz/vinted-client": "^1.6.3",
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/ebay.adapter.ts fundstuek/server/adapters/ebay.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/ebay.adapter.ts	2026-11-10 03:19:39.000000000 +0000
++++ fundstuek/server/adapters/ebay.adapter.ts	2026-11-11 04:38:08.601005263 +0000
+@@ -8,6 +8,7 @@
+ } from '../core/types.js';
+ import { SourceError } from '../core/types.js';
+ import { getAdapterConfig } from '../core/adapter-config.js';
++import { combineSignals } from './scrape.js';
+ 
+ /** Request time budget for every outbound eBay call. */
+ const TIMEOUT_MS = 8_000;
+@@ -193,7 +194,7 @@
+           'X-EBAY-C-ENDUSERCTX': `contextualLocation=country=${market.code}`,
+           'Accept-Language': market.locale,
+         },
+-        signal: AbortSignal.timeout(TIMEOUT_MS),
++        signal: combineSignals(params.signal, AbortSignal.timeout(TIMEOUT_MS)),
+       });
+     } catch (err) {
+       throw new SourceError(`eBay request failed: ${(err as Error).message}`, 'NETWORK');
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/jsonld.adapter.ts fundstuek/server/adapters/jsonld.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/jsonld.adapter.ts	2026-11-10 03:19:01.000000000 +0000
++++ fundstuek/server/adapters/jsonld.adapter.ts	2026-11-11 04:38:05.870136684 +0000
+@@ -123,22 +123,22 @@
+     return out;
+   }
+ 
+-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
++  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
+     if (!this.isEnabled()) {
+       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+     }
+-    const html = await this.client.getHtml(this.opts.searchUrl(q));
++    const html = await this.client.getHtml(this.opts.searchUrl(q), { signal });
+     return this.parse(html, new Date().toISOString()).slice(0, limit);
+   }
+ 
+-  async searchPage({ q, limit }: AdapterSearchParams, page: number): Promise<NormalizedListing[]> {
++  async searchPage({ q, limit, signal }: AdapterSearchParams, page: number): Promise<NormalizedListing[]> {
+     if (!this.isEnabled()) {
+       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+     }
+     const url = this.opts.searchPageUrl
+       ? this.opts.searchPageUrl(q, page)
+       : this.opts.searchUrl(q);
+-    const html = await this.client.getHtml(url);
++    const html = await this.client.getHtml(url, { signal });
+     return this.parse(html, new Date().toISOString()).slice(0, limit);
+   }
+ 
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/marko.adapter.ts fundstuek/server/adapters/marko.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/marko.adapter.ts	2026-11-10 01:04:05.000000000 +0000
++++ fundstuek/server/adapters/marko.adapter.ts	2026-11-11 04:38:14.891463309 +0000
+@@ -51,6 +51,8 @@
+   readonly capabilities: string[];
+   readonly docsUrl: string;
+   readonly description: string;
++  /** Real worst case: up to 3 rate-limited category fetches. */
++  readonly timeoutMs = 30_000;
+ 
+   readonly configFields = [
+     {
+@@ -91,7 +93,7 @@
+     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
+   }
+ 
+-  async search({ q, limit, market, category }: AdapterSearchParams): Promise<NormalizedListing[]> {
++  async search({ q, limit, category, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
+     if (!this.opts.enabled) {
+       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+     }
+@@ -99,20 +101,28 @@
+     const categories = category
+       ? [category]
+       : resolveCategories(this.opts.categories);
++
++    // Fire all category requests at once. The PoliteClient still spaces the
++    // actual network calls (rate limit), but their waits and fetches overlap
++    // instead of stacking one after another.
++    const settled = await Promise.allSettled(
++      categories.map((cat) =>
++        this.client
++          .getHtml(`${SITE}/en/c/${cat}?q=${encodeURIComponent(q)}`, { signal })
++          .then((html) => parseCards(html, this.id, fetchedAt)),
++      ),
++    );
++
+     const results: NormalizedListing[] = [];
+-    for (const cat of categories) {
+-      const url = `${SITE}/en/c/${cat}?q=${encodeURIComponent(q)}`;
+-      try {
+-        const html = await this.client.getHtml(url);
+-        results.push(...parseCards(html, this.id, fetchedAt));
+-      } catch (err) {
+-        // A single category failing shouldn't kill the whole search; surface
+-        // as a SourceError only when every category failed.
+-        if (results.length === 0 && cat === categories[categories.length - 1]) {
+-          throw err instanceof SourceError ? err : new SourceError(String(err), 'UPSTREAM');
+-        }
+-      }
+-      if (results.length >= limit) break;
++    let firstError: unknown = null;
++    for (const r of settled) {
++      if (r.status === 'fulfilled') results.push(...r.value);
++      else firstError ??= r.reason;
++    }
++
++    // Partial success is success: only fail when every category failed.
++    if (results.length === 0 && firstError) {
++      throw firstError instanceof SourceError ? firstError : new SourceError(String(firstError), 'UPSTREAM');
+     }
+     return results.slice(0, limit);
+   }
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/public-page.adapter.ts fundstuek/server/adapters/public-page.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/public-page.adapter.ts	2026-11-10 03:19:01.000000000 +0000
++++ fundstuek/server/adapters/public-page.adapter.ts	2026-11-11 04:37:56.804033491 +0000
+@@ -73,11 +73,11 @@
+     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
+   }
+ 
+-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
++  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
+     if (!this.opts.enabled) {
+       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+     }
+-    const html = await this.client.getHtml(this.opts.searchUrl(q));
++    const html = await this.client.getHtml(this.opts.searchUrl(q), { signal });
+     return this.opts.parse(html, new Date().toISOString()).slice(0, limit);
+   }
+ 
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/scrape.test.ts fundstuek/server/adapters/scrape.test.ts
+--- /tmp/orig/fundstuek/server/adapters/scrape.test.ts	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/server/adapters/scrape.test.ts	2026-11-11 04:41:57.693248246 +0000
+@@ -0,0 +1,85 @@
++import { describe, it, afterEach } from 'node:test';
++import assert from 'node:assert/strict';
++import { PoliteClient, combineSignals } from './scrape.js';
++import { SourceError } from '../core/types.js';
++
++const realFetch = globalThis.fetch;
++afterEach(() => {
++  globalThis.fetch = realFetch;
++});
++
++function client(over: Partial<ConstructorParameters<typeof PoliteClient>[0]> = {}) {
++  return new PoliteClient({
++    source: 'Test',
++    userAgent: 'test',
++    minIntervalMs: 0,
++    jitterMs: 0,
++    cacheTtlMs: 0,
++    ...over,
++  });
++}
++
++describe('PoliteClient', () => {
++  it('shares one upstream fetch between concurrent identical requests', async () => {
++    let calls = 0;
++    globalThis.fetch = (async () => {
++      calls++;
++      await new Promise((r) => setTimeout(r, 30));
++      return new Response('<html>ok</html>', { status: 200 });
++    }) as typeof fetch;
++    const c = client();
++    const [a, b, d] = await Promise.all([
++      c.getHtml('https://x.test/a'),
++      c.getHtml('https://x.test/a'),
++      c.getHtml('https://x.test/a'),
++    ]);
++    assert.equal(calls, 1);
++    assert.equal(a, b);
++    assert.equal(b, d);
++  });
++
++  it('stops waiting as soon as the caller aborts', async () => {
++    globalThis.fetch = (async () => {
++      await new Promise((r) => setTimeout(r, 2000));
++      return new Response('late', { status: 200 });
++    }) as typeof fetch;
++    const c = client();
++    const ctl = new AbortController();
++    setTimeout(() => ctl.abort(), 30);
++    const t0 = Date.now();
++    await assert.rejects(c.getHtml('https://x.test/slow', { signal: ctl.signal }), SourceError);
++    assert.ok(Date.now() - t0 < 500, 'should reject long before the slow fetch finishes');
++  });
++
++  it('one caller aborting does not cancel the shared fetch for others', async () => {
++    globalThis.fetch = (async () => {
++      await new Promise((r) => setTimeout(r, 80));
++      return new Response('shared', { status: 200 });
++    }) as typeof fetch;
++    const c = client();
++    const ctl = new AbortController();
++    const first = c.getHtml('https://x.test/s', { signal: ctl.signal });
++    const second = c.getHtml('https://x.test/s');
++    setTimeout(() => ctl.abort(), 10);
++    await assert.rejects(first, SourceError);
++    assert.equal(await second, 'shared');
++  });
++
++  it('fails fast with a busy error instead of queueing past maxQueueMs', async () => {
++    globalThis.fetch = (async () => new Response('ok', { status: 200 })) as typeof fetch;
++    const c = client({ minIntervalMs: 60_000, maxQueueMs: 50 });
++    await c.getHtml('https://x.test/1'); // takes the slot
++    await assert.rejects(c.getHtml('https://x.test/2'), /busy/);
++  });
++});
++
++describe('combineSignals', () => {
++  it('aborts when any input aborts', () => {
++    const a = new AbortController();
++    const b = new AbortController();
++    const s = combineSignals(a.signal, b.signal);
++    assert.equal(s.aborted, false);
++    b.abort();
++    assert.equal(s.aborted, true);
++  });
++});
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/scrape.ts fundstuek/server/adapters/scrape.ts
+--- /tmp/orig/fundstuek/server/adapters/scrape.ts	2026-11-10 03:23:28.000000000 +0000
++++ fundstuek/server/adapters/scrape.ts	2026-11-11 04:38:05.869741680 +0000
+@@ -24,43 +24,100 @@
+   minIntervalMs: number;
+   /** Extra random spacing added on top of minIntervalMs (politeness jitter). */
+   jitterMs?: number;
++  /** Per-request network timeout (the fetch itself, not time spent queued). */
+   timeoutMs?: number;
+   cacheTtlMs?: number;
+   acceptLanguage?: string;
++  /**
++   * Longest a request may wait for its rate-limit slot. Beyond this the client
++   * fails fast with a clear "busy" error instead of silently eating the whole
++   * search deadline in a queue.
++   */
++  maxQueueMs?: number;
++}
++
++/** Abort when ANY of the given signals aborts (AbortSignal.any needs Node >= 20.3). */
++export function combineSignals(...signals: Array<AbortSignal | undefined>): AbortSignal {
++  const list = signals.filter((x): x is AbortSignal => Boolean(x));
++  if (list.length === 1) return list[0];
++  const controller = new AbortController();
++  for (const sig of list) {
++    if (sig.aborted) { controller.abort(sig.reason); break; }
++    sig.addEventListener('abort', () => controller.abort(sig.reason), { once: true });
++  }
++  return controller.signal;
++}
++
++/** Reject as soon as `signal` aborts, without cancelling the underlying work. */
++function raceAbort<T>(work: Promise<T>, signal: AbortSignal | undefined, source: string): Promise<T> {
++  if (!signal) return work;
++  if (signal.aborted) {
++    work.catch(() => {});
++    return Promise.reject(new SourceError(`${source} request cancelled`, 'NETWORK'));
++  }
++  return new Promise<T>((resolve, reject) => {
++    const onAbort = () => reject(new SourceError(`${source} request cancelled`, 'NETWORK'));
++    signal.addEventListener('abort', onAbort, { once: true });
++    work.then(
++      (v) => { signal.removeEventListener('abort', onAbort); resolve(v); },
++      (e) => { signal.removeEventListener('abort', onAbort); reject(e); },
++    );
++  });
+ }
+ 
+ /**
+  * Small polite HTTP client shared by the public-page adapters:
+  * - serialised, rate-limited requests with jitter (never hammer a site),
+  * - short-lived response cache so repeated searches share one fetch,
++ * - in-flight de-duplication: concurrent identical requests (several users
++ *   searching the same thing) share ONE upstream fetch and one rate-limit slot,
++ * - abortable: callers can stop waiting the moment their search deadline hits,
+  * - explicit timeouts and safe SourceError messages.
+  */
+ export class PoliteClient {
+   private lastRequestAt = 0;
+   private readonly cache = new Map<string, { at: number; html: string }>();
++  private readonly inflight = new Map<string, Promise<string>>();
+   private readonly jitterMs: number;
+   private readonly timeoutMs: number;
+   private readonly cacheTtlMs: number;
+   private readonly acceptLanguage: string;
++  private readonly maxQueueMs: number;
+ 
+   constructor(private readonly opts: PoliteClientOptions) {
+     this.jitterMs = opts.jitterMs ?? 750;
+     this.timeoutMs = opts.timeoutMs ?? 6500;
+     this.cacheTtlMs = opts.cacheTtlMs ?? 60_000;
+     this.acceptLanguage = opts.acceptLanguage ?? 'de-CH,de;q=0.9,fr;q=0.8,en;q=0.7';
++    this.maxQueueMs = opts.maxQueueMs ?? 12_000;
+   }
+ 
+   /** Rate-limit only: wait for this adapter's turn without fetching. */
+-  async wait(): Promise<void> {
+-    await this.waitTurn();
++  async wait(signal?: AbortSignal): Promise<void> {
++    await raceAbort(this.waitTurn(), signal, this.opts.source);
+   }
+ 
+-  async getHtml(url: string, options: { fresh?: boolean } = {}): Promise<string> {
++  async getHtml(url: string, options: { fresh?: boolean; signal?: AbortSignal } = {}): Promise<string> {
+     const cached = this.cache.get(url);
+     if (!options.fresh && cached && Date.now() - cached.at < this.cacheTtlMs) {
+       return cached.html;
+     }
+ 
++    // Share one upstream fetch between concurrent callers. The shared fetch is
++    // deliberately NOT tied to any single caller's signal; each caller just
++    // stops waiting for it when its own signal aborts.
++    let work = options.fresh ? undefined : this.inflight.get(url);
++    if (!work) {
++      work = this.fetchHtml(url).finally(() => {
++        if (this.inflight.get(url) === work) this.inflight.delete(url);
++      });
++      work.catch(() => {});
++      if (!options.fresh) this.inflight.set(url, work);
++    }
++    return raceAbort(work, options.signal, this.opts.source);
++  }
++
++  private async fetchHtml(url: string): Promise<string> {
+     await this.waitTurn();
+ 
+     let res: Response;
+@@ -94,12 +151,23 @@
+     return html;
+   }
+ 
++  /** How long a request made right now would wait for its rate-limit slot. */
++  pendingDelayMs(): number {
++    return Math.max(0, this.lastRequestAt + this.opts.minIntervalMs - Date.now());
++  }
++
+   private async waitTurn(): Promise<void> {
+     const now = Date.now();
+     const wait = Math.max(
+       0,
+       this.lastRequestAt + this.opts.minIntervalMs + Math.random() * this.jitterMs - now,
+     );
++    if (wait > this.maxQueueMs) {
++      throw new SourceError(
++        `${this.opts.source} is busy (rate-limit queue is ${Math.round(wait / 1000)}s long) — try again shortly`,
++        'UPSTREAM',
++      );
++    }
+     this.lastRequestAt = now + wait;
+     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+   }
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/searxng.adapter.ts fundstuek/server/adapters/searxng.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/searxng.adapter.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/adapters/searxng.adapter.ts	2026-11-11 04:38:08.597757755 +0000
+@@ -1,5 +1,6 @@
+ import type { MarketplaceAdapter, AdapterSearchParams, NormalizedListing, AdapterHealth } from '../core/types.js';
+ import { SourceError } from '../core/types.js';
++import { combineSignals } from './scrape.js';
+ 
+ export interface SearxngConfig {
+   baseUrl: string;
+@@ -35,7 +36,15 @@
+     if (!this.enabled) throw new SourceError('SearXNG disabled', 'AUTH');
+     const fetchedAt = new Date().toISOString();
+     const url = `${this.cfg.baseUrl.replace(/\/$/, '')}/search?q=${encodeURIComponent(params.q)}&format=json&categories=general`;
+-    const res = await fetch(url, { headers: { 'User-Agent': this.cfg.userAgent, Accept: 'application/json' } });
++    let res: Response;
++    try {
++      res = await fetch(url, {
++        headers: { 'User-Agent': this.cfg.userAgent, Accept: 'application/json' },
++        signal: combineSignals(params.signal, AbortSignal.timeout(10_000)),
++      });
++    } catch (err) {
++      throw new SourceError(`SearXNG request failed: ${(err as Error).message}`, 'NETWORK');
++    }
+     if (!res.ok) throw new SourceError(`SearXNG HTTP ${res.status}`, 'UPSTREAM');
+     const body = await res.json() as { results?: Array<{ title?: string; url?: string; content?: string; img_src?: string }> };
+     const out: NormalizedListing[] = [];
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/adapters/smg.adapter.ts fundstuek/server/adapters/smg.adapter.ts
+--- /tmp/orig/fundstuek/server/adapters/smg.adapter.ts	2026-11-10 03:20:31.000000000 +0000
++++ fundstuek/server/adapters/smg.adapter.ts	2026-11-11 04:37:56.803653214 +0000
+@@ -113,11 +113,11 @@
+     return this.opts.enabled ? null : `Disabled via ${this.opts.envVar}=false`;
+   }
+ 
+-  async search({ q, limit }: AdapterSearchParams): Promise<NormalizedListing[]> {
++  async search({ q, limit, signal }: AdapterSearchParams): Promise<NormalizedListing[]> {
+     if (!this.opts.enabled) {
+       throw new SourceError(`${this.label} adapter is disabled`, 'AUTH');
+     }
+-    const html = await this.client.getHtml(this.searchUrl(q));
++    const html = await this.client.getHtml(this.searchUrl(q), { signal });
+     return this.parse(html).slice(0, limit);
+   }
+ 
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/api/auth-routes.ts fundstuek/server/api/auth-routes.ts
+--- /tmp/orig/fundstuek/server/api/auth-routes.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/api/auth-routes.ts	2026-11-11 04:43:06.368211295 +0000
+@@ -10,7 +10,8 @@
+   parseCookies,
+   register,
+ } from '../core/accounts.js';
+-import { listFavorites, addFavorite, removeFavorite } from '../core/favorites.js';
++import { listFavorites, addFavorite, removeFavorite, migrateFavorites, purgeFavorites } from '../core/favorites.js';
++import { getUserPrefs, migratePrefs, purgePrefs, setSourceEnabledForOwner } from '../core/user-prefs.js';
+ import type { StoredFavorite } from '../core/favorites.js';
+ import { rateLimitMiddleware } from '../core/rate-limit.js';
+ 
+@@ -42,6 +43,26 @@
+ }
+ 
+ /**
++ * Who owns per-person data (saved items, source preferences) for this request:
++ * the signed-in account, else the anonymous device id the client sent.
++ */
++export function ownerKeyFor(req: Request, device?: unknown): string | null {
++  const user = currentUser(req);
++  if (user) return `user:${user.id}`;
++  const d = typeof device === 'string' ? device.trim() : '';
++  return d || null;
++}
++
++/** Fold anonymous-device data into the account that just signed in. */
++async function adoptDeviceData(userId: string, device: unknown): Promise<void> {
++  const d = typeof device === 'string' ? device.trim() : '';
++  if (!d) return;
++  const toKey = `user:${userId}`;
++  await migrateFavorites(d, toKey);
++  await migratePrefs(d, toKey);
++}
++
++/**
+  * Guards operator/admin routes (adapter install, custom sources, catalog
+  * installs that execute commands, setup, config writes).
+  *
+@@ -102,6 +123,7 @@
+       return;
+     }
+     setSessionCookie(res, loginResult.token, cfg);
++    await adoptDeviceData(loginResult.user.id, body.device);
+     res.json({ user: loginResult.user });
+   });
+ 
+@@ -119,6 +141,7 @@
+       return;
+     }
+     setSessionCookie(res, result.token, cfg);
++    await adoptDeviceData(result.user.id, body.device);
+     res.json({ user: result.user });
+   });
+ 
+@@ -170,10 +193,34 @@
+       res.status(400).json({ error: { code: 'INVALID_REQUEST', message: result.error } });
+       return;
+     }
++    await purgeFavorites(`user:${user.id}`);
++    await purgePrefs(`user:${user.id}`);
+     clearSessionCookie(res);
+     res.json({ ok: true });
+   });
+ 
++  // ---- Per-account source preferences (device-scoped when signed out) ----
++
++  router.get('/preferences', (req, res) => {
++    const key = ownerKeyFor(req, req.query.device);
++    res.json({ preferences: getUserPrefs(key), scope: key?.startsWith('user:') ? 'account' : 'device' });
++  });
++
++  router.post('/preferences/sources/:id', async (req, res) => {
++    const body = asRecord(req.body) ?? {};
++    const key = ownerKeyFor(req, body.device);
++    if (!key) {
++      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: '\"device\" is required when signed out.' } });
++      return;
++    }
++    if (typeof body.enabled !== 'boolean') {
++      res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'Body must include { \"enabled\": boolean }.' } });
++      return;
++    }
++    const preferences = await setSourceEnabledForOwner(key, req.params.id, body.enabled);
++    res.json({ preferences });
++  });
++
+   // ---- Favorites (per-user when signed in, per-device otherwise) ----
+ 
+   router.get('/favorites', (req, res) => {
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/api/router.ts fundstuek/server/api/router.ts
+--- /tmp/orig/fundstuek/server/api/router.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/api/router.ts	2026-11-11 04:39:15.939390938 +0000
+@@ -29,7 +29,8 @@
+ import { SOURCE_CATALOG } from '../core/source-catalog.js';
+ import { REGION_PACKS } from '../core/regions.js';
+ import { recentEvents } from '../core/events.js';
+-import { mountAuthRoutes, operatorGuard } from './auth-routes.js';
++import { mountAuthRoutes, operatorGuard, ownerKeyFor } from './auth-routes.js';
++import { getUserPrefs } from '../core/user-prefs.js';
+ import { findMarket, MARKETS } from '../core/markets.js';
+ import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
+ import { asRecord, str } from '../adapters/scrape.js';
+@@ -80,7 +81,19 @@
+         return;
+       }
+       const query = parseSearchParams(req.query, getDefaultMarket());
+-      const enabled = enabledAdapters(query.market);
++      const operatorEnabled = enabledAdapters(query.market);
++      // Per-account (or per-device) source choices narrow what the operator allows.
++      const userDisabled = new Set(getUserPrefs(ownerKeyFor(req, req.query.device)).disabledSources);
++      const enabled = operatorEnabled.filter((a) => !userDisabled.has(a.id));
++      if (operatorEnabled.length > 0 && enabled.length === 0) {
++        res.status(503).json({
++          error: {
++            code: 'NO_SOURCES',
++            message: 'You switched off every source for this market. Turn at least one back on in Settings.',
++          },
++        });
++        return;
++      }
+       if (enabled.length === 0) {
+         const market = findMarket(query.market);
+         res.status(503).json({
+@@ -91,7 +104,13 @@
+         });
+         return;
+       }
+-      res.json(await runSearch(enabled, query));
++      // Stop all adapter work if the client navigates away or cancels.
++      const abort = new AbortController();
++      res.on('close', () => {
++        if (!res.writableEnded) abort.abort();
++      });
++      const result = await runSearch(enabled, query, { signal: abort.signal });
++      if (!res.writableEnded) res.json(result);
+     } catch (err) {
+       next(err);
+     }
+@@ -100,9 +119,13 @@
+   router.get('/sources', (req, res, next) => {
+     try {
+       const market = marketParam(req.query['market']);
++      const userDisabled = new Set(getUserPrefs(ownerKeyFor(req, req.query.device)).disabledSources);
+       const sources = getAdapters()
+         .map(describeAdapter)
+-        .filter((a) => market == null || a.markets.includes(market));
++        .filter((a) => market == null || a.markets.includes(market))
++        // `enabled` stays the operator/global state; `userEnabled` is what THIS
++        // person's searches will actually use.
++        .map((a) => ({ ...a, userEnabled: a.enabled && !userDisabled.has(a.source) }));
+       res.json({ sources });
+     } catch (err) {
+       next(err);
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/app.ts fundstuek/server/app.ts
+--- /tmp/orig/fundstuek/server/app.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/app.ts	2026-11-11 04:41:24.350238225 +0000
+@@ -58,7 +58,23 @@
+ 
+   // In production the server also serves the built frontend.
+   const distDir = path.resolve(__dirname, '../web/dist');
+-  app.use(express.static(distDir));
++  app.use(
++    express.static(distDir, {
++      setHeaders(res, filePath) {
++        const base = path.basename(filePath);
++        if (filePath.includes(`${path.sep}assets${path.sep}`)) {
++          // Content-hashed build output: cache for a year.
++          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
++        } else if (base === 'sw.js' || base === 'index.html') {
++          // Must always be revalidated so app updates reach installed PWAs.
++          res.setHeader('Cache-Control', 'no-cache');
++        } else if (base === 'manifest.webmanifest') {
++          res.setHeader('Content-Type', 'application/manifest+json');
++          res.setHeader('Cache-Control', 'public, max-age=3600');
++        }
++      },
++    }),
++  );
+   app.get('*', (_req, res, next) => {
+     res.sendFile(path.join(distDir, 'index.html'), (err) => {
+       if (err) next();
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/custom-sources.ts fundstuek/server/core/custom-sources.ts
+--- /tmp/orig/fundstuek/server/core/custom-sources.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/core/custom-sources.ts	2026-11-11 04:38:45.221478866 +0000
+@@ -15,7 +15,7 @@
+   NormalizedListing,
+ } from './types.js';
+ import { SourceError } from './types.js';
+-import { asArray, asRecord, str } from '../adapters/scrape.js';
++import { asArray, asRecord, combineSignals, str } from '../adapters/scrape.js';
+ 
+ /**
+  * Operator-defined sources. Two flavours, both configured at runtime from
+@@ -354,7 +354,7 @@
+           http.method === 'POST'
+             ? JSON.stringify({ query: params.q, q: params.q, limit, market })
+             : undefined,
+-        signal: AbortSignal.timeout(10_000),
++        signal: combineSignals(params.signal, AbortSignal.timeout(10_000)),
+       });
+     } catch (err) {
+       throw new SourceError(`${this.label} request failed: ${(err as Error).message}`, 'NETWORK');
+@@ -475,6 +475,7 @@
+     const result = await runCommand(command.command, args, {
+       cwd: command.cwd,
+       timeoutMs: command.timeoutMs,
++      signal: params.signal,
+       env: {
+         ...process.env,
+         FUNDSTUECK_QUERY: params.q,
+@@ -851,7 +852,7 @@
+ function runCommand(
+   command: string,
+   args: string[],
+-  opts: { cwd?: string; timeoutMs: number; env: NodeJS.ProcessEnv },
++  opts: { cwd?: string; timeoutMs: number; env: NodeJS.ProcessEnv; signal?: AbortSignal },
+ ): Promise<CommandResult> {
+   return new Promise((resolve, reject) => {
+     let stdout = '';
+@@ -866,10 +867,18 @@
+       stdio: ['ignore', 'pipe', 'pipe'],
+     });
+ 
++    const onAbort = () => {
++      // The search deadline passed (or the client left): stop the subprocess
++      // instead of letting e.g. a headless browser run on in the background.
++      child.kill('SIGKILL');
++      finish(() => reject(new SourceError('Command cancelled.', 'NETWORK')));
++    };
++
+     const finish = (fn: () => void) => {
+       if (settled) return;
+       settled = true;
+       clearTimeout(timer);
++      opts.signal?.removeEventListener('abort', onAbort);
+       fn();
+     };
+ 
+@@ -880,6 +889,9 @@
+       );
+     }, opts.timeoutMs);
+ 
++    if (opts.signal?.aborted) onAbort();
++    else opts.signal?.addEventListener('abort', onAbort, { once: true });
++
+     const collect = (chunk: Buffer, target: 'stdout' | 'stderr') => {
+       outputBytes += chunk.length;
+       if (outputBytes > MAX_RESPONSE_BYTES) {
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/favorites.ts fundstuek/server/core/favorites.ts
+--- /tmp/orig/fundstuek/server/core/favorites.ts	2026-11-10 05:43:36.000000000 +0000
++++ fundstuek/server/core/favorites.ts	2026-11-11 04:43:06.367689496 +0000
+@@ -42,3 +42,32 @@
+   cache[deviceId] = list.filter((f) => f.id !== listingId);
+   await writeState('favorites', cache);
+ }
++
++/**
++ * Move an anonymous device's saved items into an account on sign-in.
++ * Items are merged by listing id (newest save wins) and the device bucket is
++ * cleared so the same items are not migrated twice.
++ */
++export async function migrateFavorites(fromKey: string, toKey: string): Promise<number> {
++  if (!fromKey || fromKey === toKey) return 0;
++  const incoming = cache[fromKey] ?? [];
++  if (incoming.length === 0) return 0;
++  const byId = new Map<string, StoredFavorite>();
++  for (const f of [...(cache[toKey] ?? []), ...incoming]) {
++    const existing = byId.get(f.id);
++    if (!existing || Date.parse(f.savedAt) > Date.parse(existing.savedAt)) byId.set(f.id, f);
++  }
++  cache[toKey] = [...byId.values()]
++    .sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt))
++    .slice(0, 500);
++  delete cache[fromKey];
++  await writeState('favorites', cache);
++  return incoming.length;
++}
++
++/** Remove everything saved under an owner key (used when an account is deleted). */
++export async function purgeFavorites(ownerKey: string): Promise<void> {
++  if (!(ownerKey in cache)) return;
++  delete cache[ownerKey];
++  await writeState('favorites', cache);
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/registry.ts fundstuek/server/core/registry.ts
+--- /tmp/orig/fundstuek/server/core/registry.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/core/registry.ts	2026-11-11 04:39:03.698352560 +0000
+@@ -22,6 +22,7 @@
+ import { initStorage, readState, writeState } from './storage.js';
+ import { initAccounts } from './accounts.js';
+ import { initFavorites } from './favorites.js';
++import { initUserPrefs } from './user-prefs.js';
+ import { initEnabledSources } from './marketplace-registry.js';
+ import { initAdapterConfig, getAdapterConfig, setAdapterConfig } from './adapter-config.js';
+ import type { AdapterHealth, AdapterInfo, MarketplaceAdapter } from './types.js';
+@@ -79,6 +80,7 @@
+   await initAdapterConfig(cfg);
+   await initEnabledSources(cfg);
+   await initFavorites(cfg);
++  await initUserPrefs(cfg);
+   await initAccounts(cfg);
+ 
+   const setup = await resolveSetup(cfg);
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/search.test.ts fundstuek/server/core/search.test.ts
+--- /tmp/orig/fundstuek/server/core/search.test.ts	2026-11-10 03:13:35.000000000 +0000
++++ fundstuek/server/core/search.test.ts	2026-11-11 04:41:57.704850190 +0000
+@@ -46,3 +46,56 @@
+     assert.equal(res.listings.length, 1);
+   });
+ });
++
++describe('runSearch timeouts', () => {
++  const baseListing: NormalizedListing = {
++    id: 'slow:1', source: 'slow', sourceListingId: '1', title: 'Test Bike', description: '',
++    price: 100, currency: 'CHF', location: null, imageUrl: null,
++    listingUrl: 'https://example.com/slow/1', publishedAt: null, fetchedAt: new Date().toISOString(),
++  };
++
++  it('passes an AbortSignal that fires at the adapter deadline and reports a timeout', async () => {
++    let sawAbort = false;
++    const adapter = {
++      ...makeAdapter('slow', baseListing),
++      timeoutMs: 40,
++      search: (params: { signal?: AbortSignal }) =>
++        new Promise<NormalizedListing[]>(() => {
++          params.signal?.addEventListener('abort', () => { sawAbort = true; });
++        }),
++    } as unknown as MarketplaceAdapter;
++    const res = await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }));
++    assert.equal(sawAbort, true);
++    assert.equal(res.sources[0].status, 'timeout');
++  });
++
++  it('keeps partial results from an adapter that returns them after the deadline', async () => {
++    const adapter = {
++      ...makeAdapter('slow', baseListing),
++      timeoutMs: 40,
++      search: (params: { signal?: AbortSignal }) =>
++        new Promise<NormalizedListing[]>((resolve) => {
++          params.signal?.addEventListener('abort', () => resolve([baseListing]));
++        }),
++    } as unknown as MarketplaceAdapter;
++    const res = await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }));
++    assert.equal(res.sources[0].status, 'ok');
++    assert.equal(res.sources[0].partial, true);
++    assert.equal(res.listings.length, 1);
++  });
++
++  it('aborts adapters when the caller goes away', async () => {
++    let aborted = false;
++    const adapter = {
++      ...makeAdapter('slow', baseListing),
++      search: (params: { signal?: AbortSignal }) =>
++        new Promise<NormalizedListing[]>((_, reject) => {
++          params.signal?.addEventListener('abort', () => { aborted = true; reject(new Error('cancelled')); });
++        }),
++    } as unknown as MarketplaceAdapter;
++    const caller = new AbortController();
++    setTimeout(() => caller.abort(), 20);
++    await runSearch([adapter], parseSearchParams({ q: 'bike', market: 'CH' }), { signal: caller.signal });
++    assert.equal(aborted, true);
++  });
++});
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/search.ts fundstuek/server/core/search.ts
+--- /tmp/orig/fundstuek/server/core/search.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/core/search.ts	2026-11-11 04:38:24.685040408 +0000
+@@ -210,11 +210,25 @@
+ 
+ // ---------- Main pipeline ----------
+ 
+-const ADAPTER_TIMEOUT_MS = 15000;
++/**
++ * Default per-adapter search deadline. Individual network calls inside the
++ * adapters have their own, shorter timeouts; this is the outer safety net and
++ * covers rate-limit queueing, so it must be comfortably larger than one fetch.
++ * Adapters with a heavier workload declare their own `timeoutMs`.
++ */
++const ADAPTER_TIMEOUT_MS = 30000;
++/** After the deadline, adapters get this long to hand back partial results. */
++const PARTIAL_GRACE_MS = 1500;
++
++export interface RunSearchOptions {
++  /** Aborts every adapter (e.g. the HTTP client disconnected). */
++  signal?: AbortSignal;
++}
+ 
+ export async function runSearch(
+   adapters: MarketplaceAdapter[],
+   query: SearchQuery,
++  options: RunSearchOptions = {},
+ ): Promise<SearchResponse> {
+   const started = Date.now();
+   const perAdapterLimit = query.limit;
+@@ -232,7 +246,14 @@
+           ? Math.min((adapter as unknown as { timeoutMs: number }).timeoutMs, 120000)
+           : ADAPTER_TIMEOUT_MS;
+       const controller = new AbortController();
+-      const timer = setTimeout(() => controller.abort(), timeoutMs);
++      let deadlineHit = false;
++      const onCallerAbort = () => controller.abort();
++      options.signal?.addEventListener('abort', onCallerAbort, { once: true });
++      const deadline = setTimeout(() => {
++        deadlineHit = true;
++        controller.abort();
++      }, timeoutMs);
++      let hardTimer: ReturnType<typeof setTimeout> | undefined;
+       try {
+         const listings = await Promise.race([
+           adapter.search({
+@@ -244,17 +265,38 @@
+             size: query.size ?? undefined,
+             minPrice: query.minPrice,
+             maxPrice: query.maxPrice,
++            signal: controller.signal,
+           }),
++          // Hard stop for adapters that ignore the signal. Armed only once the
++          // deadline passes, and delayed slightly so cooperative adapters can
++          // still return the partial results they gathered.
+           new Promise<never>((_, reject) => {
+-            controller.signal.addEventListener('abort', () => reject(new Error('Adapter timeout')), { once: true });
++            controller.signal.addEventListener(
++              'abort',
++              () => {
++                hardTimer = setTimeout(
++                  () => reject(new Error('Adapter timeout')),
++                  deadlineHit ? PARTIAL_GRACE_MS : 0,
++                );
++              },
++              { once: true },
++            );
+           }),
+         ]);
+-        return { adapter, listings, latencyMs: Date.now() - t0, timedOut: false };
++        return {
++          adapter,
++          listings,
++          latencyMs: Date.now() - t0,
++          timedOut: false,
++          partial: deadlineHit,
++        };
+       } catch (err) {
+-        const timedOut = controller.signal.aborted;
++        const timedOut = controller.signal.aborted && deadlineHit;
+         throw { adapter, err, latencyMs: Date.now() - t0, timedOut };
+       } finally {
+-        clearTimeout(timer);
++        clearTimeout(deadline);
++        if (hardTimer) clearTimeout(hardTimer);
++        options.signal?.removeEventListener('abort', onCallerAbort);
+       }
+     }),
+   );
+@@ -265,7 +307,7 @@
+   settled.forEach((result, i) => {
+     const adapter = adapters[i];
+     if (result.status === 'fulfilled') {
+-      const val = result.value as { adapter: MarketplaceAdapter; listings: NormalizedListing[]; latencyMs: number; timedOut: boolean };
++      const val = result.value as { adapter: MarketplaceAdapter; listings: NormalizedListing[]; latencyMs: number; timedOut: boolean; partial: boolean };
+       // Score relevance
+       for (const l of val.listings) {
+         (l as NormalizedListing & { _score?: number })._score = scoreListing(l, queryTokens, normalizedQuery);
+@@ -280,6 +322,7 @@
+         status: 'ok',
+         count: val.listings.length,
+         latencyMs: val.latencyMs,
++        ...(val.partial ? { partial: true } : {}),
+       });
+       logEvent(adapter.id, 'ok', `Q "${query.q}" → ${val.listings.length} results (${val.latencyMs}ms)`);
+     } else {
+@@ -287,7 +330,7 @@
+       const err = reason?.err ?? result.reason;
+       const timedOut = Boolean(reason?.timedOut);
+       const message = timedOut
+-        ? `Timed out after ${reason?.latencyMs ?? 0}ms — the site may be slow or blocking requests.`
++        ? `Timed out after ${reason?.latencyMs ?? 0}ms — the site may be slow, busy or blocking requests.`
+         : err instanceof SourceError
+           ? err.message
+           : `Unexpected adapter failure: ${String(err)}`;
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/types.ts fundstuek/server/core/types.ts
+--- /tmp/orig/fundstuek/server/core/types.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/server/core/types.ts	2026-11-11 04:37:52.350350188 +0000
+@@ -41,7 +41,9 @@
+ }
+ 
+ export type AdapterMode = 'live' | 'sample';
+-export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string; minPrice?: number | null; maxPrice?: number | null }
++export interface AdapterSearchParams { q: string; limit: number; market?: string; category?: string; gender?: string; size?: string; minPrice?: number | null; maxPrice?: number | null;
++  /** Aborted when the search deadline passes or the caller goes away. Adapters should stop work and may return partial results. */
++  signal?: AbortSignal }
+ 
+ export class SourceError extends Error {
+   constructor(message: string, readonly code: 'AUTH' | 'UPSTREAM' | 'NETWORK' | 'RESPONSE', readonly statusCode?: number) {
+@@ -79,7 +81,9 @@
+ 
+ export interface SourceStatus {
+   source: string; label: string; mode: AdapterMode; enabled: boolean; disabledReason: string | null;
+-  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; timedOut?: boolean; error?: string;
++  status?: 'ok' | 'error' | 'timeout'; count?: number; latencyMs?: number; timedOut?: boolean; partial?: boolean; error?: string;
++  /** Set when the signed-in user (or device) switched this source off for themselves. */
++  userDisabled?: boolean;
+ }
+ 
+ export interface SearchResponse {
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/user-data.test.ts fundstuek/server/core/user-data.test.ts
+--- /tmp/orig/fundstuek/server/core/user-data.test.ts	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/server/core/user-data.test.ts	2026-11-11 04:41:57.705019964 +0000
+@@ -0,0 +1,57 @@
++import { describe, it, before } from 'node:test';
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import { loadConfig } from '../config.js';
++import { initStorage } from './storage.js';
++import { addFavorite, initFavorites, listFavorites, migrateFavorites, type StoredFavorite } from './favorites.js';
++import { getUserPrefs, initUserPrefs, migratePrefs, setSourceEnabledForOwner } from './user-prefs.js';
++
++const fav = (id: string, savedAt: string): StoredFavorite => ({
++  id, source: 's', title: id, price: 1, currency: 'CHF', listingUrl: `https://x.test/${id}`, imageUrl: null, savedAt,
++});
++
++describe('per-account data', () => {
++  before(async () => {
++    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fundstueck-test-'));
++    const cfg = loadConfig({ DATA_DIR: dataDir } as NodeJS.ProcessEnv);
++    await initStorage(cfg);
++    await initFavorites(cfg);
++    await initUserPrefs(cfg);
++  });
++
++  it('merges device favorites into the account without duplicates and clears the device', async () => {
++    await addFavorite('device-1', fav('a', '2026-01-01T00:00:00Z'));
++    await addFavorite('device-1', fav('b', '2026-01-02T00:00:00Z'));
++    await addFavorite('user:u1', fav('b', '2026-01-03T00:00:00Z'));
++    await addFavorite('user:u1', fav('c', '2026-01-04T00:00:00Z'));
++
++    const moved = await migrateFavorites('device-1', 'user:u1');
++    assert.equal(moved, 2);
++    const ids = listFavorites('user:u1').map((f) => f.id).sort();
++    assert.deepEqual(ids, ['a', 'b', 'c']);
++    assert.equal(listFavorites('device-1').length, 0);
++    // Running it again is a no-op.
++    assert.equal(await migrateFavorites('device-1', 'user:u1'), 0);
++  });
++
++  it('keeps source preferences separate per owner', async () => {
++    await setSourceEnabledForOwner('user:u1', 'tutti', false);
++    assert.deepEqual(getUserPrefs('user:u1').disabledSources, ['tutti']);
++    assert.deepEqual(getUserPrefs('user:u2').disabledSources, []);
++    await setSourceEnabledForOwner('user:u1', 'tutti', true);
++    assert.deepEqual(getUserPrefs('user:u1').disabledSources, []);
++  });
++
++  it('adopts device preferences on sign-in only when the account has none', async () => {
++    await setSourceEnabledForOwner('device-2', 'marko', false);
++    await migratePrefs('device-2', 'user:u3');
++    assert.deepEqual(getUserPrefs('user:u3').disabledSources, ['marko']);
++    assert.deepEqual(getUserPrefs('device-2').disabledSources, []);
++
++    await setSourceEnabledForOwner('device-3', 'anibis', false);
++    await migratePrefs('device-3', 'user:u3'); // account already has choices
++    assert.deepEqual(getUserPrefs('user:u3').disabledSources, ['marko']);
++  });
++});
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/server/core/user-prefs.ts fundstuek/server/core/user-prefs.ts
+--- /tmp/orig/fundstuek/server/core/user-prefs.ts	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/server/core/user-prefs.ts	2026-11-11 04:43:06.367940109 +0000
+@@ -0,0 +1,68 @@
++import type { ServerConfig } from '../config.js';
++import { readState, writeState } from './storage.js';
++
++/**
++ * Per-owner search preferences. An "owner key" is `user:<id>` for a signed-in
++ * account or the anonymous device id otherwise (same scheme as favorites).
++ *
++ * The operator's global enable/disable switch (adapter settings) stays the
++ * master switch: a user can only turn OFF sources the operator has enabled,
++ * never turn on something the operator disabled.
++ */
++export interface UserPrefs {
++  /** Source ids this owner switched off for their own searches. */
++  disabledSources: string[];
++  updatedAt: string;
++}
++
++interface PrefsStore {
++  [ownerKey: string]: UserPrefs;
++}
++
++let cache: PrefsStore = {};
++
++export async function initUserPrefs(_cfg: ServerConfig): Promise<void> {
++  const parsed = await readState<PrefsStore>('user-prefs');
++  cache = parsed && typeof parsed === 'object' ? parsed : {};
++}
++
++async function persist(): Promise<void> {
++  await writeState('user-prefs', cache);
++}
++
++export function getUserPrefs(ownerKey: string | null | undefined): UserPrefs {
++  const found = ownerKey ? cache[ownerKey] : undefined;
++  return { disabledSources: [...(found?.disabledSources ?? [])], updatedAt: found?.updatedAt ?? '' };
++}
++
++export async function setSourceEnabledForOwner(
++  ownerKey: string,
++  sourceId: string,
++  enabled: boolean,
++): Promise<UserPrefs> {
++  const current = new Set(cache[ownerKey]?.disabledSources ?? []);
++  if (enabled) current.delete(sourceId);
++  else current.add(sourceId);
++  cache[ownerKey] = { disabledSources: [...current], updatedAt: new Date().toISOString() };
++  await persist();
++  return getUserPrefs(ownerKey);
++}
++
++/**
++ * Move an anonymous device's preferences into an account on sign-in.
++ * The account's own choices win; the device's are only adopted when the
++ * account has none yet. The device bucket is cleared afterwards.
++ */
++export async function migratePrefs(fromKey: string, toKey: string): Promise<void> {
++  if (!fromKey || fromKey === toKey || !cache[fromKey]) return;
++  if (!cache[toKey]) cache[toKey] = { ...cache[fromKey], updatedAt: new Date().toISOString() };
++  delete cache[fromKey];
++  await persist();
++}
++
++/** Remove an owner's preferences (used when an account is deleted). */
++export async function purgePrefs(ownerKey: string): Promise<void> {
++  if (!cache[ownerKey]) return;
++  delete cache[ownerKey];
++  await persist();
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/index.html fundstuek/web/index.html
+--- /tmp/orig/fundstuek/web/index.html	2026-11-09 04:06:49.000000000 +0000
++++ fundstuek/web/index.html	2026-11-11 04:41:08.329380329 +0000
+@@ -2,8 +2,18 @@
+ <html class="dark" lang="en">
+   <head>
+     <meta charset="UTF-8" />
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+     <meta name="color-scheme" content="dark" />
++    <meta name="theme-color" content="#131315" />
++    <meta name="description" content="Search Swiss and European marketplaces in one place." />
++    <link rel="manifest" href="/manifest.webmanifest" />
++    <!-- iOS: installable web app (Add to Home Screen) -->
++    <meta name="apple-mobile-web-app-capable" content="yes" />
++    <meta name="mobile-web-app-capable" content="yes" />
++    <meta name="apple-mobile-web-app-title" content="Fundstück" />
++    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
++    <meta name="format-detection" content="telephone=no" />
++    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+     <title>Fundstück — Swiss marketplace meta-search</title>
+     <link rel="preconnect" href="https://fonts.googleapis.com" />
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/public/manifest.webmanifest fundstuek/web/public/manifest.webmanifest
+--- /tmp/orig/fundstuek/web/public/manifest.webmanifest	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/public/manifest.webmanifest	2026-11-11 04:41:08.317931094 +0000
+@@ -0,0 +1,22 @@
++{
++  "id": "/",
++  "name": "Fundstück — Swiss marketplace meta-search",
++  "short_name": "Fundstück",
++  "description": "Search Swiss and European marketplaces in one place.",
++  "start_url": "/?source=pwa",
++  "scope": "/",
++  "display": "standalone",
++  "orientation": "portrait-primary",
++  "background_color": "#131315",
++  "theme_color": "#131315",
++  "lang": "en",
++  "categories": ["shopping", "utilities"],
++  "icons": [
++    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
++    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
++    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
++  ],
++  "shortcuts": [
++    { "name": "Saved items", "url": "/saved?source=pwa", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
++  ]
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/public/sw.js fundstuek/web/public/sw.js
+--- /tmp/orig/fundstuek/web/public/sw.js	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/public/sw.js	2026-11-11 04:41:08.319244041 +0000
+@@ -0,0 +1,108 @@
++/* Fundstück service worker.
++ *
++ * Goals: installable app shell that opens instantly and survives a flaky
++ * connection, WITHOUT ever serving stale search results or account data.
++ *
++ *  - /api/*           → never touched (always live network)
++ *  - navigations      → network first, fall back to the cached shell offline
++ *  - /assets/* (hashed) → cache first (immutable)
++ *  - Google Fonts     → stale-while-revalidate
++ *
++ * Bump VERSION to invalidate every cache.
++ */
++const VERSION = 'v1';
++const SHELL_CACHE = `fundstueck-shell-${VERSION}`;
++const ASSET_CACHE = `fundstueck-assets-${VERSION}`;
++const FONT_CACHE = `fundstueck-fonts-${VERSION}`;
++const KEEP = new Set([SHELL_CACHE, ASSET_CACHE, FONT_CACHE]);
++
++const SHELL_URLS = [
++  '/',
++  '/manifest.webmanifest',
++  '/icons/icon-192.png',
++  '/icons/icon-512.png',
++  '/icons/apple-touch-icon.png',
++];
++
++self.addEventListener('install', (event) => {
++  event.waitUntil(
++    caches
++      .open(SHELL_CACHE)
++      .then((cache) => cache.addAll(SHELL_URLS))
++      .then(() => self.skipWaiting()),
++  );
++});
++
++self.addEventListener('activate', (event) => {
++  event.waitUntil(
++    caches
++      .keys()
++      .then((keys) => Promise.all(keys.filter((k) => !KEEP.has(k)).map((k) => caches.delete(k))))
++      .then(() => self.clients.claim()),
++  );
++});
++
++self.addEventListener('message', (event) => {
++  if (event.data === 'SKIP_WAITING') self.skipWaiting();
++});
++
++self.addEventListener('fetch', (event) => {
++  const { request } = event;
++  if (request.method !== 'GET') return;
++  const url = new URL(request.url);
++
++  // Fonts (cross-origin, safe to cache).
++  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
++    event.respondWith(staleWhileRevalidate(request, FONT_CACHE));
++    return;
++  }
++
++  if (url.origin !== self.location.origin) return;
++
++  // Live data: never cache, never intercept.
++  if (url.pathname.startsWith('/api/')) return;
++
++  // Page loads: fresh when online, cached shell when offline.
++  if (request.mode === 'navigate') {
++    event.respondWith(
++      fetch(request)
++        .then((res) => {
++          const copy = res.clone();
++          caches.open(SHELL_CACHE).then((c) => c.put('/', copy));
++          return res;
++        })
++        .catch(() => caches.match('/').then((r) => r || Response.error())),
++    );
++    return;
++  }
++
++  // Hashed build output never changes for a given URL.
++  if (url.pathname.startsWith('/assets/')) {
++    event.respondWith(cacheFirst(request, ASSET_CACHE));
++    return;
++  }
++
++  // Icons, manifest and other small static files.
++  event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
++});
++
++async function cacheFirst(request, cacheName) {
++  const cache = await caches.open(cacheName);
++  const hit = await cache.match(request);
++  if (hit) return hit;
++  const res = await fetch(request);
++  if (res.ok) cache.put(request, res.clone());
++  return res;
++}
++
++async function staleWhileRevalidate(request, cacheName) {
++  const cache = await caches.open(cacheName);
++  const hit = await cache.match(request);
++  const network = fetch(request)
++    .then((res) => {
++      if (res.ok || res.type === 'opaque') cache.put(request, res.clone());
++      return res;
++    })
++    .catch(() => hit);
++  return hit || network;
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/App.tsx fundstuek/web/src/App.tsx
+--- /tmp/orig/fundstuek/web/src/App.tsx	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/App.tsx	2026-11-11 04:39:49.958494758 +0000
+@@ -470,7 +470,7 @@
+               <div className={styles.headTop}>
+                 <div className={styles.statusBadge}>
+                   <span className={styles.statusDot} />
+-                  {sources.filter((s) => s.enabled).length} sources active · live search
++                  {sources.filter((s) => s.userEnabled ?? s.enabled).length} sources active · live search
+                 </div>
+                 <button
+                   type="button"
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/AdapterCard.tsx fundstuek/web/src/components/AdapterCard.tsx
+--- /tmp/orig/fundstuek/web/src/components/AdapterCard.tsx	2026-11-10 01:04:05.000000000 +0000
++++ fundstuek/web/src/components/AdapterCard.tsx	2026-11-11 04:40:04.964949365 +0000
+@@ -17,13 +17,17 @@
+   health,
+   toggling,
+   onToggle,
++  onToggleGlobal,
+   onHealthCheck,
+   onRemove,
+ }: {
+   adapter: AdapterInfo;
+   health: HealthState;
+   toggling: boolean;
++  /** Personal switch for the signed-in account (or this device). */
+   onToggle: (enabled: boolean) => void;
++  /** Operator master switch for everyone; needs operator access in production. */
++  onToggleGlobal?: (enabled: boolean) => void;
+   onHealthCheck: () => void;
+   onRemove?: () => void;
+ }) {
+@@ -48,7 +52,9 @@
+     ? { label: adapter.runtimeDisabled ? 'Disabled' : 'Unconfigured', tone: 'muted' as const }
+     : adapter.runtimeDisabled
+       ? { label: 'Disabled', tone: 'muted' as const }
+-      : health.state === 'done' && health.ok === false
++      : adapter.userEnabled === false
++        ? { label: 'Off for you', tone: 'muted' as const }
++        : health.state === 'done' && health.ok === false
+         ? { label: 'Attention', tone: 'error' as const }
+         : health.state === 'done' && health.ok
+           ? { label: 'Healthy', tone: 'ok' as const }
+@@ -134,21 +140,21 @@
+           className={styles.toggle}
+           title={
+             adapter.configured
+-              ? 'Toggle whether search uses this source'
++              ? 'Toggle whether YOUR searches use this source'
+               : (adapter.disabledReason ?? 'Not configured')
+           }
+         >
+           <input
+             type="checkbox"
+             className={styles.toggleInput}
+-            checked={adapter.enabled}
++            checked={adapter.userEnabled ?? adapter.enabled}
+             disabled={!adapter.configured || toggling}
+             onChange={(e) => onToggle(e.target.checked)}
+           />
+           <span className={styles.track}>
+             <span className={styles.knob} />
+           </span>
+-          <span className={styles.toggleLabel}>Adapter enabled</span>
++          <span className={styles.toggleLabel}>Use in my searches</span>
+         </label>
+ 
+         <div className={styles.cardActions}>
+@@ -170,6 +176,18 @@
+             <Icon name="bolt" size={14} />
+             {health.state === 'running' ? 'Checking…' : 'Health check'}
+           </button>
++          {onToggleGlobal && adapter.configured && (
++            <button
++              type="button"
++              className={styles.smallButton}
++              onClick={() => onToggleGlobal(adapter.runtimeDisabled)}
++              disabled={toggling}
++              title="Operator switch: turns this source on or off for all users"
++            >
++              <Icon name={adapter.runtimeDisabled ? 'play_arrow' : 'pause'} size={14} />
++              {adapter.runtimeDisabled ? 'Enable for all' : 'Disable for all'}
++            </button>
++          )}
+           {onRemove && (
+             <button
+               type="button"
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/AuthModal.module.css fundstuek/web/src/components/AuthModal.module.css
+--- /tmp/orig/fundstuek/web/src/components/AuthModal.module.css	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/components/AuthModal.module.css	2026-11-11 04:41:08.343923441 +0000
+@@ -8,6 +8,8 @@
+   align-items: center;
+   justify-content: center;
+   padding: var(--space-md);
++  padding-top: max(var(--space-md), env(safe-area-inset-top));
++  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+ }
+ 
+ .card {
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/FilterRail.tsx fundstuek/web/src/components/FilterRail.tsx
+--- /tmp/orig/fundstuek/web/src/components/FilterRail.tsx	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/components/FilterRail.tsx	2026-11-11 04:39:49.958226427 +0000
+@@ -167,7 +167,7 @@
+             >
+               All sources
+             </button>
+-            {sources.filter((s) => s.enabled).map((s) => (
++            {sources.filter((s) => s.userEnabled ?? s.enabled).map((s) => (
+               <button
+                 key={s.source}
+                 type="button"
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/InstallPrompt.module.css fundstuek/web/src/components/InstallPrompt.module.css
+--- /tmp/orig/fundstuek/web/src/components/InstallPrompt.module.css	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/src/components/InstallPrompt.module.css	2026-11-11 04:41:24.339169316 +0000
+@@ -0,0 +1,48 @@
++.banner {
++  position: fixed;
++  left: var(--space-md);
++  right: var(--space-md);
++  /* Sit above the mobile bottom nav (56px) and the home indicator. */
++  bottom: calc(56px + env(safe-area-inset-bottom) + var(--space-sm));
++  z-index: 60;
++  display: flex;
++  align-items: center;
++  gap: var(--space-sm);
++  padding: var(--space-sm) var(--space-md);
++  background: var(--surface-high);
++  border: 1px solid var(--border-default);
++  border-radius: var(--r-lg);
++  color: var(--on-surface);
++  font: var(--fs-label-md);
++  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
++}
++
++@media (min-width: 768px) {
++  .banner {
++    display: none;
++  }
++}
++
++.text {
++  flex: 1;
++  min-width: 0;
++}
++
++.action {
++  min-height: 44px;
++  padding: 0 var(--space-md);
++  border-radius: var(--r-md);
++  background: var(--primary);
++  color: var(--on-primary, #131315);
++  font-weight: 600;
++}
++
++.close {
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  width: 44px;
++  height: 44px;
++  flex: none;
++  color: var(--on-surface-variant);
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/InstallPrompt.tsx fundstuek/web/src/components/InstallPrompt.tsx
+--- /tmp/orig/fundstuek/web/src/components/InstallPrompt.tsx	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/src/components/InstallPrompt.tsx	2026-11-11 04:41:24.338428077 +0000
+@@ -0,0 +1,88 @@
++import { useEffect, useState } from 'react';
++import { isIos, isStandalone } from '../lib/pwa';
++import { Icon } from './Icon';
++import styles from './InstallPrompt.module.css';
++
++interface BeforeInstallPromptEvent extends Event {
++  prompt: () => Promise<void>;
++  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
++}
++
++const DISMISS_KEY = 'fundstueck.installPromptDismissedAt';
++const SNOOZE_MS = 14 * 24 * 3600 * 1000;
++
++function recentlyDismissed(): boolean {
++  try {
++    const at = Number(window.localStorage.getItem(DISMISS_KEY));
++    return Number.isFinite(at) && at > 0 && Date.now() - at < SNOOZE_MS;
++  } catch {
++    return false;
++  }
++}
++
++/**
++ * Small "install the app" hint on phones. Android/Chrome gets a real install
++ * button; iOS Safari has no install API, so it gets Add to Home Screen steps.
++ */
++export function InstallPrompt() {
++  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
++  const [showIos, setShowIos] = useState(false);
++
++  useEffect(() => {
++    if (isStandalone() || recentlyDismissed()) return;
++
++    const onPrompt = (e: Event) => {
++      e.preventDefault();
++      setDeferred(e as BeforeInstallPromptEvent);
++    };
++    window.addEventListener('beforeinstallprompt', onPrompt);
++    window.addEventListener('appinstalled', () => setDeferred(null));
++
++    const mobile = window.matchMedia('(max-width: 767px)').matches;
++    if (isIos() && mobile) setShowIos(true);
++
++    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
++  }, []);
++
++  const dismiss = () => {
++    try {
++      window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
++    } catch {
++      /* ignore */
++    }
++    setDeferred(null);
++    setShowIos(false);
++  };
++
++  const install = async () => {
++    if (!deferred) return;
++    await deferred.prompt();
++    await deferred.userChoice.catch(() => undefined);
++    setDeferred(null);
++  };
++
++  if (!deferred && !showIos) return null;
++
++  return (
++    <aside className={styles.banner} role="region" aria-label="Install app">
++      <Icon name="install_mobile" size={20} />
++      <div className={styles.text}>
++        {deferred ? (
++          <span>Install Fundstück for quick access and a full-screen app experience.</span>
++        ) : (
++          <span>
++            Install: tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
++          </span>
++        )}
++      </div>
++      {deferred && (
++        <button type="button" className={styles.action} onClick={install}>
++          Install
++        </button>
++      )}
++      <button type="button" className={styles.close} onClick={dismiss} aria-label="Dismiss">
++        <Icon name="close" size={18} />
++      </button>
++    </aside>
++  );
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/Onboarding.module.css fundstuek/web/src/components/Onboarding.module.css
+--- /tmp/orig/fundstuek/web/src/components/Onboarding.module.css	2026-11-10 01:04:05.000000000 +0000
++++ fundstuek/web/src/components/Onboarding.module.css	2026-11-11 04:41:08.343628160 +0000
+@@ -3,6 +3,7 @@
+ .page {
+   position: relative;
+   min-height: 100vh;
++  min-height: 100dvh;
+   display: flex;
+   flex-direction: column;
+   background: var(--surface);
+@@ -363,6 +364,7 @@
+   flex-wrap: wrap;
+   gap: var(--space-md);
+   padding: var(--space-md) var(--margin-mobile);
++  padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+   background: color-mix(in srgb, var(--surface) 88%, transparent);
+   border-top: 1px solid var(--border-default);
+   backdrop-filter: blur(14px);
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/SettingsPage.tsx fundstuek/web/src/components/SettingsPage.tsx
+--- /tmp/orig/fundstuek/web/src/components/SettingsPage.tsx	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/components/SettingsPage.tsx	2026-11-11 04:40:04.964544107 +0000
+@@ -5,6 +5,7 @@
+   fetchSources,
+   fetchSystem,
+   setAdapterEnabled,
++  setSourcePreference,
+   uninstallAdapter,
+ } from '../lib/api';
+ import type { AdapterInfo, ServerEvent, SystemInfo } from '../lib/types';
+@@ -85,12 +86,31 @@
+     return () => window.clearInterval(id);
+   }, [refreshEvents]);
+ 
++  // Personal switch: applies to this account (or this device when signed out).
+   const handleToggle = async (adapter: AdapterInfo, enabled: boolean) => {
+     setTogglingId(adapter.source);
+     setError(null);
+     try {
+-      const updated = await setAdapterEnabled(adapter.source, enabled);
+-      setAdapters((prev) => prev.map((a) => (a.source === updated.source ? updated : a)));
++      await setSourcePreference(adapter.source, enabled);
++      setAdapters((prev) =>
++        prev.map((a) => (a.source === adapter.source ? { ...a, userEnabled: enabled && a.enabled } : a)),
++      );
++      refreshEvents();
++      window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
++    } catch (e: unknown) {
++      setError(e instanceof Error ? e.message : 'Could not update adapter.');
++    } finally {
++      setTogglingId(null);
++    }
++  };
++
++  // Operator master switch: affects everyone (needs operator access in production).
++  const handleToggleGlobal = async (adapter: AdapterInfo, enabled: boolean) => {
++    setTogglingId(adapter.source);
++    setError(null);
++    try {
++      await setAdapterEnabled(adapter.source, enabled);
++      refresh(); // reloads sources so each person's effective state is recomputed
+       refreshEvents();
+       window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
+     } catch (e: unknown) {
+@@ -267,6 +287,7 @@
+                 health={health[adapter.source] ?? { state: 'idle' }}
+                 toggling={togglingId === adapter.source}
+                 onToggle={(enabled) => handleToggle(adapter, enabled)}
++                onToggleGlobal={(enabled) => handleToggleGlobal(adapter, enabled)}
+                 onHealthCheck={() => runHealth(adapter.source)}
+                 onRemove={canRemove(adapter) ? () => handleRemove(adapter) : undefined}
+               />
+@@ -283,6 +304,7 @@
+                   health={health[adapter.source] ?? { state: 'idle' }}
+                   toggling={togglingId === adapter.source}
+                   onToggle={(enabled) => handleToggle(adapter, enabled)}
++                onToggleGlobal={(enabled) => handleToggleGlobal(adapter, enabled)}
+                   onHealthCheck={() => runHealth(adapter.source)}
+                 />
+               ))}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/components/Sidebar.tsx fundstuek/web/src/components/Sidebar.tsx
+--- /tmp/orig/fundstuek/web/src/components/Sidebar.tsx	2026-11-10 03:15:53.000000000 +0000
++++ fundstuek/web/src/components/Sidebar.tsx	2026-11-11 04:39:49.958004040 +0000
+@@ -28,7 +28,7 @@
+   route: string;
+   onNavigate: (to: string) => void;
+ }) {
+-  const anyEnabled = sources.some((s) => s.enabled);
++  const anyEnabled = sources.some((s) => s.userEnabled ?? s.enabled);
+   const settingsActive = (path: string) =>
+     route === path || (path === '/settings/adapters' && route === '/settings');
+ 
+@@ -143,12 +143,12 @@
+             <span
+               className={styles.sourceDot}
+               style={{
+-                background: s.enabled ? sourceAccent(s.source) : 'var(--outline-variant)',
++                background: (s.userEnabled ?? s.enabled) ? sourceAccent(s.source) : 'var(--outline-variant)',
+               }}
+             />
+             <span>{s.label}</span>
+             <span className={styles.sourceState}>
+-              {s.enabled ? (s.mode === 'sample' ? 'sample' : 'live') : 'off'}
++              {(s.userEnabled ?? s.enabled) ? (s.mode === 'sample' ? 'sample' : 'live') : 'off'}
+             </span>
+           </div>
+         ))}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/contexts/AuthContext.tsx fundstuek/web/src/contexts/AuthContext.tsx
+--- /tmp/orig/fundstuek/web/src/contexts/AuthContext.tsx	2026-11-10 05:43:36.000000000 +0000
++++ fundstuek/web/src/contexts/AuthContext.tsx	2026-11-11 04:39:36.544547617 +0000
+@@ -1,4 +1,5 @@
+ import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
++import { getDeviceId } from '../lib/device';
+ 
+ interface User { id: string; email: string; createdAt: string }
+ 
+@@ -37,11 +38,12 @@
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       credentials: 'include',
+-      body: JSON.stringify({ email, password }),
++      body: JSON.stringify({ email, password, device: getDeviceId() }),
+     });
+     const body = await res.json();
+     if (!res.ok) return { error: body?.error?.message ?? 'Login failed' };
+     setUser(body.user);
++    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
+     return { error: null };
+   };
+ 
+@@ -50,17 +52,19 @@
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       credentials: 'include',
+-      body: JSON.stringify({ email, password }),
++      body: JSON.stringify({ email, password, device: getDeviceId() }),
+     });
+     const body = await res.json();
+     if (!res.ok) return { error: body?.error?.message ?? 'Registration failed' };
+     setUser(body.user);
++    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
+     return { error: null };
+   };
+ 
+   const signOut = async () => {
+     await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+     setUser(null);
++    window.dispatchEvent(new CustomEvent('fundstueck:adapters-changed'));
+   };
+ 
+   return (
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/contexts/FavoritesContext.tsx fundstuek/web/src/contexts/FavoritesContext.tsx
+--- /tmp/orig/fundstuek/web/src/contexts/FavoritesContext.tsx	2026-11-10 05:43:36.000000000 +0000
++++ fundstuek/web/src/contexts/FavoritesContext.tsx	2026-11-11 04:39:36.544894029 +0000
+@@ -1,5 +1,7 @@
+ import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+ import { fetchFavorites, saveFavorite, deleteFavorite } from '../lib/api';
++import { getDeviceId } from '../lib/device';
++import { useAuth } from './AuthContext';
+ import type { StoredFavorite } from '../lib/api';
+ 
+ interface FavoritesContextValue {
+@@ -13,22 +15,9 @@
+ 
+ const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined);
+ 
+-function getDeviceId(): string {
+-  const key = 'fundstueck.deviceId';
+-  try {
+-    let id = window.localStorage.getItem(key);
+-    if (!id) {
+-      id = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2));
+-      window.localStorage.setItem(key, id);
+-    }
+-    return id;
+-  } catch {
+-    return 'anonymous';
+-  }
+-}
+-
+ export function FavoritesProvider({ children }: { children: ReactNode }) {
+   const [deviceId] = useState(getDeviceId);
++  const { user, loading: authLoading } = useAuth();
+   const [favorites, setFavorites] = useState<StoredFavorite[]>([]);
+   const savedIds = new Set(favorites.map((f) => f.id));
+ 
+@@ -41,9 +30,13 @@
+     }
+   };
+ 
++  // Reload whenever the signed-in account changes (login, logout, switch).
++  // On sign-in the server has already merged this device's saved items into
++  // the account, so this shows the combined list.
+   useEffect(() => {
++    if (authLoading) return;
+     refresh();
+-  }, [deviceId]);
++  }, [deviceId, user?.id, authLoading]);
+ 
+   const isSaved = (id: string) => savedIds.has(id);
+ 
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/lib/api.ts fundstuek/web/src/lib/api.ts
+--- /tmp/orig/fundstuek/web/src/lib/api.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/lib/api.ts	2026-11-11 04:39:36.543936449 +0000
+@@ -1,3 +1,4 @@
++import { getDeviceId } from './device';
+ import type {
+   AdapterHealthResult,
+   AdapterInfo,
+@@ -48,8 +49,9 @@
+   if (params.category) url.searchParams.set('category', params.category);
+   if (params.gender) url.searchParams.set('gender', params.gender);
+   if (params.size) url.searchParams.set('size', params.size);
++  url.searchParams.set('device', getDeviceId());
+ 
+-  const res = await fetch(url, { headers: { Accept: 'application/json' }, signal });
++  const res = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'include', signal });
+   if (!res.ok) {
+     let message = `Search failed (HTTP ${res.status})`;
+     let code: string | undefined;
+@@ -68,7 +70,8 @@
+ export async function fetchSources(market?: string): Promise<AdapterInfo[]> {
+   const url = new URL('/api/sources', window.location.origin);
+   if (market) url.searchParams.set('market', market);
+-  const res = await fetch(url);
++  url.searchParams.set('device', getDeviceId());
++  const res = await fetch(url, { credentials: 'include' });
+   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+   const body = (await res.json()) as { sources: AdapterInfo[] };
+   return body.sources;
+@@ -116,6 +119,17 @@
+   return body.source;
+ }
+ 
++/** Switch a source on/off for the current account (or device when signed out). */
++export async function setSourcePreference(id: string, enabled: boolean): Promise<void> {
++  const res = await fetch(`/api/preferences/sources/${encodeURIComponent(id)}`, {
++    method: 'POST',
++    headers: { 'Content-Type': 'application/json' },
++    credentials: 'include',
++    body: JSON.stringify({ enabled, device: getDeviceId() }),
++  });
++  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
++}
++
+ export async function checkAdapterHealth(id: string): Promise<AdapterHealthResult> {
+   const res = await fetch(`/api/sources/${encodeURIComponent(id)}/health`);
+   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/lib/device.ts fundstuek/web/src/lib/device.ts
+--- /tmp/orig/fundstuek/web/src/lib/device.ts	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/src/lib/device.ts	2026-11-11 04:39:36.521388947 +0000
+@@ -0,0 +1,14 @@
++/** Stable anonymous id for this browser, used until the person signs in. */
++export function getDeviceId(): string {
++  const key = 'fundstueck.deviceId';
++  try {
++    let id = window.localStorage.getItem(key);
++    if (!id) {
++      id = crypto.randomUUID?.() ?? Math.random().toString(36).slice(2);
++      window.localStorage.setItem(key, id);
++    }
++    return id;
++  } catch {
++    return 'anonymous';
++  }
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/lib/pwa.ts fundstuek/web/src/lib/pwa.ts
+--- /tmp/orig/fundstuek/web/src/lib/pwa.ts	1970-01-01 00:00:00.000000000 +0000
++++ fundstuek/web/src/lib/pwa.ts	2026-11-11 04:41:24.337527078 +0000
+@@ -0,0 +1,31 @@
++/** Register the service worker (production builds only) and keep it fresh. */
++export function registerServiceWorker(): void {
++  if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
++  window.addEventListener('load', () => {
++    navigator.serviceWorker
++      .register('/sw.js')
++      .then((reg) => {
++        // Installed PWAs stay alive for days on iOS/Android; check for a new
++        // version whenever the app comes back to the foreground.
++        document.addEventListener('visibilitychange', () => {
++          if (document.visibilityState === 'visible') reg.update().catch(() => {});
++        });
++      })
++      .catch(() => {
++        /* PWA features are optional; the site works without them. */
++      });
++  });
++}
++
++export function isStandalone(): boolean {
++  return (
++    window.matchMedia?.('(display-mode: standalone)').matches ||
++    (navigator as Navigator & { standalone?: boolean }).standalone === true
++  );
++}
++
++export function isIos(): boolean {
++  const ua = navigator.userAgent;
++  // iPadOS 13+ reports as Mac; touch points tell them apart.
++  return /iphone|ipad|ipod/i.test(ua) || (ua.includes('Mac') && navigator.maxTouchPoints > 1);
++}
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/lib/types.ts fundstuek/web/src/lib/types.ts
+--- /tmp/orig/fundstuek/web/src/lib/types.ts	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/lib/types.ts	2026-11-11 04:39:49.957619567 +0000
+@@ -25,7 +25,11 @@
+   listings: NormalizedListing[]; sources: SourceStatus[];
+   normalizedQuery?: string; marketCurrency?: string; rawTotal?: number; dedupedTotal?: number; duplicatesRemoved?: number;
+ }
+-export interface SourceInfo { source: string; label: string; mode: 'live' | 'sample'; enabled: boolean; disabledReason: string | null }
++export interface SourceInfo {
++  source: string; label: string; mode: 'live' | 'sample'; enabled: boolean; disabledReason: string | null;
++  /** Whether THIS person's searches use the source (operator state AND their own switch). */
++  userEnabled?: boolean;
++}
+ export interface AdapterConfigField { key: string; label: string; secret?: boolean; placeholder?: string; default?: string; help?: string }
+ export interface AdapterInfo extends SourceInfo {
+   icon: string; description: string; auth: string; envVars: string[]; capabilities: string[]; markets: string[];
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/main.tsx fundstuek/web/src/main.tsx
+--- /tmp/orig/fundstuek/web/src/main.tsx	2026-11-10 01:04:05.000000000 +0000
++++ fundstuek/web/src/main.tsx	2026-11-11 04:41:24.349898883 +0000
+@@ -3,6 +3,8 @@
+ import App from './App';
+ import { AuthProvider } from './contexts/AuthContext';
+ import { FavoritesProvider } from './contexts/FavoritesContext';
++import { InstallPrompt } from './components/InstallPrompt';
++import { registerServiceWorker } from './lib/pwa';
+ import './styles/tokens.css';
+ import './styles/global.css';
+ 
+@@ -11,7 +13,10 @@
+     <AuthProvider>
+       <FavoritesProvider>
+         <App />
++        <InstallPrompt />
+       </FavoritesProvider>
+     </AuthProvider>
+   </React.StrictMode>,
+ );
++
++registerServiceWorker();
+diff -ruN '--exclude=dist' '--exclude=node_modules' '--exclude=*.png' /tmp/orig/fundstuek/web/src/styles/global.css fundstuek/web/src/styles/global.css
+--- /tmp/orig/fundstuek/web/src/styles/global.css	2026-11-11 04:16:09.000000000 +0000
++++ fundstuek/web/src/styles/global.css	2026-11-11 04:41:08.331079601 +0000
+@@ -124,3 +124,48 @@
+ * {
+   scrollbar-width: none;
+ }
++
++/* ---- Mobile / PWA polish ------------------------------------------------ */
++
++html {
++  -webkit-text-size-adjust: 100%;
++  text-size-adjust: 100%;
++  background: var(--surface);
++}
++
++body {
++  -webkit-tap-highlight-color: transparent;
++  /* Notch / landscape insets (viewport-fit=cover). */
++  padding-left: env(safe-area-inset-left);
++  padding-right: env(safe-area-inset-right);
++}
++
++/* No 300ms double-tap-zoom delay on interactive elements. */
++a,
++button,
++input,
++select,
++summary,
++[role='button'] {
++  touch-action: manipulation;
++}
++
++/* iOS Safari zooms the page when focusing an input below 16px. */
++@media (pointer: coarse) {
++  input,
++  select,
++  textarea {
++    font-size: 16px;
++  }
++}
++
++/* Installed app: no accidental text selection / callouts on UI chrome. */
++@media (display-mode: standalone) {
++  button,
++  nav,
++  [role='button'] {
++    -webkit-user-select: none;
++    user-select: none;
++    -webkit-touch-callout: none;
++  }
++}

@@ -1,0 +1,42 @@
+{
+  "name": "fundstueck",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n server,web \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:server": "tsx watch server/index.ts",
+    "dev:web": "vite --config web/vite.config.ts",
+    "build": "vite build --config web/vite.config.ts",
+    "start": "NODE_ENV=production tsx server/index.ts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p web",
+    "adapter:create": "node scripts/create-adapter.mjs",
+    "adapter:list": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('server/registry/marketplaces.json','utf8'));console.log(d.length+' marketplaces');for(const m of d)console.log(m.id, m.adapter_status, m.capability);\"",
+    "adapter:check": "npm run typecheck",
+    "test": "tsx --test server/core/accounts.test.ts server/core/search.test.ts server/core/user-data.test.ts server/adapters/scrape.test.ts server/adapters/tutti/tests/search.test.ts server/adapters/anibis/tests/search.test.ts server/adapters/ebay/tests/search.test.ts server/adapters/marketplaces/tori/tests/search.test.ts"
+  },
+  "dependencies": {
+    "@googlarz/vinted-client": "^1.6.3",
+    "@types/pg": "^8.23.1",
+    "express": "^4.21.2",
+    "mercapi": "^0.3.0",
+    "pg": "^8.23.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsx": "^4.19.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
