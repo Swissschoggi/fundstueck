@@ -420,7 +420,7 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
 
             <div className={styles.aiBlock}>
               <span className={styles.engineLabel}>AI vision (OpenAI-compatible)</span>
-              <input className={styles.engineInput} placeholder="Endpoint, e.g. http://localhost:11434/v1" value={aiEndpoint} onChange={(e) => setAiEndpoint(e.target.value)} />
+              <input className={styles.engineInput} placeholder="Endpoint, e.g. http://localhost:11434 (Ollama) or https://api.openai.com/v1" value={aiEndpoint} onChange={(e) => setAiEndpoint(e.target.value)} />
               <input className={styles.engineInput} placeholder="Model, e.g. llava or gpt-4o" value={aiModel} onChange={(e) => setAiModel(e.target.value)} />
               <input className={styles.engineInput} type="password" placeholder="API key (optional for Ollama)" value={aiApiKey} onChange={(e) => setAiApiKey(e.target.value)} />
               <button
