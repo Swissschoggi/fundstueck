@@ -70,6 +70,8 @@ export class SearxngAdapter implements MarketplaceAdapter {
         const host = new URL(r.url).hostname;
         if (denied.test(host) || denied.test(r.url)) continue;
       } catch { continue; }
+      if (/\\b(best|top\\s*\\d|guide|review|how to|roundup|comparison)\\b/i.test(r.title)) continue;
+      if (/\\b202\\d\\b/.test(r.title)) continue;
       out.push({
         id: `searxng-${Buffer.from(r.url).toString('base64').slice(0, 12)}`,
         source: this.id,
