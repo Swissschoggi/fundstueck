@@ -73,39 +73,8 @@ export default function App() {
   const [hidePriceless, setHidePriceless] = useState(false);
   const [visibleCount, setVisibleCount] = useState(48);
   const [imageSearchTemplate, setImageSearchTemplate] = useState<string | null>(null);
-
-  const runAiSimilar = useCallback(async (listing: { title: string; imageUrl?: string | null }) => {
-    let cfg: { endpoint: string; model: string; apiKey: string } | null = null;
-    try {
-      const raw = localStorage.getItem('fundstueck:aiConfig');
-      if (raw) cfg = JSON.parse(raw);
-    } catch { /* ignore */ }
-    if (!cfg?.endpoint || !cfg?.model || !listing.imageUrl) return;
-    try {
-      const res = await fetch(`${cfg.endpoint.replace(/\/$/, '')}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
-        },
-        body: JSON.stringify({
-          model: cfg.model,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Describe this product in a short search query (max 6 words). Return only the query.' },
-              { type: 'image_url', image_url: { url: listing.imageUrl } },
-            ],
-          }],
-          max_tokens: 30,
-        }),
-      });
-      const body = await res.json();
-      const text = body?.choices?.[0]?.message?.content?.trim();
-      if (text) submit(text);
-    } catch { /* ignore */ }
-  }, [submit]);
   const { user, signOut } = useAuth();
+
 
   useEffect(() => {
     const apply = () => {
@@ -343,6 +312,38 @@ export default function App() {
     setQuery(q);
     setNonce((n) => n + 1);
   }, [input]);
+
+  const runAiSimilar = useCallback(async (listing: { title: string; imageUrl?: string | null }) => {
+    let cfg: { endpoint: string; model: string; apiKey: string } | null = null;
+    try {
+      const raw = localStorage.getItem('fundstueck:aiConfig');
+      if (raw) cfg = JSON.parse(raw);
+    } catch { /* ignore */ }
+    if (!cfg?.endpoint || !cfg?.model || !listing.imageUrl) return;
+    try {
+      const res = await fetch(`${cfg.endpoint.replace(/\/$/, '')}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(cfg.apiKey ? { Authorization: `Bearer ${cfg.apiKey}` } : {}),
+        },
+        body: JSON.stringify({
+          model: cfg.model,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Describe this product in a short search query (max 6 words). Return only the query.' },
+              { type: 'image_url', image_url: { url: listing.imageUrl } },
+            ],
+          }],
+          max_tokens: 30,
+        }),
+      });
+      const body = await res.json();
+      const text = body?.choices?.[0]?.message?.content?.trim();
+      if (text) submit(text);
+    } catch { /* ignore */ }
+  }, [submit]);
 
   const applyPrice = useCallback((min: string, max: string) => {
     const mn = min.trim();
