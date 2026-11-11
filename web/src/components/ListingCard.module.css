@@ -7,7 +7,7 @@
   border: 1px solid var(--border-default);
   border-top: 1px solid color-mix(in srgb, white 10%, transparent);
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  overflow: hidden;
+  overflow: visible;
   transition: background 150ms ease, border-color 150ms ease;
 }
 
@@ -301,9 +301,9 @@
 
 .similarMenu {
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   left: 0;
-  margin-bottom: 4px;
+  margin-top: 4px;
   min-width: 160px;
   background: var(--surface-lowest);
   border: 1px solid var(--border-default);
