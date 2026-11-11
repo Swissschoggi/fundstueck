@@ -567,6 +567,31 @@ export function apiRouter(cfg: ServerConfig): Router {
     const messages = Array.isArray(body.messages) ? body.messages : [];
     const maxTokens = typeof body.max_tokens === 'number' ? body.max_tokens : 30;
     const apiKey = str(body.apiKey);
+
+    // Some backends (Ollama) cannot fetch remote image URLs and require
+    // base64-encoded data URLs. Convert any http(s) image_url to a data URL.
+    const transformedMessages = await Promise.all(messages.map(async (m: unknown) => {
+      const msg = (m && typeof m === 'object') ? (m as Record<string, unknown>) : null;
+      if (!msg || !Array.isArray(msg.content)) return msg;
+      const content = await Promise.all((msg.content as unknown[]).map(async (part: unknown) => {
+        const p = (part && typeof part === 'object') ? (part as Record<string, unknown>) : null;
+        if (!p || p.type !== 'image_url') return part;
+        const iu = p.image_url && typeof p.image_url === 'object' ? (p.image_url as Record<string, unknown>) : null;
+        const url = typeof iu?.url === 'string' ? iu.url : '';
+        if (!/^https?:\/\//i.test(url)) return part;
+        try {
+          const imgRes = await fetch(url, { signal: AbortSignal.timeout(30000) });
+          if (!imgRes.ok) return part;
+          const buf = Buffer.from(await imgRes.arrayBuffer());
+          const ct = imgRes.headers.get('content-type') || 'image/jpeg';
+          return { ...p, image_url: { url: `data:${ct};base64,${buf.toString('base64')}` } };
+        } catch {
+          return part;
+        }
+      }));
+      return { ...msg, content };
+    }));
+
     let base = endpoint.replace(/\/$/, '');
     if (!/\/v1$/i.test(base)) base = `${base}/v1`;
     const url = `${base}/chat/completions`;
@@ -577,7 +602,7 @@ export function apiRouter(cfg: ServerConfig): Router {
           'Content-Type': 'application/json',
           ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
         },
-        body: JSON.stringify({ model, messages, max_tokens: maxTokens }),
+        body: JSON.stringify({ model, messages: transformedMessages, max_tokens: maxTokens }),
         signal: AbortSignal.timeout(120000),
       });
       const data = await r.json().catch(() => ({} as any));
