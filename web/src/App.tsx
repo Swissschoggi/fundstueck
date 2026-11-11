@@ -245,7 +245,7 @@ export default function App() {
       {
         q: query,
         market,
-        sort,
+        sort: 'best',
         minPrice: minPrice !== '' && Number.isFinite(Number(minPrice)) ? Number(minPrice) : null,
         maxPrice: maxPrice !== '' && Number.isFinite(Number(maxPrice)) ? Number(maxPrice) : null,
         category: category || null,
@@ -269,7 +269,7 @@ export default function App() {
     return () => {
       controller.abort();
     };
-  }, [query, market, sort, minPrice, maxPrice, category, gender, size, nonce, path]);
+  }, [query, market, minPrice, maxPrice, category, gender, size, nonce, path]);
 
   // Keep the URL shareable: query, sort, view and price filters.
   // Only applies on the search route so settings URLs stay intact.
@@ -332,11 +332,29 @@ export default function App() {
 
   const filteredListings = useMemo(() => {
     if (!result) return [];
-    let out = result.listings;
+    let out = [...result.listings];
     if (sourceFilter !== 'all') out = out.filter((l) => l.source === sourceFilter);
     if (hidePriceless) out = out.filter((l) => l.price != null);
+    const effectivePrice = (l: (typeof out)[number]) => l.price ?? Infinity;
+    switch (sort) {
+      case 'price_asc':
+        out.sort((a, b) => effectivePrice(a) - effectivePrice(b));
+        break;
+      case 'price_desc':
+        out.sort((a, b) => effectivePrice(b) - effectivePrice(a));
+        break;
+      case 'newest':
+        out.sort((a, b) => {
+          const ta = a.publishedAt ? Date.parse(a.publishedAt) : a.fetchedAt ? Date.parse(a.fetchedAt) : 0;
+          const tb = b.publishedAt ? Date.parse(b.publishedAt) : b.fetchedAt ? Date.parse(b.fetchedAt) : 0;
+          return tb - ta;
+        });
+        break;
+      default:
+        break;
+    }
     return out;
-  }, [result, sourceFilter, hidePriceless]);
+  }, [result, sourceFilter, hidePriceless, sort]);
   const visibleListings = useMemo(() => filteredListings.slice(0, visibleCount), [filteredListings, visibleCount]);
 
   // Once a search has run, show the adapters that actually participated in it.
