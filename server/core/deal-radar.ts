@@ -131,3 +131,50 @@ export async function fetchDeals(limit = 50): Promise<Array<Record<string, unkno
     return [];
   }
 }
+
+export interface PriceHistoryPoint {
+  price: number;
+  currency: string;
+  recorded_at: string;
+}
+
+export interface PriceStats {
+  count: number;
+  min: number | null;
+  max: number | null;
+  avg: number | null;
+  currency: string | null;
+}
+
+/** Recorded price points for one listing, oldest first. */
+export async function getPriceHistory(listingId: string): Promise<PriceHistoryPoint[]> {
+  try {
+    await load();
+    return store.priceHistory
+      .filter((r) => r.listing_id === listingId)
+      .map((r) => ({ price: Number(r.price), currency: r.currency, recorded_at: r.recorded_at }))
+      .sort((a, b) => Date.parse(a.recorded_at) - Date.parse(b.recorded_at));
+  } catch {
+    return [];
+  }
+}
+
+/** Aggregate asking-price stats from recorded history for one listing. */
+export async function getPriceStats(listingId: string): Promise<PriceStats> {
+  const points = await getPriceHistory(listingId);
+  if (points.length === 0) {
+    return { count: 0, min: null, max: null, avg: null, currency: null };
+  }
+  const prices = points.map((p) => p.price).filter((p) => Number.isFinite(p));
+  if (prices.length === 0) {
+    return { count: 0, min: null, max: null, avg: null, currency: null };
+  }
+  const sum = prices.reduce((a, b) => a + b, 0);
+  return {
+    count: prices.length,
+    min: Math.min(...prices),
+    max: Math.max(...prices),
+    avg: Math.round((sum / prices.length) * 100) / 100,
+    currency: points[points.length - 1].currency,
+  };
+}

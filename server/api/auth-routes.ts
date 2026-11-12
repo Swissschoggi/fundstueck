@@ -12,6 +12,7 @@ import {
 } from '../core/accounts.js';
 import { listFavorites, addFavorite, removeFavorite, migrateFavorites, purgeFavorites } from '../core/favorites.js';
 import { getUserPrefs, migratePrefs, purgePrefs, setSourceEnabledForOwner } from '../core/user-prefs.js';
+import { migrateAlerts, purgeAlerts } from '../core/alerts.js';
 import type { StoredFavorite } from '../core/favorites.js';
 import { rateLimitMiddleware } from '../core/rate-limit.js';
 
@@ -60,6 +61,7 @@ async function adoptDeviceData(userId: string, device: unknown): Promise<void> {
   const toKey = `user:${userId}`;
   await migrateFavorites(d, toKey);
   await migratePrefs(d, toKey);
+  await migrateAlerts(d, toKey);
 }
 
 /**
@@ -195,6 +197,7 @@ export function mountAuthRoutes(router: Router, cfg: ServerConfig): void {
     }
     await purgeFavorites(`user:${user.id}`);
     await purgePrefs(`user:${user.id}`);
+    await purgeAlerts(`user:${user.id}`);
     clearSessionCookie(res);
     res.json({ ok: true });
   });

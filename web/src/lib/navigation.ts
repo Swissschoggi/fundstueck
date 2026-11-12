@@ -10,7 +10,7 @@ export const PRIMARY_NAV: NavItem[] = [
   { id: 'search', label: 'Search', icon: 'search', path: '/' },
   { id: 'saved', label: 'Saved items', icon: 'bookmark', path: '/saved' },
   { id: 'deals', label: 'Deal radar', icon: 'monitoring', path: '/deals' },
-  { id: 'alerts', label: 'Alerts', icon: 'notifications', path: '/alerts', soon: true },
+  { id: 'alerts', label: 'Alerts', icon: 'notifications', path: '/alerts' },
 ];
 
 export const SETTINGS_NAV: NavItem[] = [

@@ -76,6 +76,8 @@ export interface ServerConfig {
     notificationEndpoint: string | undefined;
   };
   enableSampleAdapter: boolean;
+  /** How often the saved-search alert scheduler re-runs watchers. */
+  alertsPollMs: number;
   scrapers: ScraperConfig;
 }
 
@@ -117,6 +119,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       env.ENABLE_SAMPLE_ADAPTER != null
         ? env.ENABLE_SAMPLE_ADAPTER === 'true'
         : nodeEnv !== 'production',
+    alertsPollMs: sanitizeAlertInterval(env.ALERTS_POLL_INTERVAL_MS),
     scrapers: {
       userAgent: env.SCRAPER_USER_AGENT || DEFAULT_SCRAPER_UA,
       minIntervalMs: sanitizeInterval(env.SCRAPER_MIN_INTERVAL_MS),
@@ -144,4 +147,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
 function sanitizeInterval(raw: string | undefined): number {
   const n = Number(raw);
   return Number.isFinite(n) && n >= 1000 ? n : 3000;
+}
+
+function sanitizeAlertInterval(raw: string | undefined): number {
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 30_000 ? n : 5 * 60_000;
 }

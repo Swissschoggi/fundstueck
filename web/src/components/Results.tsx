@@ -19,7 +19,7 @@ function SkeletonCard() {
 }
 
 export function Results({
-  status, result, errorMessage, errorCode, marketLabel: _marketLabel, view, filteredListings, onRetry, hasMore, onLoadMore, imageSearchTemplate, onAiSimilar, aiBusyId,
+  status, result, errorMessage, errorCode, marketLabel: _marketLabel, view, filteredListings, onRetry, hasMore, onLoadMore, imageSearchTemplate, onAiSimilar, aiBusyId, onOpenDetails,
 }: {
   status: 'idle' | 'loading' | 'success' | 'error';
   result: SearchResponse | null;
@@ -34,6 +34,7 @@ export function Results({
   imageSearchTemplate?: string | null;
   onAiSimilar?: (listing: SearchResponse['listings'][number]) => void;
   aiBusyId?: string | null;
+  onOpenDetails?: (listing: SearchResponse['listings'][number]) => void;
 }) {
   if (status === 'loading') {
     return <div className={styles.grid} aria-busy="true" aria-label="Loading results">
@@ -148,7 +149,7 @@ export function Results({
     </div> : <div className={view === 'grid' ? styles.grid : styles.listColumn}>
       {filteredListings.map((l) => {
         const src = result.sources.find((s) => s.source === l.source);
-        return <ListingCard key={l.id} listing={l} view={view} sourceLabel={src?.label ?? l.source} sourceMode={src?.mode ?? 'live'} imageSearchTemplate={imageSearchTemplate} onAiSimilar={onAiSimilar} aiBusy={aiBusyId === l.id} />;
+        return <ListingCard key={l.id} listing={l} view={view} sourceLabel={src?.label ?? l.source} sourceMode={src?.mode ?? 'live'} imageSearchTemplate={imageSearchTemplate} onAiSimilar={onAiSimilar} aiBusy={aiBusyId === l.id} onOpenDetails={onOpenDetails} sourceLabelFor={(s) => result.sources.find((x) => x.source === s)?.label ?? s} />;
       })}
     </div>}
   {hasMore && (

@@ -20,6 +20,7 @@ import { createTuttiAdapter } from '../adapters/tutti.adapter.js';
 import { createWillhabenAdapter } from '../adapters/willhaben.adapter.js';
 import { logEvent } from './events.js';
 import { initStorage, readState, writeState } from './storage.js';
+import { initEngineSettings } from './engine-settings.js';
 import { initAccounts } from './accounts.js';
 import { initFavorites } from './favorites.js';
 import { initUserPrefs } from './user-prefs.js';
@@ -73,6 +74,7 @@ interface PersistedSettings {
 export async function initRegistry(cfg: ServerConfig): Promise<MarketplaceAdapter[]> {
   serverCfg = cfg;
   await initStorage(cfg);
+  await initEngineSettings(cfg);
   settingsFile = path.join(cfg.dataDir, 'adapter-settings.json');
   const existingSettings = await readState<Partial<PersistedSettings>>('adapter-settings');
   const settingsExisted = existingSettings !== null;

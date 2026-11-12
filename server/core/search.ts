@@ -9,6 +9,7 @@ import {
 import { logEvent } from './events.js';
 import { DEFAULT_MARKET, findMarket, MARKETS } from './markets.js';
 import { recordPrices } from './deal-radar.js';
+import { groupDuplicates } from './duplicates.js';
 
 export interface SearchQuery {
   q: string;
@@ -180,32 +181,6 @@ function toMarketCurrency(amount: number, from: string, to: string): number {
   const toRate = RATES_TO_CHF[to.toUpperCase()] ?? 1;
   if (!toRate) return amount;
   return (amount * fromRate) / toRate;
-}
-
-// ---------- Deduplication ----------
-
-function canonicalUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    return (u.origin + u.pathname).toLowerCase().replace(/\/$/, '');
-  } catch {
-    return url.toLowerCase();
-  }
-}
-
-function dedupKey(l: NormalizedListing): string {
-  const url = canonicalUrl(l.listingUrl);
-  if (url) return `url:${url}`;
-  const normTitle = normalizeText(l.title);
-  // Only merge by title+price+location when the title is specific enough and
-  // a price is present — otherwise unrelated "no-price" listings would
-  // collapse into one group and inflate the duplicate count.
-  if (normTitle.length < 12 || l.price == null) {
-    return `listing:${l.source}:${l.id}`;
-  }
-  const price = Math.round(l.price);
-  const loc = normalizeText(l.location || '');
-  return `title:${normTitle}|${price}|${loc}`;
 }
 
 // ---------- Main pipeline ----------
@@ -394,31 +369,12 @@ export async function runSearch(
     }
   }
 
-  // Deduplication: group by canonical URL, then by normalized title+price+location
+  // Deduplication: collapse cross-marketplace duplicate listings (same item
+  // re-listed elsewhere) into one primary with a comparison set attached.
   const rawTotal = listings.length;
-  const groups = new Map<string, NormalizedListing[]>();
-  for (const l of listings) {
-    const key = dedupKey(l);
-    const g = groups.get(key) ?? [];
-    g.push(l);
-    groups.set(key, g);
-  }
-  const deduped: NormalizedListing[] = [];
-  for (const g of groups.values()) {
-    if (g.length === 1) {
-      deduped.push(g[0]);
-    } else {
-      const primary = g[0];
-      primary.duplicateListings = g.slice(1).map((x) => ({
-        source: x.source,
-        listingUrl: x.listingUrl,
-      }));
-      primary.duplicateCount = g.length - 1;
-      deduped.push(primary);
-    }
-  }
-  const dedupedCount = deduped.length;
-  listings = deduped;
+  const duplicateGroups = groupDuplicates(listings);
+  listings = duplicateGroups.map((g) => g.primary);
+  const dedupedCount = listings.length;
 
   // Sorting
   const effectivePrice = (l: NormalizedListing) =>

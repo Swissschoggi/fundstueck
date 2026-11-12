@@ -4,6 +4,7 @@ import express from 'express';
 import type { ServerConfig } from './config.js';
 import { apiRouter, validationErrorHandler } from './api/router.js';
 import { initRegistry } from './core/registry.js';
+import { initAlerts, startAlertScheduler } from './core/alerts.js';
 import { rateLimitMiddleware } from './core/rate-limit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,6 +39,8 @@ export async function createApp(cfg: ServerConfig): Promise<express.Express> {
   app.use('/api', rateLimitMiddleware({ scope: 'api', limit: 300, windowMs: 60_000 }));
 
   await initRegistry(cfg);
+  await initAlerts(cfg);
+  startAlertScheduler(cfg.alertsPollMs);
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api', apiRouter(cfg));

@@ -30,6 +30,7 @@ import { SOURCE_CATALOG } from '../core/source-catalog.js';
 import { REGION_PACKS } from '../core/regions.js';
 import { recentEvents } from '../core/events.js';
 import { mountAuthRoutes, operatorGuard, ownerKeyFor } from './auth-routes.js';
+import { mountAlertRoutes } from './alert-routes.js';
 import { getUserPrefs } from '../core/user-prefs.js';
 import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
@@ -38,7 +39,9 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
-import { fetchDeals } from '../core/deal-radar.js';
+import { getEngineSettings, setEngineSettings } from '../core/engine-settings.js';
+import { alertPollIntervalMs } from '../core/alerts.js';
+import { fetchDeals, getPriceHistory, getPriceStats } from '../core/deal-radar.js';
 import { toBase64Image } from '../core/image-utils.js';
 import {
   listCountries,
@@ -533,6 +536,16 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
+  router.get('/listings/:id/history', async (req, res, next) => {
+    try {
+      const id = req.params.id;
+      const [history, stats] = await Promise.all([getPriceHistory(id), getPriceStats(id)]);
+      res.json({ listingId: id, history, stats });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get('/deals', async (_req, res, next) => {
     try {
       const deals = await fetchDeals(50);
@@ -575,6 +588,7 @@ export function apiRouter(cfg: ServerConfig): Router {
   });
 
   mountAuthRoutes(router, cfg);
+  mountAlertRoutes(router, cfg);
 
   router.get('/image-search', (req, res) => {
     const imageUrl = typeof req.query.url === 'string' ? req.query.url : '';
@@ -709,6 +723,24 @@ export function apiRouter(cfg: ServerConfig): Router {
       res.json(data);
     } catch (err) {
       res.status(502).json({ error: { code: 'NETWORK', message: err instanceof Error ? err.message : 'Proxy request failed.' } });
+    }
+  });
+
+  router.get('/engine/settings', (_req, res) => {
+    res.json({ settings: getEngineSettings(), alertPollMs: alertPollIntervalMs() });
+  });
+
+  router.post('/engine/settings', admin, async (req, res, next) => {
+    try {
+      const body = asRecord(req.body) ?? {};
+      const patch: Record<string, unknown> = {};
+      if (body.titleThreshold !== undefined) patch.titleThreshold = body.titleThreshold;
+      if (body.priceAllowancePct !== undefined) patch.priceAllowancePct = body.priceAllowancePct;
+      if (body.imageMatch !== undefined) patch.imageMatch = body.imageMatch === true;
+      const settings = await setEngineSettings(patch);
+      res.json({ settings });
+    } catch (err) {
+      next(err);
     }
   });
 

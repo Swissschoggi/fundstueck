@@ -68,20 +68,62 @@
 }
 
 .duplicates {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border-default));
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
   font: var(--fs-label-sm);
-  color: var(--on-surface-variant);
+  color: var(--primary-fixed-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.duplicates:hover {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--border-default));
 }
 
 .imageWrap {
   position: relative;
+  display: block;
   width: 100%;
+  padding: 0;
+  border: 0;
   aspect-ratio: 4 / 3;
   border-radius: var(--r-lg);
   overflow: hidden;
   background: var(--surface-container);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.imageWrap:disabled {
+  cursor: default;
+}
+
+.detailsBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--outline);
+  font: var(--fs-label-md);
+  cursor: pointer;
+}
+
+.detailsBtn:hover {
+  color: var(--on-surface);
 }
 
 .image {

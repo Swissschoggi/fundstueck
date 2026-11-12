@@ -8,6 +8,7 @@ import {
 } from './lib/api';
 import type {
   MarketInfo,
+  NormalizedListing,
   SearchResponse,
   SetupResponse,
   SortKey,
@@ -23,9 +24,12 @@ import { useAuth } from './contexts/AuthContext';
 import { useFavorites } from './contexts/FavoritesContext';
 import { AuthModal } from './components/AuthModal';
 import { Results } from './components/Results';
+import { ListingDetail } from './components/ListingDetail';
+import { ListingComparison } from './components/ListingComparison';
 import { SettingsPage } from './components/SettingsPage';
 import { SavedPage } from './components/SavedPage';
 import { DealRadarPage } from './components/DealRadarPage';
+import { AlertsPage } from './components/AlertsPage';
 import { SourcesPage } from './components/SourcesPage';
 import { Onboarding } from './components/Onboarding';
 import styles from './App.module.css';
@@ -102,6 +106,8 @@ export default function App() {
   const [priceError, setPriceError] = useState<string | null>(null);
 
   const [result, setResult] = useState<SearchResponse | null>(null);
+  const [detail, setDetail] = useState<NormalizedListing | null>(null);
+  const [detailCompare, setDetailCompare] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
@@ -170,6 +176,8 @@ export default function App() {
       setStatus('idle');
     }
     if (to === window.location.pathname) return;
+    setDetail(null);
+    setDetailCompare(false);
     window.history.pushState(null, '', to);
     setPath(to);
     window.scrollTo(0, 0);
@@ -426,6 +434,7 @@ export default function App() {
   const isSettings = path.startsWith('/settings');
   const isSaved = path === '/saved';
   const isDeals = path === '/deals' || path === '/deal-radar';
+  const isAlerts = path === '/alerts';
   const currentMarket = markets.find((m) => m.code === market);
   const marketLabel = currentMarket?.label ?? market;
   const categories = useMemo(() => {
@@ -489,6 +498,8 @@ export default function App() {
           <SavedPage imageSearchTemplate={imageSearchTemplate} onAiSimilar={runAiSimilar} />
         ) : isDeals ? (
           <DealRadarPage />
+        ) : isAlerts ? (
+          <AlertsPage />
         ) : (
           <>
             <div className={styles.head}>
@@ -541,6 +552,23 @@ export default function App() {
               {priceError && <div className={styles.priceError}>{priceError}</div>}
             </div>
 
+            {detail ? (
+              <div className={styles.detailPage}>
+                <ListingDetail
+                  listing={detail}
+                  sourceLabelFor={(s) => result?.sources.find((x) => x.source === s)?.label ?? s}
+                  onBack={() => { setDetail(null); setDetailCompare(false); window.scrollTo(0, 0); }}
+                  onOpenCompare={() => setDetailCompare(true)}
+                />
+                {detailCompare && (
+                  <ListingComparison
+                    listing={detail}
+                    sourceLabelFor={(s) => result?.sources.find((x) => x.source === s)?.label ?? s}
+                    onClose={() => setDetailCompare(false)}
+                  />
+                )}
+              </div>
+            ) : (
             <div className={styles.workspace}>
               <FilterRail
                 minPrice={pendingMin}
@@ -576,9 +604,11 @@ export default function App() {
                 imageSearchTemplate={imageSearchTemplate}
                 onAiSimilar={runAiSimilar}
                 aiBusyId={aiBusyId}
+                onOpenDetails={(l) => { setDetail(l); setDetailCompare(false); window.scrollTo(0, 0); }}
                 onRetry={() => setNonce((n) => n + 1)}
               />
             </div>
+            )}
           </>
         )}
       </div>

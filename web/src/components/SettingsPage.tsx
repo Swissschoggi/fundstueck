@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   checkAdapterHealth,
+  fetchEngineSettings,
   fetchEvents,
   fetchSources,
   fetchSystem,
+  saveEngineSettings,
   setAdapterEnabled,
   setSourcePreference,
   uninstallAdapter,
 } from '../lib/api';
-import type { AdapterInfo, ServerEvent, SystemInfo } from '../lib/types';
+import type { AdapterInfo, EngineSettings, ServerEvent, SystemInfo } from '../lib/types';
 import { AdapterCard, type HealthState } from './AdapterCard';
 import { EventTerminal } from './EventTerminal';
 import { Icon } from './Icon';
@@ -56,6 +58,10 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
   });
   const [aiTestResult, setAiTestResult] = useState<string | null>(null);
   const [aiTesting, setAiTesting] = useState(false);
+  const [engine, setEngine] = useState<EngineSettings | null>(null);
+  const [alertPollMs, setAlertPollMs] = useState<number | null>(null);
+  const [savedEngine, setSavedEngine] = useState(false);
+  const [engineBusy, setEngineBusy] = useState(false);
 
   const refreshEvents = useCallback(() => {
     fetchEvents(120)
@@ -78,7 +84,32 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
 
   useEffect(() => {
     refresh();
+    fetchEngineSettings()
+      .then(({ settings, alertPollMs: poll }) => {
+        setEngine(settings);
+        setAlertPollMs(poll);
+      })
+      .catch(() => {});
   }, [refresh]);
+
+  const saveEngine = async () => {
+    if (!engine) return;
+    setEngineBusy(true);
+    try {
+      const saved = await saveEngineSettings({
+        titleThreshold: engine.titleThreshold,
+        priceAllowancePct: engine.priceAllowancePct,
+        imageMatch: engine.imageMatch,
+      });
+      setEngine(saved);
+      setSavedEngine(true);
+      setTimeout(() => setSavedEngine(false), 2000);
+    } catch {
+      setError('Could not save matching engine settings.');
+    } finally {
+      setEngineBusy(false);
+    }
+  };
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -478,9 +509,85 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
 
             <p className={styles.engineNote}>
               <Icon name="info" size={14} style={{ color: 'var(--outline)' }} />
-              Not built yet: local SQLite listing store, cross-source deduplication and
-              retention. Those require persistence and are not simulated here.
+              Listings are not stored server-side; each search fans out live and is normalised
+              on the fly. Persisted state covers favourites, preferences, alerts and the
+              matching engine below.
             </p>
+          </div>
+
+          <div className={styles.engineCard}>
+            <div className={styles.engineCardHead}>
+              <Icon name="hub" size={18} style={{ color: 'var(--primary)' }} />
+              <span className={styles.engineTitle}>Deduplication &amp; alerts</span>
+              <span className={styles.engineBadge}>
+                {alertPollMs != null ? `poll ${Math.round(alertPollMs / 1000)}s` : 'poll —'}
+              </span>
+            </div>
+            {engine ? (
+              <>
+                <div className={styles.engineField}>
+                  <label className={styles.engineLabel} htmlFor="title-threshold">
+                    Title similarity threshold · {Math.round(engine.titleThreshold * 100)}%
+                  </label>
+                  <input
+                    id="title-threshold"
+                    type="range"
+                    min={0.5}
+                    max={0.95}
+                    step={0.05}
+                    value={engine.titleThreshold}
+                    onChange={(e) => setEngine({ ...engine, titleThreshold: Number(e.target.value) })}
+                  />
+                  <p className={styles.engineHint}>
+                    Higher values merge fewer cross-marketplace duplicates. Lower values catch more
+                    near-matches but risk pairing distinct items.
+                  </p>
+                </div>
+                <div className={styles.engineField}>
+                  <label className={styles.engineLabel} htmlFor="price-allowance">
+                    Cross-platform price allowance (%)
+                  </label>
+                  <input
+                    id="price-allowance"
+                    className={styles.engineInput}
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={engine.priceAllowancePct}
+                    onChange={(e) => setEngine({ ...engine, priceAllowancePct: Number(e.target.value) })}
+                  />
+                  <p className={styles.engineHint}>
+                    Allow a title+price duplicate when asking prices differ by up to this margin.
+                  </p>
+                </div>
+                <label className={styles.engineLabel} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={engine.imageMatch}
+                    onChange={(e) => setEngine({ ...engine, imageMatch: e.target.checked })}
+                  />
+                  Match identical product images
+                </label>
+                <div className={styles.runtimeList} style={{ marginTop: 'var(--space-sm)' }}>
+                  <div className={styles.runtimeRow}>
+                    <span>Alert scheduler</span>
+                    <span className={styles.mono}>
+                      {alertPollMs != null ? `every ${Math.round(alertPollMs / 1000)}s` : 'env ALERTS_POLL_INTERVAL_MS'}
+                    </span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 'var(--space-sm)', flexWrap: 'wrap' }}>
+                  <button type="button" className={styles.engineSave} onClick={() => void saveEngine()} disabled={engineBusy}>
+                    {engineBusy ? 'Saving…' : savedEngine ? 'Saved ✓' : 'Save matching engine'}
+                  </button>
+                  <button type="button" className={styles.engineSave} onClick={() => onNavigate('/alerts')}>
+                    Manage alert watchers
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className={styles.engineHint}>Loading matching engine settings…</p>
+            )}
           </div>
         </div>
       </section>

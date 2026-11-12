@@ -15,6 +15,12 @@ import type {
   SortKey,
   SourceTestResult,
   SystemInfo,
+  SearchWatcher,
+  AlertRecord,
+  NotificationSettings,
+  NotifyChannel,
+  EngineSettings,
+  PriceHistoryResponse,
 } from './types';
 
 export interface SearchParams {
@@ -300,4 +306,152 @@ export async function fetchSystem(): Promise<SystemInfo> {
   const res = await fetch('/api/system');
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
   return (await res.json()) as SystemInfo;
+}
+
+export async function fetchListingHistory(id: string): Promise<PriceHistoryResponse> {
+  const res = await fetch(`/api/listings/${encodeURIComponent(id)}/history`);
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  return (await res.json()) as PriceHistoryResponse;
+}
+
+export async function fetchEngineSettings(): Promise<{ settings: EngineSettings; alertPollMs: number }> {
+  const res = await fetch('/api/engine/settings');
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  return (await res.json()) as { settings: EngineSettings; alertPollMs: number };
+}
+
+export async function saveEngineSettings(patch: Partial<EngineSettings>): Promise<EngineSettings> {
+  const res = await fetch('/api/engine/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  const body = (await res.json()) as { settings: EngineSettings };
+  return body.settings;
+}
+
+// ---------- Saved searches / alert watchers ----------
+
+export interface WatcherDraft {
+  label?: string;
+  query: string;
+  market: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  sources?: string[];
+  notifications?: NotifyChannel[];
+  enabled?: boolean;
+  highPriority?: boolean;
+}
+
+function withDevice(path: string, device: string): string {
+  return `${path}${path.includes('?') ? '&' : '?'}device=${encodeURIComponent(device)}`;
+}
+
+export async function fetchWatchers(device: string): Promise<SearchWatcher[]> {
+  const res = await fetch(withDevice('/api/alerts/watchers', device), { credentials: 'include' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { watchers: SearchWatcher[] };
+  return body.watchers ?? [];
+}
+
+export async function createWatcher(device: string, draft: WatcherDraft): Promise<SearchWatcher> {
+  const res = await fetch('/api/alerts/watchers', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ ...draft, device }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  const body = (await res.json()) as { watcher: SearchWatcher };
+  return body.watcher;
+}
+
+export async function updateWatcher(
+  device: string,
+  id: string,
+  patch: Partial<WatcherDraft>,
+): Promise<SearchWatcher> {
+  const res = await fetch(`/api/alerts/watchers/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ ...patch, device }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  const body = (await res.json()) as { watcher: SearchWatcher };
+  return body.watcher;
+}
+
+export async function deleteWatcher(device: string, id: string): Promise<void> {
+  const res = await fetch(`/api/alerts/watchers/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+}
+
+export async function runWatcherNow(device: string, id: string): Promise<{ watcher: SearchWatcher; alerts: AlertRecord[]; error: string | null }> {
+  const res = await fetch(`/api/alerts/watchers/${encodeURIComponent(id)}/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  return (await res.json()) as { watcher: SearchWatcher; alerts: AlertRecord[]; error: string | null };
+}
+
+export async function fetchAlerts(device: string, limit = 100): Promise<AlertRecord[]> {
+  const res = await fetch(withDevice(`/api/alerts?limit=${limit}`, device), { credentials: 'include' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { alerts: AlertRecord[] };
+  return body.alerts ?? [];
+}
+
+export async function fetchNotificationSettings(device: string): Promise<NotificationSettings> {
+  const res = await fetch(withDevice('/api/alerts/settings', device), { credentials: 'include' });
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`, res.status);
+  const body = (await res.json()) as { settings: NotificationSettings };
+  return body.settings;
+}
+
+export async function saveNotificationSettings(
+  device: string,
+  settings: NotificationSettings,
+): Promise<NotificationSettings> {
+  const res = await fetch('/api/alerts/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device, settings }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  const body = (await res.json()) as { settings: NotificationSettings };
+  return body.settings;
+}
+
+export async function testNotificationChannels(device: string): Promise<{ sent: NotifyChannel[] }> {
+  const res = await fetch('/api/alerts/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ device }),
+  });
+  if (!res.ok) throw new ApiError(await errorMessage(res), res.status);
+  return (await res.json()) as { sent: NotifyChannel[] };
+}
+
+async function errorMessage(res: Response): Promise<string> {
+  let message = `HTTP ${res.status}`;
+  try {
+    const body = await res.json();
+    if (body?.error?.message) message = body.error.message;
+  } catch {
+    /* keep default */
+  }
+  return message;
 }

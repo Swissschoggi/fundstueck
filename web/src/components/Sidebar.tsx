@@ -4,10 +4,10 @@ import { Icon } from './Icon';
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
-  { id: 'search', label: 'Search', icon: 'search', path: '/' },
-  { id: 'saved', label: 'Saved items', icon: 'bookmark', path: '/saved' },
-  { id: 'deals', label: 'Deal radar', icon: 'monitoring', path: '/deals' },
-  { id: 'alerts', label: 'Alerts', icon: 'notifications', soon: true },
+  { id: 'search', label: 'Search', icon: 'search', path: '/', soon: false },
+  { id: 'saved', label: 'Saved items', icon: 'bookmark', path: '/saved', soon: false },
+  { id: 'deals', label: 'Deal radar', icon: 'monitoring', path: '/deals', soon: false },
+  { id: 'alerts', label: 'Alerts', icon: 'notifications', path: '/alerts', soon: false },
 ];
 
 const SETTINGS_ITEMS = [

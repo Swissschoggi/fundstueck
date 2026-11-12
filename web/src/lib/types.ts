@@ -11,7 +11,11 @@ export interface NormalizedListing {
   marketPrice?: number | null; marketCurrency?: string; fxRate?: number | null;
   normalizedLocation?: NormalizedLocation | null; relevanceScore?: number;
   freshness?: 'fresh' | 'aging' | 'stale' | 'unknown'; ageDays?: number | null;
-  duplicateCount?: number; duplicateListings?: Array<{ source: string; listingUrl: string }>;
+  duplicateCount?: number;
+  duplicateListings?: Array<{
+    source: string; listingUrl: string; title?: string; price?: number | null; currency?: string;
+    imageUrl?: string | null; location?: string | null; matchScore?: number; matchReason?: string;
+  }>;
 }
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';
 export interface CategoryOption { value: string; label: string }
@@ -53,6 +57,55 @@ export interface PluginStatus { id: string; label: string; description: string; 
 export interface CatalogEntry { id: string; label: string; kind: 'custom-command' | 'custom-http' | 'built-in'; icon: string; markets: string[]; description: string; install: string; installCommand?: string[]; docsUrl?: string; risk?: string; template?: CustomSourceDraft }
 export interface PluginsResponse { plugins: PluginStatus[]; customSources: CustomSourceConfig[]; catalog: CatalogEntry[]; pluginsDir: string; region: string; setupComplete: boolean }
 export interface SourceTestResult { source: string; ok: boolean; latencyMs: number; count?: number; sample?: NormalizedListing[]; error?: string }
+export type NotifyChannel = 'telegram' | 'discord' | 'webhook' | 'email';
+
+export interface SearchWatcher {
+  id: string;
+  ownerKey: string;
+  label: string;
+  query: string;
+  market: string;
+  minPrice: number | null;
+  maxPrice: number | null;
+  sources: string[];
+  notifications: NotifyChannel[];
+  enabled: boolean;
+  highPriority: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastRunAt: string | null;
+  lastTriggeredAt: string | null;
+  lastError: string | null;
+}
+
+export interface AlertListing {
+  id: string; source: string; title: string; price: number | null; currency: string;
+  listingUrl: string; imageUrl: string | null; location: string | null; previousPrice?: number | null;
+}
+
+export interface AlertRecord {
+  id: string; ownerKey: string; watcherId: string; watcherLabel: string;
+  reason: 'new' | 'price-drop'; listing: AlertListing; createdAt: string;
+}
+
+export interface PriceHistoryPoint { price: number; currency: string; recorded_at: string }
+export interface PriceStats { count: number; min: number | null; max: number | null; avg: number | null; currency: string | null }
+export interface PriceHistoryResponse { listingId: string; history: PriceHistoryPoint[]; stats: PriceStats }
+
+export interface EngineSettings {
+  titleThreshold: number;
+  priceAllowancePct: number;
+  imageMatch: boolean;
+  updatedAt: string;
+}
+
+export interface NotificationSettings {
+  telegram: { botToken: string; chatId: string };
+  discord: { webhookUrl: string };
+  webhook: { url: string };
+  email: { address: string };
+}
+
 export interface RegistryCountry { code: string; name: string; flag: string; currency: string; languages: string[]; default_locale: string; marketplace_ids: string[] }
 export interface RegistryMarketplace {
   id: string; name: string; domain: string | null; category_tags: string[]; capability: string; technical_access: string;

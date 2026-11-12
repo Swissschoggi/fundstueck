@@ -3,16 +3,20 @@ import type { NormalizedListing } from '../lib/types';
 import { formatChf, sourceAccent, timeAgo } from '../lib/format';
 import { Icon } from './Icon';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { ListingComparison } from './ListingComparison';
 import styles from './ListingCard.module.css';
 
-export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate, onAiSimilar, aiBusy }: {
+export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearchTemplate, onAiSimilar, aiBusy, sourceLabelFor, onOpenDetails }: {
   listing: NormalizedListing; view: 'grid' | 'list'; sourceLabel: string; sourceMode: 'live' | 'sample';
   imageSearchTemplate?: string | null;
   onAiSimilar?: (listing: NormalizedListing) => void;
   aiBusy?: boolean;
+  sourceLabelFor?: (source: string) => string;
+  onOpenDetails?: (listing: NormalizedListing) => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const [similarOpen, setSimilarOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
   const similarRef = useRef<HTMLDivElement>(null);
   const hasAi = (() => {
     try {
@@ -48,6 +52,7 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
     : listing.freshness === 'aging' ? 'Older listing' : null;
 
   return (
+    <>
     <article className={`${styles.card} ${view === 'list' ? styles.list : ''}`}>
       <div className={styles.inner}>
         <div className={styles.metaRow}>
@@ -60,9 +65,15 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
             </span>
             {listing.location && <span className={styles.location}>{listing.location}</span>}
             {listing.duplicateCount && listing.duplicateCount > 0 && (
-              <span className={styles.duplicates} title={(listing.duplicateListings ?? []).map((d) => d.source).join(', ')}>
-                +{listing.duplicateCount} duplicate{listing.duplicateCount === 1 ? '' : 's'} on {(listing.duplicateListings ?? []).map((d) => d.source).join(', ')}
-              </span>
+              <button
+                type="button"
+                className={styles.duplicates}
+                onClick={() => setCompareOpen(true)}
+                title="Compare this item across marketplaces"
+              >
+                <Icon name="hub" size={13} />
+                Compare {listing.duplicateCount + 1} listings
+              </button>
             )}
             {freshnessLabel && <span className={styles.freshnessBadge} title={listing.ageDays == null ? 'Publication date is old' : 'Published ' + listing.ageDays + ' days ago'}>{freshnessLabel}</span>}
           </div>
@@ -77,15 +88,25 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
             <Icon name={favorited ? 'favorite' : 'favorite_border'} size={20} />
           </button>
         </div>
-        <div className={styles.imageWrap}>
+        <button
+          type="button"
+          className={styles.imageWrap}
+          onClick={onOpenDetails ? () => onOpenDetails(listing) : undefined}
+          aria-label={onOpenDetails ? `View details for ${listing.title}` : undefined}
+          disabled={!onOpenDetails}
+        >
           {showImage ? <img className={styles.image} src={listing.imageUrl!} alt={listing.title} loading="lazy" referrerPolicy="no-referrer" onError={() => setImgError(true)} />
             : <div className={styles.imageFallback}><Icon name="image" size={28} style={{ color: 'var(--outline-variant)' }} /></div>}
           {listing.publishedAt && <span className={styles.timeBadge}>{timeAgo(listing.publishedAt)}</span>}
-        </div>
+        </button>
         <div className={styles.titles}>
           <h2 className={`t-headline-sm ${styles.title}`}>{listing.title}</h2>
           {listing.description && <p className={`t-body-md ${styles.description}`}>{listing.description}</p>}
-
+          {onOpenDetails && (
+            <button type="button" className={styles.detailsBtn} onClick={() => onOpenDetails(listing)}>
+              View details <Icon name="arrow_forward" size={14} />
+            </button>
+          )}
         </div>
       </div>
       <div className={styles.footer}>
@@ -132,5 +153,13 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
         </a>
       </div>
     </article>
+    {compareOpen && (
+      <ListingComparison
+        listing={listing}
+        sourceLabelFor={sourceLabelFor ?? ((s) => s)}
+        onClose={() => setCompareOpen(false)}
+      />
+    )}
+    </>
   );
 }

@@ -12,7 +12,18 @@ export interface NormalizedLocation {
   longitude: number | null;
 }
 
-export interface DuplicateListingRef { source: string; listingUrl: string }
+export interface DuplicateListingRef {
+  source: string;
+  listingUrl: string;
+  title?: string;
+  price?: number | null;
+  currency?: string;
+  imageUrl?: string | null;
+  location?: string | null;
+  /** 0..1 confidence that this is the same physical item. */
+  matchScore?: number;
+  matchReason?: string;
+}
 
 export interface NormalizedListing {
   id: string;

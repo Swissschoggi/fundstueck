@@ -28,6 +28,17 @@
   border-bottom: 1px solid var(--border-default);
 }
 
+.detailPage {
+  padding: var(--space-lg) var(--margin-mobile) var(--space-xl);
+}
+
+@media (min-width: 760px) {
+  .detailPage {
+    padding: var(--space-lg) var(--margin) var(--space-xl);
+    max-width: calc(1400px + 2 * var(--margin));
+  }
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
