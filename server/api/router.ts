@@ -541,6 +541,16 @@ export function apiRouter(cfg: ServerConfig): Router {
     }
   });
 
+  // eBay Marketplace Account Deletion/Closure notification endpoint.
+  // Used to satisfy eBay's production keyset compliance requirement.
+  router.get('/ebay/account-deletion', (req, res) => {
+    const challenge = String(req.query['challenge_code'] ?? '');
+    res.status(200).json({ challengeResponse: challenge });
+  });
+  router.post('/ebay/account-deletion', (_req, res) => {
+    res.status(204).end();
+  });
+
   mountAuthRoutes(router, cfg);
 
   router.get('/image-search', (req, res) => {
