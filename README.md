@@ -57,6 +57,13 @@ Restart `npm run dev`. The eBay adapter is enabled automatically when both
 credentials are present; otherwise it is shown as disabled with the reason.
 Use `EBAY_USE_SANDBOX=true` to test against `api.sandbox.ebay.com`.
 
+**Before going to production**, also set `EBAY_VERIFICATION_TOKEN` and
+`EBAY_NOTIFICATION_ENDPOINT` and register that endpoint
+(`<your-domain>/api/ebay/account-deletion`) with eBay's Marketplace Account
+Deletion/Closure Notification setup in the Developer Portal. eBay requires a
+working endpoint for any production keyset and will suspend keysets that don't
+answer its verification challenge — see `GET /api/ebay/account-deletion`.
+
 ### Tutti.ch, Anibis.ch & Marko.ch — public search pages (on by default)
 
 Both run the same SMG Next.js platform and server-render search results into
@@ -231,17 +238,12 @@ is included.
 
 These features use the app's own storage (Postgres when `DATABASE_URL` is set,
 otherwise JSON files in `DATA_DIR`). No Supabase is required.
-- **Auth**: email/password accounts stored in the app database.
-- **Favorites/Saved**: per-user saved listings.
-- **Deal Radar**: price history and detected drops stored in the app database.
-
-- **Auth**: email/password sign-in via Supabase Auth.
-- **Favorites/Saved**: heart a listing to store it in `fundstueck_favorites`;
-  the Saved page lists them.
-- **Deal Radar**: `recordPrices` stores price history in
-  `fundstueck_price_history` and inserts drops into `fundstueck_deals`.
-
-If the Supabase env vars are unset, these features are disabled gracefully.
+- **Auth**: email/password accounts stored in the app database (scrypt-hashed,
+  session tokens stored as SHA-256 hashes).
+- **Favorites/Saved**: heart a listing to store it per account; the Saved page
+  lists them.
+- **Deal Radar**: `recordPrices` stores price history and inserts detected
+  drops, both in the app database.
 
 ## Production
 
@@ -355,6 +357,7 @@ a safe error message. Invalid input returns HTTP 400 with a structured error.
 | `GET /api/events?limit=` | Recent server events (`info`/`ok`/`error`, max 250) |
 | `GET /api/system` | Node/env/uptime/memory + adapter counts |
 | `GET /api/health` | Liveness |
+| `GET\|POST /api/ebay/account-deletion` | eBay Marketplace Account Deletion/Closure Notification endpoint (required for a production eBay keyset) |
 
 ## Architecture
 

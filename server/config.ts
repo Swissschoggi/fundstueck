@@ -61,6 +61,19 @@ export interface ServerConfig {
     marketplaceId: string;
     /** api.ebay.com or api.sandbox.ebay.com */
     apiBase: string;
+    /**
+     * Verification token configured for this endpoint in the eBay Developer
+     * Portal's "Marketplace Account Deletion / Closure Notifications" setup.
+     * Required (with notificationEndpoint) to answer eBay's challenge and to
+     * keep a production keyset in good standing.
+     */
+    verificationToken: string | undefined;
+    /**
+     * The exact HTTPS URL registered with eBay for this notification endpoint
+     * (e.g. https://your-domain.example/api/ebay/account-deletion). Must
+     * match byte-for-byte what is configured in the Developer Portal.
+     */
+    notificationEndpoint: string | undefined;
   };
   enableSampleAdapter: boolean;
   scrapers: ScraperConfig;
@@ -95,6 +108,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
       clientSecret: env.EBAY_CLIENT_SECRET || undefined,
       marketplaceId: env.EBAY_MARKETPLACE_ID || 'EBAY_CH',
       apiBase: useSandbox ? 'https://api.sandbox.ebay.com' : 'https://api.ebay.com',
+      verificationToken: env.EBAY_VERIFICATION_TOKEN || undefined,
+      notificationEndpoint: env.EBAY_NOTIFICATION_ENDPOINT || undefined,
     },
     // Sample data is a dev affordance: on by default outside production,
     // always opt-in in production so we never fabricate listings there.

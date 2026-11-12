@@ -35,6 +35,7 @@ import { findMarket, MARKETS } from '../core/markets.js';
 import { parseSearchParams, runSearch, ValidationError } from '../core/search.js';
 import { asRecord, str } from '../adapters/scrape.js';
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { getAdapterConfig, setAdapterConfig } from '../core/adapter-config.js';
 import { fetchDeals } from '../core/deal-radar.js';
@@ -539,6 +540,38 @@ export function apiRouter(cfg: ServerConfig): Router {
     } catch (err) {
       next(err);
     }
+  });
+
+  // eBay Marketplace Account Deletion/Closure notification endpoint.
+  // Required to keep a production eBay keyset active. eBay calls GET with a
+  // challenge_code and expects back sha256(challengeCode + verificationToken
+  // + endpointURL) hex-encoded; it later calls POST with the actual
+  // notification, which must just be acknowledged with 200.
+  // https://developer.ebay.com/marketplace-account-deletion
+  router.get('/ebay/account-deletion', (req, res) => {
+    const challengeCode = String(req.query['challenge_code'] ?? '');
+    const { verificationToken, notificationEndpoint } = cfg.ebay;
+    if (!challengeCode || !verificationToken || !notificationEndpoint) {
+      res.status(503).json({
+        error: {
+          code: 'NOT_CONFIGURED',
+          message:
+            'Set EBAY_VERIFICATION_TOKEN and EBAY_NOTIFICATION_ENDPOINT to answer eBay\'s account-deletion challenge.',
+        },
+      });
+      return;
+    }
+    const challengeResponse = createHash('sha256')
+      .update(challengeCode)
+      .update(verificationToken)
+      .update(notificationEndpoint)
+      .digest('hex');
+    res.status(200).json({ challengeResponse });
+  });
+  router.post('/ebay/account-deletion', (_req, res) => {
+    // No eBay user data is stored by this app (searches are anonymous), so
+    // there is nothing to delete beyond acknowledging the notification.
+    res.status(200).end();
   });
 
   mountAuthRoutes(router, cfg);
