@@ -252,6 +252,97 @@
   color: var(--outline);
 }
 
+.priceWas {
+  font: var(--fs-label-sm);
+  color: var(--outline);
+  text-decoration: line-through;
+}
+
+.priceShip,
+.auctionNote {
+  font: var(--fs-label-md);
+  color: var(--on-surface-variant);
+}
+
+.thumbs {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.thumb {
+  flex: none;
+  width: 68px;
+  height: 52px;
+  padding: 0;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: var(--surface-container);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb:hover {
+  opacity: 1;
+}
+
+.thumbActive {
+  border-color: var(--primary);
+  opacity: 1;
+}
+
+.sellerCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--r-lg);
+  background: var(--surface-low);
+  border: 1px solid var(--border-default);
+}
+
+.sellerAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: var(--r-full);
+  background: var(--surface-high);
+  color: var(--primary-fixed-dim);
+}
+
+.sellerInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sellerName {
+  font: var(--fs-label-md);
+  color: var(--on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sellerMeta {
+  font: var(--fs-label-sm);
+  color: var(--outline);
+}
+
 .priceCta {
   display: inline-flex;
   align-items: center;

@@ -298,6 +298,16 @@
   }
 }
 
+.conditionBadge {
+  color: var(--on-surface-variant);
+  border: 1px solid var(--border-default);
+  background: var(--surface-container);
+  border-radius: var(--r-full);
+  padding: 2px 7px;
+  font: var(--fs-label-sm);
+  white-space: nowrap;
+}
+
 .freshnessBadge {
   color: var(--outline);
   border: 1px solid var(--border-default);

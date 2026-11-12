@@ -9,6 +9,7 @@ import type {
 import { SourceError } from '../core/types.js';
 import { getAdapterConfig } from '../core/adapter-config.js';
 import { combineSignals } from './scrape.js';
+import { normalizeImages } from '../core/enrichment.js';
 
 /** Request time budget for every outbound eBay call. */
 const TIMEOUT_MS = 8_000;
@@ -24,14 +25,40 @@ interface EbayAmount {
   currency: string;
 }
 
+interface EbayImage {
+  imageUrl?: string;
+}
+
+interface EbaySeller {
+  username?: string;
+  feedbackPercentage?: string;
+  feedbackScore?: number;
+  sellerAccountType?: string;
+}
+
+interface EbayShippingOption {
+  shippingCost?: EbayAmount;
+  shippingCostType?: string;
+  minEstimatedDeliveryDate?: string;
+  maxEstimatedDeliveryDate?: string;
+}
+
+interface EbayAspect {
+  name?: string;
+  value?: string;
+}
+
 interface EbayItemSummary {
   itemId: string;
   title: string;
   price?: EbayAmount;
+  currentBidPrice?: EbayAmount;
   condition?: string;
   conditionId?: string;
   shortDescription?: string;
-  image?: { imageUrl?: string };
+  image?: EbayImage;
+  additionalImages?: EbayImage[];
+  thumbnailImages?: EbayImage[];
   itemWebUrl: string;
   itemLocation?: {
     city?: string;
@@ -39,14 +66,33 @@ interface EbayItemSummary {
     country?: string;
   };
   itemOriginDate?: string;
-  shippingOptions?: Array<{ shippingCost?: EbayAmount }>;
+  itemCreationDate?: string;
+  itemEndDate?: string;
+  seller?: EbaySeller;
+  buyingOptions?: string[];
+  bidCount?: number;
+  shippingOptions?: EbayShippingOption[];
   categories?: Array<{ categoryName?: string }>;
+  categoryPath?: string;
+  localizedAspects?: EbayAspect[];
+  marketingPrice?: {
+    originalPrice?: EbayAmount;
+    discountPercentage?: string;
+    discountAmount?: EbayAmount;
+  };
 }
 
 interface EbaySearchResponse {
   itemSummaries?: EbayItemSummary[];
   total?: number;
 }
+
+const BUYING_OPTION_LABELS: Record<string, string> = {
+  FIXED_PRICE: 'Buy it now',
+  AUCTION: 'Auction',
+  BEST_OFFER: 'Best offer',
+  CLASSIFIED_AD: 'Classified ad',
+};
 
 const CONDITION_LABELS: Record<string, string> = {
   NEW: 'New',
@@ -62,6 +108,117 @@ const CONDITION_LABELS: Record<string, string> = {
   FOR_PARTS_OR_NOT_WORKING: 'For parts',
   UNspecified: 'Unspecified',
 };
+
+/** Convert one Browse API item summary into the shared listing model. */
+export function normalizeEbayItem(
+  item: EbayItemSummary,
+  fetchedAt: string,
+  fallbackCurrency: string,
+): NormalizedListing {
+  const location = [
+    item.itemLocation?.city,
+    item.itemLocation?.postalCode,
+    item.itemLocation?.country,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  const priceAmount = item.price ?? item.currentBidPrice;
+  const price = priceAmount?.value != null ? Number(priceAmount.value) : null;
+  const currency = priceAmount?.currency ?? fallbackCurrency;
+
+  const condition =
+    (item.condition && CONDITION_LABELS[item.condition]) || item.condition || null;
+
+  const images = normalizeImages(
+    item.image?.imageUrl,
+    (item.additionalImages ?? []).map((img) => img.imageUrl),
+    (item.thumbnailImages ?? []).map((img) => img.imageUrl),
+  );
+
+  const attributes: Record<string, string> = {};
+  for (const aspect of item.localizedAspects ?? []) {
+    if (aspect.name && aspect.value && !(aspect.name in attributes)) {
+      attributes[aspect.name] = aspect.value;
+    }
+  }
+  const brand = attributes.Brand ?? attributes.Marke ?? attributes.Marque ?? null;
+
+  const shippingCost = item.shippingOptions?.[0]?.shippingCost;
+  const shippingValue = shippingCost?.value != null ? Number(shippingCost.value) : null;
+  const shipping =
+    shippingValue != null && Number.isFinite(shippingValue)
+      ? {
+          cost: shippingValue,
+          currency: shippingCost?.currency ?? currency,
+          free: shippingValue === 0,
+          label: shippingValue === 0 ? 'Free shipping' : null,
+        }
+      : null;
+
+  const seller = item.seller?.username
+    ? {
+        name: item.seller.username,
+        type:
+          item.seller.sellerAccountType === 'BUSINESS'
+            ? ('business' as const)
+            : item.seller.sellerAccountType === 'INDIVIDUAL'
+              ? ('private' as const)
+              : null,
+        rating:
+          item.seller.feedbackPercentage != null
+            ? Number(item.seller.feedbackPercentage)
+            : null,
+        ratingScale: 'percent' as const,
+        feedbackCount: item.seller.feedbackScore ?? null,
+      }
+    : null;
+
+  const buyingOptions = (item.buyingOptions ?? []).map(
+    (option) => BUYING_OPTION_LABELS[option] ?? option,
+  );
+
+  const category =
+    item.categories?.[0]?.categoryName ??
+    (item.categoryPath
+      ? item.categoryPath.split('|').map((s) => s.trim()).filter(Boolean).pop() ?? null
+      : null);
+
+  const originalPrice =
+    item.marketingPrice?.originalPrice?.value != null
+      ? Number(item.marketingPrice.originalPrice.value)
+      : null;
+
+  const description =
+    item.shortDescription?.trim() ||
+    [condition, brand, category].filter(Boolean).join(' · ');
+
+  return {
+    id: `ebay:${item.itemId}`,
+    source: 'ebay',
+    sourceListingId: item.itemId,
+    title: item.title,
+    description,
+    price: Number.isFinite(price as number) ? price : null,
+    currency,
+    location: location || null,
+    imageUrl: images[0] ?? null,
+    images,
+    listingUrl: item.itemWebUrl,
+    publishedAt: item.itemCreationDate ?? item.itemOriginDate ?? null,
+    fetchedAt,
+    condition,
+    category,
+    brand,
+    seller,
+    shipping,
+    attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
+    buyingOptions: buyingOptions.length > 0 ? buyingOptions : undefined,
+    bids: item.bidCount ?? null,
+    endsAt: item.itemEndDate ?? null,
+    originalPrice: Number.isFinite(originalPrice as number) ? originalPrice : null,
+  };
+}
 
 /**
  * eBay Buy Browse API adapter — the official, permitted access path.
@@ -84,8 +241,12 @@ export class EbayAdapter implements MarketplaceAdapter {
       'Official public API',
       `Fallback marketplace: ${this.ebayCfg().marketplaceId}`,
       'Market per search',
-      'Fixed-price listings',
+      'Fixed-price & auction listings',
       'Condition labels',
+      'Seller & feedback',
+      'Shipping cost',
+      'Item aspects & brand',
+      'Additional images',
       'Location metadata',
     ];
   }
@@ -174,6 +335,8 @@ export class EbayAdapter implements MarketplaceAdapter {
     const url = new URL(`${this.ebayCfg().apiBase}/buy/browse/v1/item_summary/search`);
     url.searchParams.set('q', params.q);
     url.searchParams.set('limit', String(params.limit));
+    // EXTENDED adds seller, additional images, auction timing and item aspects.
+    url.searchParams.set('fieldgroups', 'EXTENDED');
 
     const marketCurrency = market.currency;
     const filters: string[] = [];
@@ -219,47 +382,8 @@ export class EbayAdapter implements MarketplaceAdapter {
 
     const fetchedAt = new Date().toISOString();
     return (data.itemSummaries ?? []).map((item) =>
-      this.normalize(item, fetchedAt, market.currency),
+      normalizeEbayItem(item, fetchedAt, market.currency),
     );
-  }
-
-  private normalize(
-    item: EbayItemSummary,
-    fetchedAt: string,
-    fallbackCurrency: string,
-  ): NormalizedListing {
-    const location = [item.itemLocation?.city, item.itemLocation?.postalCode]
-      .filter(Boolean)
-      .join(' ');
-
-    const price = item.price?.value != null ? Number(item.price.value) : null;
-    const condition =
-      (item.condition && CONDITION_LABELS[item.condition]) || item.condition || null;
-    const shipping =
-      item.shippingOptions?.[0]?.shippingCost != null
-        ? Number(item.shippingOptions[0].shippingCost.value) === 0
-          ? 'Free shipping'
-          : `Shipping ${item.shippingOptions[0].shippingCost.value} ${item.price?.currency ?? ''}`
-        : null;
-
-    return {
-      id: `${this.id}:${item.itemId}`,
-      source: this.id,
-      sourceListingId: item.itemId,
-      title: item.title,
-      description:
-        item.shortDescription?.trim() ||
-        [condition, item.categories?.[0]?.categoryName, shipping]
-          .filter(Boolean)
-          .join(' · '),
-      price: Number.isFinite(price) ? price : null,
-      currency: item.price?.currency ?? fallbackCurrency,
-      location: location || null,
-      imageUrl: item.image?.imageUrl ?? null,
-      listingUrl: item.itemWebUrl,
-      publishedAt: item.itemOriginDate ?? null,
-      fetchedAt,
-    };
   }
 
   private async getToken(): Promise<string> {

@@ -3,18 +3,39 @@ export interface NormalizedLocation {
   raw: string; countryCode: string | null; region: string | null; city: string | null;
   postalCode: string | null; latitude: number | null; longitude: number | null;
 }
+export interface ListingSeller {
+  name: string;
+  type?: 'private' | 'business' | null;
+  rating?: number | null;
+  ratingScale?: 'percent' | 'stars' | null;
+  feedbackCount?: number | null;
+  memberSince?: string | null;
+  verified?: boolean;
+}
+export interface ListingShipping {
+  cost?: number | null;
+  currency?: string | null;
+  free?: boolean;
+  label?: string | null;
+}
 export interface NormalizedListing {
   id: string; source: string; sourceListingId: string; title: string; description: string;
   price: number | null; currency: string; location: string | null; imageUrl: string | null;
+  images?: string[];
   listingUrl: string; publishedAt: string | null; fetchedAt: string;
   gender?: 'male' | 'female' | 'unisex' | null; size?: string | null;
   marketPrice?: number | null; marketCurrency?: string; fxRate?: number | null;
   normalizedLocation?: NormalizedLocation | null; relevanceScore?: number;
   freshness?: 'fresh' | 'aging' | 'stale' | 'unknown'; ageDays?: number | null;
+  condition?: string | null; category?: string | null; brand?: string | null;
+  seller?: ListingSeller | null; shipping?: ListingShipping | null;
+  attributes?: Record<string, string>; buyingOptions?: string[];
+  bids?: number | null; endsAt?: string | null; originalPrice?: number | null;
+  availability?: string | null;
   duplicateCount?: number;
   duplicateListings?: Array<{
     source: string; listingUrl: string; title?: string; price?: number | null; currency?: string;
-    imageUrl?: string | null; location?: string | null; matchScore?: number; matchReason?: string;
+    imageUrl?: string | null; location?: string | null; condition?: string | null; matchScore?: number; matchReason?: string;
   }>;
 }
 export type SortKey = 'best' | 'newest' | 'price_asc' | 'price_desc';

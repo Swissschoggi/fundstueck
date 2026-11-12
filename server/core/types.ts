@@ -20,9 +20,29 @@ export interface DuplicateListingRef {
   currency?: string;
   imageUrl?: string | null;
   location?: string | null;
+  condition?: string | null;
   /** 0..1 confidence that this is the same physical item. */
   matchScore?: number;
   matchReason?: string;
+}
+
+export interface ListingSeller {
+  name: string;
+  /** Whether the marketplace treats the seller as private or commercial. */
+  type?: 'private' | 'business' | null;
+  /** Reputation value; interpret with ratingScale. */
+  rating?: number | null;
+  ratingScale?: 'percent' | 'stars' | null;
+  feedbackCount?: number | null;
+  memberSince?: string | null;
+  verified?: boolean;
+}
+
+export interface ListingShipping {
+  cost?: number | null;
+  currency?: string | null;
+  free?: boolean;
+  label?: string | null;
 }
 
 export interface NormalizedListing {
@@ -39,6 +59,8 @@ export interface NormalizedListing {
   location: string | null;
   normalizedLocation?: NormalizedLocation | null;
   imageUrl: string | null;
+  /** Additional product images (imageUrl is always the first entry). */
+  images?: string[];
   listingUrl: string;
   publishedAt: string | null;
   fetchedAt: string;
@@ -49,6 +71,24 @@ export interface NormalizedListing {
   duplicateListings?: DuplicateListingRef[];
   gender?: 'male' | 'female' | 'unisex' | null;
   size?: string | null;
+  /** Canonical condition label, e.g. "New", "Used · very good". */
+  condition?: string | null;
+  category?: string | null;
+  brand?: string | null;
+  seller?: ListingSeller | null;
+  shipping?: ListingShipping | null;
+  /** Free-form product attributes keyed by display label (Brand, Model, Colour…). */
+  attributes?: Record<string, string>;
+  /** Marketplace buying modes, e.g. ["Buy it now", "Auction"]. */
+  buyingOptions?: string[];
+  /** Auction bid count when the listing is an auction. */
+  bids?: number | null;
+  /** Auction end time (ISO 8601). */
+  endsAt?: string | null;
+  /** Original / crossed-out price before a discount. */
+  originalPrice?: number | null;
+  /** Schema.org-style availability label, e.g. "In stock". */
+  availability?: string | null;
 }
 
 export type AdapterMode = 'live' | 'sample';

@@ -64,6 +64,7 @@ export function ListingCard({ listing, view, sourceLabel, sourceMode, imageSearc
               <span className={styles.sourceDot} style={{ background: accent }} />{sourceLabel}
             </span>
             {listing.location && <span className={styles.location}>{listing.location}</span>}
+            {listing.condition && <span className={styles.conditionBadge}>{listing.condition}</span>}
             {listing.duplicateCount && listing.duplicateCount > 0 && (
               <button
                 type="button"

@@ -10,6 +10,7 @@ import { logEvent } from './events.js';
 import { DEFAULT_MARKET, findMarket, MARKETS } from './markets.js';
 import { recordPrices } from './deal-radar.js';
 import { groupDuplicates } from './duplicates.js';
+import { enrichListing } from './enrichment.js';
 
 export interface SearchQuery {
   q: string;
@@ -324,6 +325,9 @@ export async function runSearch(
       logEvent(adapter.id, 'error', `Q "${query.q}" failed — ${message}`);
     }
   });
+
+  // Structured enrichment: condition, brand, colour/material, image arrays.
+  for (const l of listings) enrichListing(l);
 
   // Gender/size inference
   const inferGender = (title: string): 'male' | 'female' | 'unisex' | null => {

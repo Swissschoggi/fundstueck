@@ -18,6 +18,7 @@ interface CompareRow {
   price: number | null;
   currency: string;
   location: string | null;
+  condition?: string | null;
   matchScore?: number;
   matchReason?: string;
 }
@@ -30,6 +31,7 @@ function buildRows(listing: NormalizedListing): CompareRow[] {
     price: listing.price,
     currency: listing.currency,
     location: listing.location,
+    condition: listing.condition ?? null,
   }];
   for (const d of listing.duplicateListings ?? []) {
     rows.push({
@@ -39,6 +41,7 @@ function buildRows(listing: NormalizedListing): CompareRow[] {
       price: d.price ?? null,
       currency: d.currency ?? listing.currency,
       location: d.location ?? null,
+      condition: d.condition ?? null,
       matchScore: d.matchScore,
       matchReason: d.matchReason,
     });
@@ -119,6 +122,7 @@ export function ListingComparison({
                     <span className={styles.rowPrice}>
                       {row.price != null ? formatChf(row.price, row.currency) : 'Price unavailable'}
                     </span>
+                    {row.condition && <span className={styles.rowLocation}>{row.condition}</span>}
                     {row.location && <span className={styles.rowLocation}>{row.location}</span>}
                     {row.matchReason && <span className={styles.rowReason}>{REASON_LABEL[row.matchReason] ?? row.matchReason}</span>}
                   </div>

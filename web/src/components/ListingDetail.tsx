@@ -81,15 +81,21 @@ export function ListingDetail({
   onBack: () => void;
   onOpenCompare: () => void;
 }) {
+  const gallery = useMemo(
+    () => (listing.images?.length ? listing.images : listing.imageUrl ? [listing.imageUrl] : []),
+    [listing.images, listing.imageUrl],
+  );
   const [imgError, setImgError] = useState(false);
+  const [activeImage, setActiveImage] = useState<string | null>(gallery[0] ?? null);
   const [history, setHistory] = useState<PriceHistoryResponse | null>(null);
   const { isSaved, toggle } = useFavorites();
   const saved = isSaved(listing.id);
 
   useEffect(() => {
     setImgError(false);
+    setActiveImage(listing.images?.[0] ?? listing.imageUrl ?? null);
     fetchListingHistory(listing.id).then(setHistory).catch(() => setHistory(null));
-  }, [listing.id]);
+  }, [listing.id, listing.images, listing.imageUrl]);
 
   const rows = useMemo(() => buildRows(listing), [listing]);
   const priced = rows.filter((r) => r.price != null) as Array<CompareRow & { price: number }>;
@@ -109,14 +115,43 @@ export function ListingDetail({
     ? formatChf(listing.marketPrice, listing.marketCurrency)
     : listing.price != null ? formatChf(listing.price, listing.currency) : 'Price unavailable';
 
-  const specs = [
+  const shippingText = listing.shipping
+    ? listing.shipping.free || listing.shipping.cost === 0
+      ? 'Free shipping'
+      : listing.shipping.label ??
+        (listing.shipping.cost != null
+          ? formatChf(listing.shipping.cost, listing.shipping.currency ?? listing.currency)
+          : 'Details on listing')
+    : null;
+
+  const rawSpecs = [
+    ...(listing.condition ? [{ label: 'Condition', value: listing.condition }] : []),
     { label: 'Source', value: sourceLabelFor(listing.source) },
+    ...(listing.brand ? [{ label: 'Brand', value: listing.brand }] : []),
+    ...(listing.category ? [{ label: 'Category', value: listing.category }] : []),
+    ...(listing.buyingOptions?.length
+      ? [{ label: 'Format', value: listing.buyingOptions.join(' · ') }]
+      : []),
+    ...(listing.bids != null ? [{ label: 'Bids', value: String(listing.bids) }] : []),
+    ...(listing.endsAt
+      ? [{ label: 'Ends', value: new Date(listing.endsAt).toLocaleString() }]
+      : []),
+    ...(listing.availability ? [{ label: 'Availability', value: listing.availability }] : []),
+    ...(shippingText ? [{ label: 'Shipping', value: shippingText }] : []),
     { label: 'Currency', value: listing.marketCurrency ?? listing.currency },
     { label: 'Posted', value: listing.publishedAt ? timeAgo(listing.publishedAt) : 'Unknown' },
     { label: 'Freshness', value: listing.freshness ?? 'unknown' },
     ...(listing.size ? [{ label: 'Size', value: listing.size }] : []),
     ...(listing.gender ? [{ label: 'Audience', value: listing.gender }] : []),
+    ...Object.entries(listing.attributes ?? {}).map(([label, value]) => ({ label, value })),
   ];
+
+  const seenSpecs = new Set<string>();
+  const specs = rawSpecs.filter((spec) => {
+    if (!spec.value || seenSpecs.has(spec.label)) return false;
+    seenSpecs.add(spec.label);
+    return true;
+  });
 
   const historyValues = history?.history.map((p) => p.price) ?? [];
   const stats = history?.stats;
@@ -148,16 +183,32 @@ export function ListingDetail({
         <div className={styles.left}>
           <div className={styles.media}>
             <div className={styles.stage}>
-              {listing.imageUrl && !imgError ? (
-                <img src={listing.imageUrl} alt={listing.title} referrerPolicy="no-referrer" onError={() => setImgError(true)} />
+              {activeImage && !imgError ? (
+                <img src={activeImage} alt={listing.title} referrerPolicy="no-referrer" onError={() => setImgError(true)} />
               ) : (
                 <div className={styles.stageFallback}><Icon name="image" size={40} style={{ color: 'var(--outline-variant)' }} /></div>
               )}
               <div className={styles.stageBadges}>
                 <span className={styles.stageChip}>{sourceLabelFor(listing.source)}</span>
+                {listing.condition && <span className={styles.stageChip}>{listing.condition}</span>}
                 {listing.freshness && <span className={styles.stageChip}>{listing.freshness}</span>}
               </div>
             </div>
+            {gallery.length > 1 && (
+              <div className={styles.thumbs}>
+                {gallery.map((url, i) => (
+                  <button
+                    key={`${url}-${i}`}
+                    type="button"
+                    className={`${styles.thumb} ${activeImage === url ? styles.thumbActive : ''}`}
+                    onClick={() => { setActiveImage(url); setImgError(false); }}
+                    aria-label={`Show image ${i + 1}`}
+                  >
+                    <img src={url} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className={styles.meta}>
@@ -189,15 +240,50 @@ export function ListingDetail({
 
         <div className={styles.right}>
           <div className={styles.priceCard}>
-            <span className={styles.priceLabel}>Asking price</span>
+            <span className={styles.priceLabel}>
+              {listing.buyingOptions?.includes('Auction') ? 'Current bid' : 'Asking price'}
+            </span>
             <span className={styles.price}>{displayPrice}</span>
             {listing.price != null && listing.marketPrice != null && listing.currency !== listing.marketCurrency && (
               <span className={styles.priceOriginal}>Original {formatChf(listing.price, listing.currency)}</span>
+            )}
+            {listing.originalPrice != null && listing.originalPrice > (listing.price ?? 0) && (
+              <span className={styles.priceWas}>
+                Was {formatChf(listing.originalPrice, listing.currency)}
+              </span>
+            )}
+            {shippingText && <span className={styles.priceShip}>{shippingText}</span>}
+            {listing.endsAt && (
+              <span className={styles.auctionNote}>
+                {listing.bids != null ? `${listing.bids} bids · ` : ''}
+                Ends {new Date(listing.endsAt).toLocaleString()}
+              </span>
             )}
             <a className={styles.priceCta} href={listing.listingUrl} target="_blank" rel="noopener noreferrer">
               Open on {sourceLabelFor(listing.source)} <Icon name="north_east" size={14} />
             </a>
           </div>
+
+          {listing.seller && (
+            <div className={styles.sellerCard}>
+              <span className={styles.sellerAvatar}>
+                <Icon name="storefront" size={20} />
+              </span>
+              <div className={styles.sellerInfo}>
+                <span className={styles.sellerName}>{listing.seller.name}</span>
+                <span className={styles.sellerMeta}>
+                  {listing.seller.type === 'business' ? 'Business seller' : 'Private seller'}
+                  {listing.seller.rating != null &&
+                    (listing.seller.ratingScale === 'percent'
+                      ? ` · ${listing.seller.rating}% positive`
+                      : ` · ${listing.seller.rating}★`)}
+                  {listing.seller.feedbackCount != null
+                    ? ` · ${listing.seller.feedbackCount} reviews`
+                    : ''}
+                </span>
+              </div>
+            </div>
+          )}
 
           {rows.length > 1 && (
             <div className={styles.duplicateBanner}>

@@ -127,6 +127,7 @@ function toRef(listing: NormalizedListing, match: Match | null): DuplicateListin
     currency: listing.currency,
     imageUrl: listing.imageUrl,
     location: listing.location,
+    condition: listing.condition ?? null,
     matchScore: match ? Math.round(match.score * 1000) / 1000 : undefined,
     matchReason: match?.reason,
   };
