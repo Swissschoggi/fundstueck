@@ -1,0 +1,45 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  min-height: 32px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-default);
+  background: var(--surface-lowest);
+  color: var(--on-surface);
+  font: var(--fs-label-md);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.clearAll {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  background: none;
+  border: none;
+  color: var(--on-surface-variant);
+  font: var(--fs-label-md);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+.clearAll:hover,
+.clearAll:focus-visible {
+  color: var(--primary);
+}

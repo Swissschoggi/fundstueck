@@ -19,6 +19,7 @@ interface DealRecord {
   currency: string;
   drop_pct: number;
   detected_at: string;
+  listing_url: string;
 }
 
 interface DealStore {
@@ -104,6 +105,7 @@ async function recordPricesInner(listings: NormalizedListing[]): Promise<void> {
           currency: l.currency,
           drop_pct: Math.round(dropPct * 10) / 10,
           detected_at: now,
+          listing_url: l.listingUrl,
         });
       }
     }

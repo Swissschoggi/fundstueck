@@ -29,7 +29,7 @@ export const SearchControls = forwardRef<
     onSourceFilterChange?: (s: string) => void;
     hidePriceless?: boolean;
     onHidePricelessChange?: (v: boolean) => void;
-    sources?: { source: string; label: string; enabled: boolean }[];
+    sources?: { source: string; label: string; enabled: boolean; userEnabled?: boolean }[];
     minPrice?: string;
     maxPrice?: string;
     onPriceChange?: (min: string, max: string) => void;
@@ -288,7 +288,7 @@ export const SearchControls = forwardRef<
               >
                 All
               </button>
-              {sources.filter((s) => s.enabled).map((s) => (
+              {sources.filter((s) => s.userEnabled ?? s.enabled).map((s) => (
                 <button
                   key={s.source}
                   type="button"

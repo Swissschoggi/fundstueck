@@ -32,6 +32,7 @@ import { DealRadarPage } from './components/DealRadarPage';
 import { AlertsPage } from './components/AlertsPage';
 import { SourcesPage } from './components/SourcesPage';
 import { Onboarding } from './components/Onboarding';
+import { ActiveFilterChips, type ActiveFilterChip } from './components/ActiveFilterChips';
 import styles from './App.module.css';
 
 const SORTS: SortKey[] = ['best', 'newest', 'price_asc', 'price_desc'];
@@ -391,6 +392,9 @@ export default function App() {
     setMaxPrice(mx);
   }, []);
 
+  // Clears every active filter, including source and priceless toggles that
+  // the previous version left untouched — "Reset" used to look like it wiped
+  // everything but silently left a source filter or hidePriceless active.
   const resetFilters = useCallback(() => {
     setPendingMin('');
     setPendingMax('');
@@ -399,6 +403,9 @@ export default function App() {
     setPriceError(null);
     setGender('');
     setSize('');
+    setCategory('');
+    setSourceFilter('all');
+    setHidePriceless(false);
   }, []);
 
   const filteredListings = useMemo(() => {
@@ -445,6 +452,49 @@ export default function App() {
       { value: 'home-c03000000', label: 'Home & Living' },
     ];
   }, [market]);
+
+  // One shared list of active-filter chips for the row below the search
+  // field, so every filter is visible and removable in one place on both
+  // desktop and mobile instead of being hidden inside separate panels.
+  const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
+    const chips: ActiveFilterChip[] = [];
+    if (minPrice || maxPrice) {
+      const curr = currentMarket?.currency ?? 'CHF';
+      chips.push({
+        key: 'price',
+        label: `${curr} ${minPrice || '0'}–${maxPrice || '∞'}`,
+        onRemove: () => {
+          setPendingMin('');
+          setPendingMax('');
+          setMinPrice('');
+          setMaxPrice('');
+          setPriceError(null);
+        },
+      });
+    }
+    if (category) {
+      const label = categories.find((c) => c.value === category)?.label ?? category;
+      chips.push({ key: 'category', label: `Category: ${label}`, onRemove: () => setCategory('') });
+    }
+    if (gender) {
+      chips.push({
+        key: 'gender',
+        label: `Gender: ${gender.charAt(0).toUpperCase()}${gender.slice(1)}`,
+        onRemove: () => setGender(''),
+      });
+    }
+    if (size) {
+      chips.push({ key: 'size', label: `Size: ${size}`, onRemove: () => setSize('') });
+    }
+    if (sourceFilter && sourceFilter !== 'all') {
+      const label = sources.find((s) => s.source === sourceFilter)?.label ?? sourceFilter;
+      chips.push({ key: 'source', label: `Source: ${label}`, onRemove: () => setSourceFilter('all') });
+    }
+    if (hidePriceless) {
+      chips.push({ key: 'priceless', label: 'Hiding priceless', onRemove: () => setHidePriceless(false) });
+    }
+    return chips;
+  }, [minPrice, maxPrice, category, categories, gender, size, sourceFilter, sources, hidePriceless, currentMarket]);
 
   if (!setup) {
     return (
@@ -550,6 +600,7 @@ export default function App() {
                 onSizeChange={setSize}
               />
               {priceError && <div className={styles.priceError}>{priceError}</div>}
+              <ActiveFilterChips chips={activeFilterChips} onClearAll={resetFilters} />
             </div>
 
             {detail ? (

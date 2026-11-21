@@ -62,6 +62,11 @@ export interface AdapterInfo extends SourceInfo {
   configured: boolean; runtimeDisabled: boolean;
 }
 export interface AdapterHealthResult { source: string; ok: boolean; latencyMs: number; message: string; checkedAt: string }
+export interface DealRecord {
+  listing_id: string; source: string; title: string;
+  old_price: number; new_price: number; currency: string;
+  drop_pct: number; detected_at: string; listing_url?: string;
+}
 export interface ServerEvent { id: number; at: string; source: string; level: 'info' | 'ok' | 'error'; message: string }
 export interface MarketInfo { code: string; label: string; currency: string; locale: string; ebayMarketplaceId: string; sources: { total: number; enabled: number } }
 export interface MarketsResponse { default: string; region?: string; setupComplete?: boolean; markets: MarketInfo[] }

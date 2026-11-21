@@ -1,0 +1,556 @@
+diff --git a/package.json b/package.json
+index 283c21b..0b28bb0 100644
+--- a/package.json
++++ b/package.json
+@@ -16,7 +16,7 @@
+     "adapter:create": "node scripts/create-adapter.mjs",
+     "adapter:list": "node -e \"const fs=require('fs');const d=JSON.parse(fs.readFileSync('server/registry/marketplaces.json','utf8'));console.log(d.length+' marketplaces');for(const m of d)console.log(m.id, m.adapter_status, m.capability);\"",
+     "adapter:check": "npm run typecheck",
+-    "test": "tsx --test server/core/accounts.test.ts server/core/duplicates.test.ts server/core/enrichment.test.ts server/core/image-utils.test.ts server/core/search.test.ts server/core/user-data.test.ts server/adapters/scrape.test.ts server/adapters/tutti/tests/search.test.ts server/adapters/anibis/tests/search.test.ts server/adapters/ebay/tests/search.test.ts server/adapters/marketplaces/tori/tests/search.test.ts"
++    "test": "tsx --test server/core/accounts.test.ts server/core/deal-radar.test.ts server/core/duplicates.test.ts server/core/enrichment.test.ts server/core/image-utils.test.ts server/core/search.test.ts server/core/user-data.test.ts server/adapters/scrape.test.ts server/adapters/tutti/tests/search.test.ts server/adapters/anibis/tests/search.test.ts server/adapters/ebay/tests/search.test.ts server/adapters/marketplaces/tori/tests/search.test.ts"
+   },
+   "dependencies": {
+     "@googlarz/vinted-client": "^1.6.3",
+diff --git a/server/core/deal-radar.test.ts b/server/core/deal-radar.test.ts
+new file mode 100644
+index 0000000..f4805be
+--- /dev/null
++++ b/server/core/deal-radar.test.ts
+@@ -0,0 +1,83 @@
++import assert from 'node:assert/strict';
++import { mkdtempSync, rmSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import path from 'node:path';
++import { test, before, after } from 'node:test';
++import { initStorage, closeStorage } from './storage.js';
++import { recordPrices, fetchDeals, getPriceHistory, getPriceStats } from './deal-radar.js';
++import type { NormalizedListing } from './types.js';
++
++const dataDir = mkdtempSync(path.join(tmpdir(), 'fundstueck-deal-radar-'));
++
++before(async () => {
++  await initStorage({ dataDir, databaseUrl: undefined } as never);
++});
++
++after(async () => {
++  await closeStorage();
++  rmSync(dataDir, { recursive: true, force: true });
++});
++
++function listing(over: Partial<NormalizedListing>): NormalizedListing {
++  return {
++    id: 'tutti:1',
++    source: 'tutti',
++    sourceListingId: '1',
++    title: 'Gravel bike',
++    description: '',
++    price: 500,
++    currency: 'CHF',
++    location: null,
++    imageUrl: null,
++    listingUrl: 'https://tutti.ch/listing/1',
++    publishedAt: null,
++    fetchedAt: new Date().toISOString(),
++    ...over,
++  };
++}
++
++test('recordPrices does not flag a deal on the first sighting of a listing', async () => {
++  await recordPrices([listing({ id: 'deal-radar:first', price: 500 })]);
++  const deals = await fetchDeals(50);
++  assert.equal(deals.find((d) => d.listing_id === 'deal-radar:first'), undefined);
++});
++
++test('recordPrices detects a price drop and keeps the original listing URL', async () => {
++  const id = 'deal-radar:drop';
++  await recordPrices([listing({ id, price: 500, listingUrl: 'https://tutti.ch/listing/42' })]);
++  await recordPrices([listing({ id, price: 400, listingUrl: 'https://tutti.ch/listing/42' })]);
++
++  const deals = await fetchDeals(50);
++  const deal = deals.find((d) => d.listing_id === id);
++  assert.ok(deal, 'expected a deal record for the dropped listing');
++  assert.equal(deal!.old_price, 500);
++  assert.equal(deal!.new_price, 400);
++  assert.equal(deal!.drop_pct, 20);
++  // Regression: deal records used to omit listing_url entirely, so the
++  // "Open listing" link on the Deal Radar page was always dead.
++  assert.equal(deal!.listing_url, 'https://tutti.ch/listing/42');
++});
++
++test('recordPrices does not report a deal when the price rises', async () => {
++  const id = 'deal-radar:rise';
++  await recordPrices([listing({ id, price: 100 })]);
++  await recordPrices([listing({ id, price: 150 })]);
++  const deals = await fetchDeals(50);
++  assert.equal(deals.find((d) => d.listing_id === id), undefined);
++});
++
++test('price history and stats accumulate across recordings', async () => {
++  const id = 'deal-radar:history';
++  await recordPrices([listing({ id, price: 300 })]);
++  await recordPrices([listing({ id, price: 250 })]);
++  await recordPrices([listing({ id, price: 275 })]);
++
++  const history = await getPriceHistory(id);
++  assert.deepEqual(history.map((h) => h.price), [300, 250, 275]);
++
++  const stats = await getPriceStats(id);
++  assert.equal(stats.count, 3);
++  assert.equal(stats.min, 250);
++  assert.equal(stats.max, 300);
++  assert.equal(stats.avg, 275);
++});
+diff --git a/server/core/deal-radar.ts b/server/core/deal-radar.ts
+index bab94ad..b2d15cf 100644
+--- a/server/core/deal-radar.ts
++++ b/server/core/deal-radar.ts
+@@ -19,6 +19,7 @@ interface DealRecord {
+   currency: string;
+   drop_pct: number;
+   detected_at: string;
++  listing_url: string;
+ }
+ 
+ interface DealStore {
+@@ -104,6 +105,7 @@ async function recordPricesInner(listings: NormalizedListing[]): Promise<void> {
+           currency: l.currency,
+           drop_pct: Math.round(dropPct * 10) / 10,
+           detected_at: now,
++          listing_url: l.listingUrl,
+         });
+       }
+     }
+diff --git a/web/src/App.tsx b/web/src/App.tsx
+index 76edc32..878866d 100644
+--- a/web/src/App.tsx
++++ b/web/src/App.tsx
+@@ -32,6 +32,7 @@ import { DealRadarPage } from './components/DealRadarPage';
+ import { AlertsPage } from './components/AlertsPage';
+ import { SourcesPage } from './components/SourcesPage';
+ import { Onboarding } from './components/Onboarding';
++import { ActiveFilterChips, type ActiveFilterChip } from './components/ActiveFilterChips';
+ import styles from './App.module.css';
+ 
+ const SORTS: SortKey[] = ['best', 'newest', 'price_asc', 'price_desc'];
+@@ -391,6 +392,9 @@ export default function App() {
+     setMaxPrice(mx);
+   }, []);
+ 
++  // Clears every active filter, including source and priceless toggles that
++  // the previous version left untouched — "Reset" used to look like it wiped
++  // everything but silently left a source filter or hidePriceless active.
+   const resetFilters = useCallback(() => {
+     setPendingMin('');
+     setPendingMax('');
+@@ -399,6 +403,9 @@ export default function App() {
+     setPriceError(null);
+     setGender('');
+     setSize('');
++    setCategory('');
++    setSourceFilter('all');
++    setHidePriceless(false);
+   }, []);
+ 
+   const filteredListings = useMemo(() => {
+@@ -446,6 +453,49 @@ export default function App() {
+     ];
+   }, [market]);
+ 
++  // One shared list of active-filter chips for the row below the search
++  // field, so every filter is visible and removable in one place on both
++  // desktop and mobile instead of being hidden inside separate panels.
++  const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
++    const chips: ActiveFilterChip[] = [];
++    if (minPrice || maxPrice) {
++      const curr = currentMarket?.currency ?? 'CHF';
++      chips.push({
++        key: 'price',
++        label: `${curr} ${minPrice || '0'}–${maxPrice || '∞'}`,
++        onRemove: () => {
++          setPendingMin('');
++          setPendingMax('');
++          setMinPrice('');
++          setMaxPrice('');
++          setPriceError(null);
++        },
++      });
++    }
++    if (category) {
++      const label = categories.find((c) => c.value === category)?.label ?? category;
++      chips.push({ key: 'category', label: `Category: ${label}`, onRemove: () => setCategory('') });
++    }
++    if (gender) {
++      chips.push({
++        key: 'gender',
++        label: `Gender: ${gender.charAt(0).toUpperCase()}${gender.slice(1)}`,
++        onRemove: () => setGender(''),
++      });
++    }
++    if (size) {
++      chips.push({ key: 'size', label: `Size: ${size}`, onRemove: () => setSize('') });
++    }
++    if (sourceFilter && sourceFilter !== 'all') {
++      const label = sources.find((s) => s.source === sourceFilter)?.label ?? sourceFilter;
++      chips.push({ key: 'source', label: `Source: ${label}`, onRemove: () => setSourceFilter('all') });
++    }
++    if (hidePriceless) {
++      chips.push({ key: 'priceless', label: 'Hiding priceless', onRemove: () => setHidePriceless(false) });
++    }
++    return chips;
++  }, [minPrice, maxPrice, category, categories, gender, size, sourceFilter, sources, hidePriceless, currentMarket]);
++
+   if (!setup) {
+     return (
+       <div className={styles.boot}>
+@@ -550,6 +600,7 @@ export default function App() {
+                 onSizeChange={setSize}
+               />
+               {priceError && <div className={styles.priceError}>{priceError}</div>}
++              <ActiveFilterChips chips={activeFilterChips} onClearAll={resetFilters} />
+             </div>
+ 
+             {detail ? (
+diff --git a/web/src/components/ActiveFilterChips.module.css b/web/src/components/ActiveFilterChips.module.css
+new file mode 100644
+index 0000000..25f1efd
+--- /dev/null
++++ b/web/src/components/ActiveFilterChips.module.css
+@@ -0,0 +1,45 @@
++.row {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: var(--space-xs);
++}
++
++.chip {
++  display: inline-flex;
++  align-items: center;
++  gap: 6px;
++  padding: 6px 12px;
++  min-height: 32px;
++  border-radius: var(--r-full);
++  border: 1px solid var(--border-default);
++  background: var(--surface-lowest);
++  color: var(--on-surface);
++  font: var(--fs-label-md);
++  cursor: pointer;
++  line-height: 1.2;
++}
++
++.chip:hover,
++.chip:focus-visible {
++  border-color: var(--primary);
++  color: var(--primary);
++}
++
++.clearAll {
++  display: inline-flex;
++  align-items: center;
++  min-height: 32px;
++  background: none;
++  border: none;
++  color: var(--on-surface-variant);
++  font: var(--fs-label-md);
++  text-decoration: underline;
++  cursor: pointer;
++  padding: 6px 8px;
++}
++
++.clearAll:hover,
++.clearAll:focus-visible {
++  color: var(--primary);
++}
+diff --git a/web/src/components/ActiveFilterChips.tsx b/web/src/components/ActiveFilterChips.tsx
+new file mode 100644
+index 0000000..e09d46f
+--- /dev/null
++++ b/web/src/components/ActiveFilterChips.tsx
+@@ -0,0 +1,39 @@
++import { Icon } from './Icon';
++import styles from './ActiveFilterChips.module.css';
++
++export interface ActiveFilterChip {
++  key: string;
++  label: string;
++  onRemove: () => void;
++}
++
++/**
++ * A single, always-visible row of active-filter chips shared by desktop and
++ * mobile. Previously the only way to see which filters were active was to
++ * reopen each individual control, and "Reset" lived inside the desktop
++ * filter rail only — invisible on mobile and easy to miss on desktop.
++ */
++export function ActiveFilterChips({
++  chips,
++  onClearAll,
++}: {
++  chips: ActiveFilterChip[];
++  onClearAll: () => void;
++}) {
++  if (chips.length === 0) return null;
++  return (
++    <div className={styles.row} role="group" aria-label="Active filters">
++      {chips.map((chip) => (
++        <button key={chip.key} type="button" className={styles.chip} onClick={chip.onRemove}>
++          <span>{chip.label}</span>
++          <Icon name="close" size={14} />
++        </button>
++      ))}
++      {chips.length > 1 && (
++        <button type="button" className={styles.clearAll} onClick={onClearAll}>
++          Clear all
++        </button>
++      )}
++    </div>
++  );
++}
+diff --git a/web/src/components/DealRadarPage.module.css b/web/src/components/DealRadarPage.module.css
+index 0922085..62db9e8 100644
+--- a/web/src/components/DealRadarPage.module.css
++++ b/web/src/components/DealRadarPage.module.css
+@@ -88,8 +88,67 @@
+ }
+ 
+ .link {
++  display: inline-flex;
++  align-items: center;
++  gap: 4px;
++  min-height: 36px;
++  padding: 6px 0;
+   color: var(--primary);
+   font-size: var(--font-size-sm);
+   text-decoration: none;
+   margin-top: var(--space-xs);
++  width: fit-content;
++}
++
++.link:hover,
++.link:focus-visible {
++  text-decoration: underline;
++}
++
++.linkDisabled {
++  color: var(--on-surface-variant);
++  font-size: var(--font-size-sm);
++  margin-top: var(--space-xs);
++}
++
++.detected {
++  color: var(--on-surface-variant);
++  font-size: var(--font-size-xs);
++}
++
++.emptyHint {
++  max-width: 44ch;
++  font-size: var(--font-size-sm);
++}
++
++.retry {
++  min-height: 40px;
++  border: 1px solid var(--border-default);
++  background: var(--surface-lowest);
++  color: var(--on-surface);
++  border-radius: var(--r-md, 8px);
++  padding: 8px 14px;
++  cursor: pointer;
++  font: inherit;
++}
++
++.retry:hover,
++.retry:focus-visible {
++  border-color: var(--primary);
++  color: var(--primary);
++}
++
++.spinner {
++  width: 24px;
++  height: 24px;
++  border-radius: 50%;
++  border: 2px solid var(--border-default);
++  border-top-color: var(--primary);
++  animation: spin 0.8s linear infinite;
++}
++
++@keyframes spin {
++  to {
++    transform: rotate(360deg);
++  }
+ }
+\ No newline at end of file
+diff --git a/web/src/components/DealRadarPage.tsx b/web/src/components/DealRadarPage.tsx
+index dbd3438..a2f15d5 100644
+--- a/web/src/components/DealRadarPage.tsx
++++ b/web/src/components/DealRadarPage.tsx
+@@ -1,50 +1,101 @@
+-import { useEffect, useState } from 'react';
++import { useCallback, useEffect, useState } from 'react';
++import type { DealRecord } from '../lib/types';
++import { formatChf, timeAgo } from '../lib/format';
+ import { Icon } from './Icon';
+ import styles from './DealRadarPage.module.css';
+ 
++type Status = 'loading' | 'success' | 'error';
++
+ export function DealRadarPage() {
+-  const [deals, setDeals] = useState<Array<Record<string, unknown>>>([]);
+-  const [loading, setLoading] = useState(true);
++  const [deals, setDeals] = useState<DealRecord[]>([]);
++  const [status, setStatus] = useState<Status>('loading');
+ 
+-  useEffect(() => {
++  const load = useCallback(() => {
++    setStatus('loading');
+     fetch('/api/deals')
+-      .then((r) => r.json())
+-      .then((d) => setDeals(d.deals ?? []))
+-      .catch(() => setDeals([]))
+-      .finally(() => setLoading(false));
++      .then((r) => {
++        if (!r.ok) throw new Error(`Request failed (${r.status})`);
++        return r.json();
++      })
++      .then((d) => {
++        setDeals(Array.isArray(d?.deals) ? d.deals : []);
++        setStatus('success');
++      })
++      .catch(() => {
++        setDeals([]);
++        setStatus('error');
++      });
+   }, []);
+ 
++  useEffect(() => {
++    load();
++  }, [load]);
++
+   return (
+     <div className={styles.page}>
+       <header className={styles.header}>
+         <h1 className={styles.title}>Deal Radar</h1>
+-        <p className={styles.sub}>Price drops detected across marketplaces.</p>
++        <p className={styles.sub}>
++          Price drops on listings your searches have seen before. These are asking-price changes
++          observed by Fundstück over time, not verified market value or sale prices.
++        </p>
+       </header>
+-      {loading && <p className={styles.empty}>Loading…</p>}
+-      {!loading && deals.length === 0 && (
++
++      {status === 'loading' && (
++        <div className={styles.empty} role="status" aria-live="polite">
++          <span className={styles.spinner} aria-hidden="true" />
++          <p>Loading price history…</p>
++        </div>
++      )}
++
++      {status === 'error' && (
++        <div className={styles.empty} role="alert">
++          <Icon name="error" size={32} style={{ color: 'var(--error, #f87171)' }} />
++          <p>Could not load Deal Radar right now.</p>
++          <button type="button" className={styles.retry} onClick={load}>
++            Try again
++          </button>
++        </div>
++      )}
++
++      {status === 'success' && deals.length === 0 && (
+         <div className={styles.empty}>
+           <Icon name="trending_down" size={32} />
+-          <p>No deals detected yet. Search for items to start tracking prices.</p>
++          <p>No price drops detected yet.</p>
++          <p className={styles.emptyHint}>
++            Deal Radar watches prices on listings that turn up in your searches. Search for
++            something you're tracking, and come back later to see if its price has moved.
++          </p>
+         </div>
+       )}
+-      <div className={styles.list}>
+-        {deals.map((d) => (
+-          <div key={String(d.id)} className={styles.card}>
+-            <div className={styles.head}>
+-              <span className={styles.source}>{String(d.source ?? '')}</span>
+-              <span className={styles.drop}>-{Number(d.drop_pct ?? 0).toFixed(1)}%</span>
+-            </div>
+-            <h3 className={styles.cardTitle}>{String(d.title)}</h3>
+-            <div className={styles.prices}>
+-              <span className={styles.old}>{String(d.old_price ?? '')} {String(d.currency ?? '')}</span>
+-              <span className={styles.new}>{String(d.new_price ?? '')} {String(d.currency ?? '')}</span>
++
++      {status === 'success' && deals.length > 0 && (
++        <div className={styles.list}>
++          {deals.map((d) => (
++            <div key={`${d.source}:${d.listing_id}`} className={styles.card}>
++              <div className={styles.head}>
++                <span className={styles.source}>{d.source}</span>
++                <span className={styles.drop}>
++                  <Icon name="trending_down" size={14} /> -{d.drop_pct.toFixed(1)}%
++                </span>
++              </div>
++              <h3 className={styles.cardTitle}>{d.title}</h3>
++              <div className={styles.prices}>
++                <span className={styles.old}>{formatChf(d.old_price, d.currency)}</span>
++                <span className={styles.new}>{formatChf(d.new_price, d.currency)}</span>
++                <span className={styles.detected}>· {timeAgo(d.detected_at)}</span>
++              </div>
++              {d.listing_url ? (
++                <a href={d.listing_url} target="_blank" rel="noreferrer" className={styles.link}>
++                  Open listing <Icon name="north_east" size={12} />
++                </a>
++              ) : (
++                <span className={styles.linkDisabled}>Original listing link unavailable</span>
++              )}
+             </div>
+-            <a href={String(d.listing_url ?? '#')} target="_blank" rel="noreferrer" className={styles.link}>
+-              Open listing →
+-            </a>
+-          </div>
+-        ))}
+-      </div>
++          ))}
++        </div>
++      )}
+     </div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/web/src/components/SearchControls.tsx b/web/src/components/SearchControls.tsx
+index 0c0060f..ee10f27 100644
+--- a/web/src/components/SearchControls.tsx
++++ b/web/src/components/SearchControls.tsx
+@@ -29,7 +29,7 @@ export const SearchControls = forwardRef<
+     onSourceFilterChange?: (s: string) => void;
+     hidePriceless?: boolean;
+     onHidePricelessChange?: (v: boolean) => void;
+-    sources?: { source: string; label: string; enabled: boolean }[];
++    sources?: { source: string; label: string; enabled: boolean; userEnabled?: boolean }[];
+     minPrice?: string;
+     maxPrice?: string;
+     onPriceChange?: (min: string, max: string) => void;
+@@ -288,7 +288,7 @@ export const SearchControls = forwardRef<
+               >
+                 All
+               </button>
+-              {sources.filter((s) => s.enabled).map((s) => (
++              {sources.filter((s) => s.userEnabled ?? s.enabled).map((s) => (
+                 <button
+                   key={s.source}
+                   type="button"
+diff --git a/web/src/lib/types.ts b/web/src/lib/types.ts
+index 741704b..d603083 100644
+--- a/web/src/lib/types.ts
++++ b/web/src/lib/types.ts
+@@ -62,6 +62,11 @@ export interface AdapterInfo extends SourceInfo {
+   configured: boolean; runtimeDisabled: boolean;
+ }
+ export interface AdapterHealthResult { source: string; ok: boolean; latencyMs: number; message: string; checkedAt: string }
++export interface DealRecord {
++  listing_id: string; source: string; title: string;
++  old_price: number; new_price: number; currency: string;
++  drop_pct: number; detected_at: string; listing_url?: string;
++}
+ export interface ServerEvent { id: number; at: string; source: string; level: 'info' | 'ok' | 'error'; message: string }
+ export interface MarketInfo { code: string; label: string; currency: string; locale: string; ebayMarketplaceId: string; sources: { total: number; enabled: number } }
+ export interface MarketsResponse { default: string; region?: string; setupComplete?: boolean; markets: MarketInfo[] }
