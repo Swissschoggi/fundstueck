@@ -7,7 +7,9 @@
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
 }
 
-@media (min-width: 768px) {
+/* Must track MobileBottomNav's own breakpoint (1024px), not just phones,
+   or content hides behind the bar on tablets / narrow desktop windows. */
+@media (min-width: 1024px) {
   .content {
     padding-bottom: 0;
   }

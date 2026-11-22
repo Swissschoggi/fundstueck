@@ -197,56 +197,15 @@
   color: var(--error);
 }
 
-.mobileSettings {
-  display: none;
-}
-
-@media (max-width: 1023px) and (min-width: 768px) {
-  .mobileSettings {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    margin-left: auto;
-    border-radius: var(--r-md);
-    color: var(--on-surface-variant);
-    flex: none;
-  }
-
-  .mobileSettings:hover,
-  .mobileSettings.active {
-    background: var(--surface-high);
-    color: var(--primary);
-  }
-
-  .sidebar {
-    position: sticky;
-    top: 0;
-    width: 100%;
-    height: var(--topbar-height);
-    flex-direction: row;
-    align-items: center;
-    padding: 0 var(--margin-mobile);
-    border-right: none;
-    border-bottom: 1px solid var(--border-default);
-  }
-
-  .nav,
-  .syncPill,
-  .bottom {
-    display: none;
-  }
-
-  .top {
-    flex-direction: row;
-    align-items: center;
-  }
-}
-
-@media (max-width: 767px) {
+/*
+ * Below desktop width (1024px), MobileBottomNav is the single source of
+ * navigation — including the two settings entries — so the sidebar (in any
+ * form, full or compact) is hidden rather than offering a second, partial
+ * set of controls. This used to collapse into a slim icon-only top bar
+ * between 768–1023px that duplicated the settings entries while dropping
+ * Search/Saved/Deal Radar/Alerts navigation entirely in that range.
+ */
+@media (max-width: 1023px) {
   .sidebar {
     display: none;
   }

@@ -45,36 +45,6 @@ export function Sidebar({
           </div>
         </button>
 
-        <button
-          type="button"
-          className={`${styles.mobileSettings} ${
-            route.startsWith('/settings/sources') ? styles.active : ''
-          }`}
-          aria-label="Source plugins"
-          aria-current={route.startsWith('/settings/sources') ? 'page' : undefined}
-          onClick={() => onNavigate('/settings/sources')}
-        >
-          <Icon name="extension" size={18} />
-        </button>
-
-        <button
-          type="button"
-          className={`${styles.mobileSettings} ${
-            route.startsWith('/settings') && !route.startsWith('/settings/sources')
-              ? styles.active
-              : ''
-          }`}
-          aria-label="Crawlers & Daemons settings"
-          aria-current={
-            route.startsWith('/settings') && !route.startsWith('/settings/sources')
-              ? 'page'
-              : undefined
-          }
-          onClick={() => onNavigate(SETTINGS_ITEMS[0].path)}
-        >
-          <Icon name="settings" size={18} />
-        </button>
-
         <div className={styles.syncPill}>
           <span className={styles.syncLeft}>
             <span

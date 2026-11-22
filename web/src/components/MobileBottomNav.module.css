@@ -2,7 +2,14 @@
   display: none;
 }
 
-@media (max-width: 767px) {
+/*
+ * Matches Sidebar.module.css's own breakpoint: the full desktop sidebar
+ * (with text-labeled nav) only reappears at 1024px, so this bar must cover
+ * everything below that — not just phones. It used to cut off at 767px,
+ * leaving 768–1023px (tablets, and narrower desktop windows) with no way
+ * to switch between Search/Saved/Deal Radar/Alerts at all.
+ */
+@media (max-width: 1023px) {
   .bar {
     display: flex;
     position: fixed;

@@ -217,18 +217,6 @@
   }
 }
 
-@media (min-width: 768px) {
-  .filterPanel {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    border-top: none;
-  }
-  .filtersBtn {
-    display: none;
-  }
-}
-
 .clearBtn {
   display: inline-flex;
   align-items: center;
