@@ -116,6 +116,22 @@
   transform: scale(0.98);
 }
 
+.inlineLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.inlineLink:hover,
+.inlineLink:focus-visible {
+  color: var(--primary-fixed, var(--primary));
+}
+
 .errorBanner {
   display: flex;
   align-items: center;

@@ -237,8 +237,12 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
           <p className={styles.subtitle}>
             Built-in marketplace adapters running in-process on this node. Official
             APIs and public server-rendered pages only — Fundstück never solves a
-            CAPTCHA itself. Optional operator-installed plugins and custom sources
-            are managed on the Source plugins page.
+            CAPTCHA itself. Optional operator-installed plugins and custom sources are
+            managed on the{' '}
+            <button type="button" className={styles.inlineLink} onClick={() => onNavigate('/settings/sources')}>
+              Source plugins page
+            </button>
+            .
           </p>
         </div>
         <div className={styles.headerActions}>
@@ -249,6 +253,14 @@ export function SettingsPage({ onNavigate }: { onNavigate: (to: string) => void 
           >
             <Icon name="arrow_back" size={16} />
             Back to search
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => onNavigate('/settings/sources')}
+          >
+            <Icon name="extension" size={16} />
+            Source plugins
           </button>
           <button
             type="button"
